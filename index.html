@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>SUBTERRÂNEA</title>
+<style>
+:root{--paper:#f6f1d8;--ink:#181714;--red:#cf4a43;--blue:#42c8ff}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#0c0c12;color:var(--paper);font-family:"Courier New",monospace;touch-action:none}button{font-family:inherit}
+#game{position:relative;width:100%;height:100%;background:#11111a}.screen{position:absolute;inset:0;display:none}.screen.active{display:block}
+#world{background:linear-gradient(#161625 0 62%,#252238 62%)}canvas{display:block;width:100%;height:100%;image-rendering:pixelated}
+#hud{position:absolute;left:18px;top:16px;display:flex;gap:18px;font-weight:bold;text-shadow:2px 2px #000;font-size:17px;pointer-events:none}.bar{width:90px;height:10px;border:2px solid #fff;display:inline-block;margin-left:6px;vertical-align:middle;background:#35233a}.bar i{display:block;height:100%;background:#d7ec63;width:100%}
+#dialog{position:absolute;left:18px;right:18px;bottom:18px;min-height:112px;border:4px solid #fff;background:#08080d;padding:14px 18px;font-size:20px;line-height:1.35;text-shadow:1px 1px #000;display:none}#dialog.show{display:block}
+#zoneName{position:absolute;left:50%;top:24%;transform:translate(-50%,-50%);font-size:28px;letter-spacing:5px;text-shadow:3px 3px #000;opacity:0;transition:.5s}.zoneanim{opacity:1!important}
+#battle{background:#09090e}.box{position:absolute;left:4%;right:4%;bottom:118px;height:35%;border:4px solid #fff;overflow:hidden}.heart{position:absolute;width:16px;height:16px;background:var(--red);clip-path:polygon(50% 88%,8% 52%,8% 25%,24% 10%,50% 28%,76% 10%,92% 25%,92% 52%);z-index:5}
+.enemy{position:absolute;left:50%;top:23%;transform:translateX(-50%);text-align:center}.enemy-name{font-size:14px;color:#aaa;margin-bottom:12px}.glitchcat{width:110px;height:95px;margin:auto;position:relative;filter:drop-shadow(4px 4px #000)}.glitchcat:before{content:"";position:absolute;left:20px;top:22px;width:70px;height:58px;background:#c4d9b0;border-radius:48% 48% 40% 40%;box-shadow:inset -12px 0 #8eaa86}.glitchcat:after{content:"";position:absolute;left:27px;top:8px;width:22px;height:30px;background:#c4d9b0;transform:rotate(-20deg);box-shadow:55px 18px #c4d9b0}.face{position:absolute;z-index:2;left:42px;top:48px;width:7px;height:7px;background:#111;box-shadow:31px 0 #111,15px 17px 0 2px #111}
+.menu{position:absolute;left:3%;right:3%;bottom:18px;height:82px;border-top:3px solid #555;display:flex;gap:10px;align-items:center}.act{flex:1;height:58px;border:3px solid #ff9a35;color:#ff9a35;background:transparent;font-size:18px;font-weight:bold}.act.active{background:#ff9a35;color:#09090e}.act:not(.active):hover{filter:brightness(1.2)}
+#battleText{position:absolute;left:6%;right:6%;top:8px;font-size:18px;text-align:center}
+#controls{position:absolute;right:14px;bottom:16px;width:150px;height:150px;display:none}.dpad{position:absolute;border:0;width:50px;height:50px;background:#fff1;border:2px solid #fff8;color:#fff;font-size:24px}.u{left:50px;top:0}.d{left:50px;bottom:0}.l{left:0;top:50px}.r{right:0;top:50px}
+#interact{position:absolute;right:28px;bottom:180px;width:70px;height:70px;border-radius:50%;border:3px solid #fff;color:#fff;background:#fff2;font-weight:bold;display:none}
+@media(pointer:coarse),(max-width:700px){#controls,#interact{display:block}.act{font-size:14px}.menu{bottom:10px;height:72px}.act{height:52px}#hud{font-size:13px}.bar{width:70px}}
+</style></head>
+<body><div id="game">
+<section id="world" class="screen active"><canvas id="worldCanvas"></canvas><div id="hud"><span>NÓ  LV1</span><span>HP <b class="bar"><i id="hpbar"></i></b></span><span id="love">LV 03</span></div><div id="zoneName">RUÍNAS CINZAS</div><div id="dialog"></div><div id="controls"><button class="dpad u" data-dir="up">▲</button><button class="dpad d" data-dir="down">▼</button><button class="dpad l" data-dir="left">◀</button><button class="dpad r" data-dir="right">▶</button></div><button id="interact">AÇÃO</button></section>
+<section id="battle" class="screen"><div id="battleText">* Uma criatura enevoada aparece.</div><div class="enemy"><div class="enemy-name">CÉUPEQUENO — 40 HP</div><div class="glitchcat"><div class="face"></div></div></div><div class="box" id="box"><div class="heart" id="heart" style="left:50%;top:50%"></div></div><div class="menu" id="menu"><button class="act active" data-action="Lutar">LUTAR</button><button class="act" data-action="Agir">AGIR</button><button class="act" data-action="Item">ITEM</button><button class="act" data-action="Fugir">FUGIR</button></div></section>
+</div>
+<script>
+const $=s=>document.querySelector(s), world=$('#world'), battle=$('#battle'), cv=$('#worldCanvas'),ctx=cv.getContext('2d');
+let W,H,scale=1,keys={},talking=false,mode='world',battlePhase='menu',enemyHP=40,maxHP=20,hp=20,enemyKind='';
+const hero={x:160,y:300,r:8}, solids=[{x:0,y:0,w:320,h:180},{x:0,y:430,w:320,h:100},{x:320,y:0,w:320,h:150},{x:450,y:150,w:190,h:280},{x:640,y:0,w:360,h:530}];
+function resize(){W=cv.width=innerWidth;H=cv.height=innerHeight;scale=Math.min(W/960,H/540);ctx.imageSmoothingEnabled=false}addEventListener('resize',resize);resize();
+function drawWorld(){ctx.fillStyle='#161625';ctx.fillRect(0,0,W,H);ctx.save();ctx.translate(W/2-(W<700?480:480)*scale,H/2-270*scale);ctx.scale(scale,scale);
+ctx.fillStyle='#29283d';ctx.fillRect(0,210,960,330);ctx.fillStyle='#34334a';for(let i=0;i<12;i++)ctx.fillRect(i*80+(i%2*15),220+(i%3)*20,3,3);
+ctx.fillStyle='#5a5870';ctx.fillRect(0,200,960,12);ctx.fillStyle='#171724';ctx.fillRect(210,0,540,210);ctx.fillStyle='#46465d';ctx.fillRect(230,15,500,195);
+ctx.fillStyle='#0e0e18';ctx.fillRect(250,35,460,155);ctx.fillStyle='#9b8ec7';ctx.fillRect(282,70,34,34);ctx.fillRect(644,70,34,34);ctx.fillStyle='#cbbd79';ctx.fillRect(480,54,12,90);
+ctx.fillStyle='#29283d';ctx.fillRect(0,180,180,150);ctx.fillRect(780,180,180,150);ctx.fillStyle='#191923';ctx.fillRect(80,250,48,100);ctx.fillRect(832,250,48,100);
+ctx.fillStyle='#3e3c55';ctx.fillRect(0,330,960,210);ctx.strokeStyle='#4d4b64';ctx.lineWidth=2;for(let y=360;y<540;y+=40){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(960,y);ctx.stroke()}for(let x=0;x<960;x+=50){ctx.beginPath();ctx.moveTo(x,330);ctx.lineTo(x,540);ctx.stroke()}
+ctx.fillStyle='#d3cfaf';ctx.fillRect(hero.x-8,hero.y-12,16,24);ctx.fillStyle='#6c79aa';ctx.fillRect(hero.x-8,hero.y+7,16,5);ctx.fillStyle='#c8a4a8';ctx.fillRect(hero.x-6,hero.y-16,12,7);ctx.fillStyle='#4a3f43';ctx.fillRect(hero.x-8,hero.y-13,16,4);
+ctx.fillStyle='#b8b5cc';ctx.fillRect(340,245,30,55);ctx.fillStyle='#77728a';ctx.fillRect(345,255,20,35);ctx.fillStyle='#d9d5ad';ctx.fillRect(348,250,14,8);
+ctx.restore();requestAnimationFrame(drawWorld)}
+resize();drawWorld();setTimeout(()=>{$('#zoneName').classList.add('zoneanim');setTimeout(()=>$('#zoneName').classList.remove('zoneanim'),1800)},300);
+function collide(nx,ny){if(nx<100||nx>860||ny<220||ny>500)return true;if(nx>300&&nx<370&&ny>245&&ny<300)return true;if(nx>760&&nx<820&&ny>245&&ny<300)return true;return false}
+function loop(){if(mode==='world'&&!talking){let dx=0,dy=0;if(keys.ArrowLeft||keys.a||keys.left)dx--;if(keys.ArrowRight||keys.d||keys.right)dx++;if(keys.ArrowUp||keys.w||keys.up)dy--;if(keys.ArrowDown||keys.s||keys.down)dy++;if(dx&&dy){dx*=.707;dy*=.707}if(!collide(hero.x+dx*3,hero.y))hero.x+=dx*3;if(!collide(hero.x,hero.y+dy*3))hero.y+=dy*3;if(hero.y<235&&hero.x>420&&hero.x<540)interact()}requestAnimationFrame(loop)}loop();
+function showDialog(text){talking=true;const d=$('#dialog');d.textContent=text;d.classList.add('show')}function hideDialog(){talking=false;$('#dialog').classList.remove('show')}
+function interact(){if(talking){hideDialog();return}showDialog(hero.y<240?'* A lua parece lembrar de outra pessoa.':'* A estátua não move os olhos de você.')}
+$('#interact').addEventListener('pointerdown',e=>{e.preventDefault();interact()});addEventListener('keydown',e=>{keys[e.key]=true;if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key))e.preventDefault();if(e.key===' '||e.key==='Enter')interact()});addEventListener('keyup',e=>keys[e.key]=false);
+document.querySelectorAll('.dpad').forEach(b=>{const k=b.dataset.dir;b.addEventListener('pointerdown',e=>{e.prevent.preventDefault?.();keys[k]=true});b.addEventListener('pointerup',()=>keys[k]=false);b.addEventListener('pointerleave',()=>keys[k]=false)});
+// battle
+function enterBattle(){mode='battle';world.classList.remove('active');battle.classList.add('active');battlePhase='menu';$('#heart').style.left='50%';$('#heart').style.top='50%';$('#battleText').textContent='* Uma criatura enevoada aparece.'}
+// wander trigger at lower signpost
+let nearCount=0;setInterval(()=>{if(mode==='world'&&!talking&&hero.y>440&&Math.random()<.012)enterBattle()},80);
+const heart=$('#heart'),box=$('#box');let bulletTimer=null,moveKeys={};
+function startDodge(){battlePhase='dodging';$('#battleText').textContent='';const r=box.getBoundingRect?.()||box.getBoundingClientRect();heart.style.left='50%';heart.style.top='50%';let px=r.width/2-8,py=r.height/2-8;heart.style.left=px+'px';heart.style.top=py+'px';clearInterval(bulletTimer);bulletTimer=setInterval(()=>{if(battlePhase!=='dodging')return;const b=document.createElement('i');b.style.cssText='position:absolute;width:10px;height:10px;background:#42c8ff;left:'+((Math.random()*85)+5)+'%;top:-12px';box.appendChild(b);let by=-12,dx=(px-b.offsetLeft)*.008;const t=setInterval(()=>{by+=3;b.style.top=by+'px';px+=dx;if(px<8)px=8;if(px>r.width-24)px=r.width-24;heart.style.left=px+'px';const hb=heart.getBoundingClientRect(),bb=b.getBoundingClientRect();if(hb.left<bb.right&&hb.right>bb.left&&hb.top<bb.bottom&&hb.bottom>bb.top){clearInterval(t);b.remove();hp-=3;$('#hpbar').style.width=(hp/maxHP*100)+'%';if(hp<=0){hp=maxHP;enterWorld();showDialog('* Você encontrou coragem para tentar de novo.')}}if(by>r.height){clearInterval(t);b.remove()}},30)},380);setTimeout(()=>{clearInterval(bulletTimer);battlePhase='menu';document.querySelectorAll('.act').forEach(a=>a.style.display='block');box.querySelectorAll('i').forEach(e=>e.remove());$('#battleText').textContent='* A criatura observa sua gentileza.'},5200)}
+function enterWorld(){mode='world';battle.classList.remove('active');world.classList.add('active');hero.x=480;hero.y=430}
+function action(name){if(battlePhase!=='menu')return;if(name==='Fugir'){enterWorld();return}if(name==='Item'){hp=Math.min(maxHP,hp+8);$('#hpbar').style.width=(hp/maxHP*100)+'%';$('#battleText').textContent='* Você comeu uma pétala doce. +8 HP';setTimeout(startDodge,700);return}if(name==='Agir'){$('#battleText').textContent='* Você estende a mão. A criatura hesita.';setTimeout(startDodge,700);return}if(name==='Lutar'){enemyHP-=12;$('#battleText').textContent='* Você ataca. 12 pontos de dano.';if(enemyHP<=0){setTimeout(()=>{enterWorld();showDialog('* Você venceu sem perder o coração.');enemyHP=40;},800)}else setTimeout(startDodge,700)}}
+document.querySelectorAll('.act').forEach(a=>a.addEventListener('pointerdown',()=>action(a.dataset.action)));
+addEventListener('keydown',e=>{if(mode==='battle'&&battlePhase==='dodging'){if(e.key==='ArrowLeft')e.preventDefault()}});
+</script></body></html>
