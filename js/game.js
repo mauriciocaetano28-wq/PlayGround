@@ -1111,9 +1111,12 @@ export class Game {
   _syncTouchMode() {
     const on = this._touchEnabled();
     document.body.classList.toggle('touch-mode', on);
+    const menu = this.mode === 'attract';
+    document.body.classList.toggle('menu-mode', on && menu);
     const tc = $('touch-controls');
     const hud = $('hud');
-    const visible = on && this.mode !== 'attract' && hud && !hud.classList.contains('hidden');
+    const hudVisible = hud && !hud.classList.contains('hidden');
+    const visible = on && (menu || hudVisible);
     if (tc) {
       tc.classList.toggle('hidden', !visible);
       tc.style.setProperty('--touch-scale', ((this.settings.touchScale ?? 100) / 100).toString());
@@ -1140,7 +1143,8 @@ export class Game {
 
   hideHUD() {
     $('hud').classList.add('hidden');
-    $('touch-controls').classList.add('hidden');
+    if (this.mode === 'attract') this._syncTouchMode();
+    else $('touch-controls').classList.add('hidden');
   }
 
   notify(title, text, type = '') {
@@ -1160,10 +1164,14 @@ export class Game {
     if (grid) {
       if (this._touchEnabled()) {
         grid.innerHTML = `
-          <div><kbd>◀</kbd><b>Mover</b><small>Joystick virtual</small></div>
-          <div><kbd>○</kbd><b>Interagir</b><small>Veículos e pessoas</small></div>
-          <div><kbd>L2 + R2</kbd><b>Mirar &amp; atirar</b><small>Segure R2 para atirar</small></div>
-          <div><kbd>▭</kbd><b>Mapa</b><small>Touchpad / D-pad</small></div>`;
+          <div><kbd>◀</kbd><b>Mover</b><small>Analógico esquerdo (L3 troca o ombro)</small></div>
+          <div><kbd>R2</kbd><b>Atirar / Acelerar</b><small>Segure para atirar; no carro acelera</small></div>
+          <div><kbd>L2</kbd><b>Mirar / Frear</b><small>No carro, L1 olha para trás</small></div>
+          <div><kbd>○</kbd><b>Interagir / Sair</b><small>Entrar em veículos e falar</small></div>
+          <div><kbd>△</kbd><b>Personagem</b><small>Troca Luiza e Carlos</small></div>
+          <div><kbd>▭</kbd><b>Touchpad / Mapa</b><small>Toque no mapa para marcar um ponto</small></div>
+          <div><kbd>▽</kbd><b>Recarregar / Buzina</b><small>D-pad para baixo</small></div>
+          <div><kbd>R3</kbd><b>Câmera</b><small>Centraliza a visão</small></div>`;
       } else {
         grid.innerHTML = `
           <div><kbd>WASD</kbd><b>Mover</b><small>Shift para correr</small></div>
@@ -1234,6 +1242,12 @@ export class Game {
       if (e.code === 'Tab') { e.preventDefault(); this.openSwitch(); return; }
       if (this.paused) return;
       if (this.cutscene) return;
+      const touchPulse = {
+        KeyE: 'interact', KeyF: 'melee', Space: 'jump', KeyR: 'dpad-down',
+        KeyM: 'touchpad', Tab: 'switch', Digit1: 'dpad-left', Digit2: 'dpad-right',
+        ShiftLeft: 'sprint', ShiftRight: 'sprint'
+      };
+      if (this._touchEnabled() && touchPulse[e.code]) this._pulseTouch(touchPulse[e.code]);
       if (e.code === 'KeyE') this._interact();
       if (e.code === 'KeyF') this._melee();
       if (e.code === 'Space') { e.preventDefault(); this._jump(); }
@@ -1431,6 +1445,8 @@ export class Game {
         if (action === 'create') { this._toggleTutorial(); this._haptic(6); return; }
         if (action === 'options') { this._openSettings(); this._haptic(6); return; }
         if (action === 'ps') { this.togglePause(true); this._haptic(8); return; }
+        if (action === 'touchpad') { this.openMap(); this._haptic(8); return; }
+        if (action === 'hud') { this._toggleTouchHud(); this._haptic(6); return; }
       });
       const release = () => {
         btn.classList.remove('pressed');
@@ -1779,6 +1795,32 @@ export class Game {
   _toggleTutorial() {
     if (this.mode === 'attract') return;
     this._showTutorial();
+  }
+
+  _toggleTouchHud() {
+    const tc = $('touch-controls');
+    if (!tc) return;
+    const collapsed = tc.classList.toggle('touch-collapsed');
+    const btn = $('tbtn-hud');
+    if (btn) {
+      btn.title = collapsed ? 'Mostrar controles' : 'Recolher controles';
+      btn.setAttribute('aria-label', btn.title);
+    }
+    if (this.mode !== 'attract') {
+      this.notify(
+        collapsed ? 'CONTROLES RECOLHIDOS' : 'CONTROLES RESTAURADOS',
+        collapsed ? 'Toque em ◱ para mostrar novamente.' : 'HUD virtual completo ativo.',
+        'good'
+      );
+    }
+  }
+
+  _pulseTouch(action) {
+    const btn = document.querySelector('[data-touch="' + action + '"]');
+    if (!btn) return;
+    btn.classList.add('pressed');
+    clearTimeout(btn._pulseTO);
+    btn._pulseTO = setTimeout(() => btn.classList.remove('pressed'), 140);
   }
 
   _moveAxes() {

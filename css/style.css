@@ -409,7 +409,7 @@ body.touch-mode.dialogue-open .touch-shoulders-left,
 body.touch-mode.dialogue-open .joystick{opacity:.35}
 body.touch-mode.high-wanted .mh-damage{box-shadow:inset 0 0 90px rgba(255,40,60,.22)}
 
-.touch-controls{position:absolute;inset:0;pointer-events:none;z-index:26;touch-action:none}
+.touch-controls{position:absolute;inset:0;pointer-events:none;z-index:35;touch-action:none}
 .touch-controls button{pointer-events:auto}
 .touch-brand{position:absolute;top:calc(8px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);font-family:var(--font-display);font-size:11px;letter-spacing:.16em;color:rgba(234,242,242,.55);pointer-events:none;white-space:nowrap}
 .touch-brand span{display:block;font-family:var(--font-ui);font-size:5px;letter-spacing:.28em;color:var(--teal);text-align:center;margin-top:1px;font-weight:800}
@@ -423,6 +423,16 @@ body.touch-mode.high-wanted .mh-damage{box-shadow:inset 0 0 90px rgba(255,40,60,
 .touch-mini .mini-glyph{font-size:15px;line-height:1;font-weight:700}
 .touch-mini .ps-mark{font-family:var(--font-display);font-size:11px;letter-spacing:.04em;font-weight:800}
 .touch-mini.ps-home{border-color:rgba(46,230,200,.45);color:#bffbf1;box-shadow:0 0 16px rgba(46,230,200,.16),0 4px 14px rgba(0,0,0,.35)}
+.touch-status{display:flex;align-items:center;gap:5px;height:38px;padding:0 9px;border-radius:11px;border:1px solid rgba(255,255,255,.16);background:rgba(3,10,14,.76);backdrop-filter:blur(8px);box-shadow:0 4px 14px rgba(0,0,0,.35);font-size:8px;font-weight:800;letter-spacing:.08em;color:#cfe0e2}
+.touch-status .ts-led{width:6px;height:6px;border-radius:50%;background:var(--teal);box-shadow:0 0 8px var(--teal)}
+.touch-status .ts-batt{position:relative;width:18px;height:9px;border-radius:2px;border:1px solid rgba(255,255,255,.45);padding:1px}
+.touch-status .ts-batt:after{content:"";position:absolute;right:-3px;top:50%;transform:translateY(-50%);width:2px;height:4px;border-radius:0 1px 1px 0;background:rgba(255,255,255,.45)}
+.touch-status .ts-batt i{display:block;height:100%;width:76%;border-radius:1px;background:linear-gradient(90deg,#7dfba7,#2ee6c8)}
+.touch-touchpad{position:absolute;right:calc(10px + env(safe-area-inset-right));bottom:calc(232px + env(safe-area-inset-bottom));width:150px;height:36px;border-radius:8px;border:1px solid rgba(255,255,255,.24);background:linear-gradient(180deg,rgba(22,44,50,.82),rgba(4,13,18,.72));display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;pointer-events:auto;transform:scale(var(--touch-scale,1));transform-origin:bottom right;box-shadow:0 5px 16px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.08);touch-action:none;z-index:4}
+.touch-touchpad span{font-size:8px;letter-spacing:.22em;font-weight:800;color:#dce7e8;line-height:1}
+.touch-touchpad small{font-size:4.5px;letter-spacing:.12em;font-weight:800;color:var(--teal);opacity:.85;margin-top:1px}
+.touch-touchpad:active,.touch-touchpad.pressed{background:rgba(255,196,107,.9);color:#1c1108;transform:scale(calc(var(--touch-scale,1) * .97))}
+.touch-touchpad:active span,.touch-touchpad.pressed span,.touch-touchpad:active small,.touch-touchpad.pressed small{color:#1c1108}
 .joystick{position:absolute;left:calc(18px + env(safe-area-inset-left));bottom:calc(20px + env(safe-area-inset-bottom));width:118px;height:118px;pointer-events:auto;touch-action:none;transform:scale(var(--touch-scale,1));transform-origin:bottom left;z-index:3}
 .stick-base{position:absolute;inset:0;border-radius:50%;border:1px solid rgba(255,255,255,.22);background:radial-gradient(circle at 38% 30%,rgba(255,255,255,.13),rgba(3,10,14,.42) 65%);box-shadow:inset 0 0 26px rgba(0,0,0,.45),0 8px 24px rgba(0,0,0,.35);backdrop-filter:blur(5px)}
 .stick-base:before,.stick-base:after{content:"";position:absolute;background:rgba(255,255,255,.12)}
@@ -487,6 +497,21 @@ body.touch-mode .touch-brand{display:none}
 @media (min-width:900px){body.touch-mode .touch-brand{display:block}}
 body.touch-mode .wanted-row{align-self:flex-start}
 body.touch-mode .wanted-stars svg{width:13px;height:13px}
+body.touch-mode.menu-mode .touch-controls{opacity:.62;transition:opacity .3s}
+body.touch-mode.menu-mode .touch-controls button{pointer-events:none}
+body.touch-mode.menu-mode .touch-top,
+body.touch-mode.menu-mode .touch-brand{display:none}
+body.touch-mode.menu-mode .touch-look-hint{display:none}
+body.touch-mode.menu-mode .touch-controls.touch-collapsed{opacity:1}
+body.touch-mode.menu-mode .touch-controls.touch-collapsed button{pointer-events:auto}
+body.touch-mode .touch-controls.touch-collapsed .joystick,
+body.touch-mode .touch-controls.touch-collapsed .touch-dpad,
+body.touch-mode .touch-controls.touch-collapsed .touch-shoulders-left,
+body.touch-mode .touch-controls.touch-collapsed .touch-actions,
+body.touch-mode .touch-controls.touch-collapsed .touch-touchpad,
+body.touch-mode .touch-controls.touch-collapsed .touch-look-hint{display:none}
+body.touch-mode .touch-controls.touch-collapsed .touch-top{opacity:.9}
+body.touch-mode .touch-controls.touch-collapsed #tbtn-hud{background:rgba(255,196,107,.85);color:#1c1108}
 
 /* ============================================================
    MAP OVERLAY

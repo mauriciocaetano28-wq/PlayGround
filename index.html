@@ -348,13 +348,17 @@
       </div>
     </div>
 
-    <div class="touch-controls hidden" id="touch-controls" aria-label="Controle virtual PlayStation 5">
+  </div>
+
+  <div class="touch-controls hidden" id="touch-controls" aria-label="Controle virtual PlayStation 5">
       <div class="touch-brand">MATTEO 5 <span>DUALSENSE VIRTUAL</span></div>
       <div class="touch-look-hint" id="touch-look-hint"><span>↔</span> ARRASTE PARA OLHAR</div>
       <div class="touch-top">
-        <button class="touch-mini" id="tbtn-create" data-touch="create" title="Ajuda e controles" aria-label="Ajuda e controles"><span class="mini-glyph">≡</span></button>
+        <div class="touch-status" aria-hidden="true"><i class="ts-led"></i><b>P1</b><span class="ts-batt"><i></i></span></div>
+        <button class="touch-mini" id="tbtn-create" data-touch="create" title="Criar / Ajuda e controles" aria-label="Criar / Ajuda e controles"><span class="mini-glyph">≡</span></button>
         <button class="touch-mini" id="tbtn-map" title="Mapa" aria-label="Mapa"><svg><use href="#icon-map"/></svg></button>
-        <button class="touch-mini" id="tbtn-options" data-touch="options" title="Definições" aria-label="Definições"><span class="mini-glyph">☰</span></button>
+        <button class="touch-mini" id="tbtn-options" data-touch="options" title="Opções / Definições" aria-label="Opções / Definições"><span class="mini-glyph">☰</span></button>
+        <button class="touch-mini" id="tbtn-hud" data-touch="hud" title="Recolher controles" aria-label="Recolher controles"><span class="mini-glyph">◱</span></button>
         <button class="touch-mini ps-home" id="tbtn-ps" data-touch="ps" title="Menu de pausa" aria-label="Menu de pausa"><span class="ps-mark">PS</span></button>
       </div>
 
@@ -386,8 +390,11 @@
         <button class="tbtn glyph-cr ps-cr" data-touch="jump" data-label="PULAR" data-label-vehicle="FREIO MÃO"><svg><use href="#glyph-cross"/></svg><small>PULAR</small></button>
         <button class="tbtn stick-click r3" data-touch="r3" data-label="CÂMERA" data-label-vehicle="CÂMERA" title="Centralizar câmera" aria-label="Centralizar câmera"><span>R3</span><small>CÂMERA</small></button>
       </div>
+
+      <button class="touch-touchpad" id="tbtn-touchpad" data-touch="touchpad" data-label="MAPA" data-label-vehicle="MAPA" title="Touchpad — abrir mapa" aria-label="Touchpad — abrir mapa">
+        <span>TOUCHPAD</span><small>MAPA</small>
+      </button>
     </div>
-  </div>
 
   <!-- ============ FULL MAP ============ -->
   <section id="map-overlay" class="overlay map-overlay hidden">
