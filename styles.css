@@ -379,7 +379,7 @@ body.cinematic #cinema-bars span { height: 8vh; }
 .radio-row b { display: block; font-size: calc(7px * var(--hud-scale)); letter-spacing: .1em; color: #cddcd7; font-weight: 500; }
 
 #bottom-right { position: absolute; right: calc(27px + var(--safe-right)); bottom: calc(28px + var(--safe-bottom)); display: flex; flex-direction: column; align-items: flex-end; gap: 11px; }
-.weapon-card { display: flex; align-items: center; gap: 10px; padding: 8px 10px; background: linear-gradient(90deg, rgba(4,11,12,.2), rgba(4,11,12,.72)); border: 1px solid rgba(255,255,255,.1); }
+.weapon-card { display: flex; align-items: center; gap: 10px; padding: 8px 10px; background: linear-gradient(90deg, rgba(4,11,12,.5), rgba(4,11,12,.82)); border: 1px solid rgba(255,255,255,.14); backdrop-filter: blur(6px); }
 .weapon-icon { width: calc(31px * var(--hud-scale)); height: calc(25px * var(--hud-scale)); display: grid; place-items: center; font-size: calc(17px * var(--hud-scale)); color: var(--gold); background: rgba(0,0,0,.32); border-radius: 2px; }
 .weapon-info span { display: block; font-size: calc(5.5px * var(--hud-scale)); letter-spacing: .15em; color: var(--muted); }
 .weapon-info b { font-family: 'Barlow Condensed'; font-size: calc(18px * var(--hud-scale)); font-weight: 700; line-height: 1; }
@@ -793,45 +793,121 @@ body.touch .notifications, body.force-touch .notifications { top: calc(100px + v
 body.touch .dialogue, body.force-touch .dialogue { bottom: calc(215px + var(--safe-bottom)); width: min(520px, 88vw); }
 body.touch .interaction-prompt, body.force-touch .interaction-prompt { bottom: calc(180px + var(--safe-bottom)); }
 body.touch .subtitle-toast, body.force-touch .subtitle-toast { bottom: calc(160px + var(--safe-bottom)); }
+body.touch.in-dialogue #bottom-right, body.force-touch.in-dialogue #bottom-right { opacity: 0; pointer-events: none; }
+body.touch.in-dialogue .objective-panel, body.force-touch.in-dialogue .objective-panel { opacity: .18; }
+body.touch #bottom-right, body.force-touch #bottom-right, .objective-panel { transition: opacity .2s ease; }
 
-.mobile-controls { position: absolute; inset: 0; pointer-events: none; z-index: 11; opacity: var(--hud-opacity); }
+/* ============================================================
+   PS5 VIRTUAL CONTROLS · complete touch gamepad
+   ============================================================ */
+.mobile-controls { position: absolute; inset: 0; pointer-events: none; z-index: 12; opacity: var(--hud-opacity); --touch: var(--hud-scale); }
 .mobile-controls > * { pointer-events: auto; }
-.stick-zone { position: absolute; left: calc(22px + var(--safe-left)); bottom: calc(20px + var(--safe-bottom)); width: calc(120px * var(--hud-scale)); height: calc(120px * var(--hud-scale)); display: flex; flex-direction: column; align-items: center; gap: 5px; touch-action: none; }
-.stick-zone > span { font-size: 6px; letter-spacing: .16em; color: rgba(255,255,255,.4); }
-.stick-base { position: relative; width: calc(104px * var(--hud-scale)); height: calc(104px * var(--hud-scale)); border-radius: 50%; background: radial-gradient(circle, rgba(8,22,24,.24) 25%, rgba(8,22,24,.56)); border: 1px solid rgba(255,255,255,.25); box-shadow: inset 0 0 25px rgba(0,0,0,.25); backdrop-filter: blur(4px); }
+.mobile-controls button { -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; font-family: 'Outfit', sans-serif; transition: background .12s ease, border-color .12s ease, color .12s ease; }
+
+/* --- left thumb: L3 + movement stick --- */
+.stick-zone { position: absolute; left: calc(24px + var(--safe-left)); bottom: calc(16px + var(--safe-bottom)); width: calc(120px * var(--touch)); height: calc(152px * var(--touch)); display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: calc(5px * var(--touch)); touch-action: none; }
+.stick-base { position: relative; width: calc(106px * var(--touch)); height: calc(106px * var(--touch)); border-radius: 50%; background: radial-gradient(circle, rgba(8,22,24,.24) 25%, rgba(8,22,24,.58)); border: 1px solid rgba(255,255,255,.25); box-shadow: inset 0 0 25px rgba(0,0,0,.25); backdrop-filter: blur(4px); transition: border-color .2s, box-shadow .2s; }
+.stick-zone.sprint .stick-base { border-color: rgba(246,199,104,.7); box-shadow: inset 0 0 25px rgba(246,199,104,.16), 0 0 18px rgba(246,199,104,.18); }
+.stick-zone.sprint .stick-ring { border-color: rgba(246,199,104,.4); }
 .stick-ring { position: absolute; inset: 17%; border: 1px solid rgba(255,255,255,.13); border-radius: 50%; }
-.stick-knob { position: absolute; left: 50%; top: 50%; width: calc(42px * var(--hud-scale)); height: calc(42px * var(--hud-scale)); border-radius: 50%; transform: translate(-50%,-50%); background: radial-gradient(circle at 35% 30%, rgba(255,255,255,.45), rgba(255,255,255,.12) 55%, rgba(255,255,255,.05)); border: 1px solid rgba(255,255,255,.5); box-shadow: 0 2px 8px rgba(0,0,0,.35); }
+.stick-knob { position: absolute; left: 50%; top: 50%; width: calc(42px * var(--touch)); height: calc(42px * var(--touch)); border-radius: 50%; transform: translate(-50%,-50%); background: radial-gradient(circle at 35% 30%, rgba(255,255,255,.45), rgba(255,255,255,.12) 55%, rgba(255,255,255,.05)); border: 1px solid rgba(255,255,255,.5); box-shadow: 0 2px 8px rgba(0,0,0,.35); }
+.stick-caption { font-size: calc(6px * var(--touch)); letter-spacing: .16em; color: rgba(255,255,255,.4); }
+.touch-l3 { width: calc(60px * var(--touch)); height: calc(22px * var(--touch)); border-radius: 12px; border: 1px solid rgba(255,255,255,.28); background: rgba(4,13,14,.55); color: #dfe9e5; display: flex; align-items: center; justify-content: center; gap: 4px; touch-action: none; }
+.touch-l3 b { font-size: calc(7px * var(--touch)); letter-spacing: .08em; }
+.touch-l3 small { font-size: calc(4px * var(--touch)); letter-spacing: .04em; color: rgba(255,255,255,.5); }
+.touch-l3.on { border-color: var(--gold); color: var(--gold); background: rgba(246,199,104,.14); box-shadow: 0 0 12px rgba(246,199,104,.28); }
+
+/* --- D-pad: phone, weapon, radio, map --- */
+.touch-dpad { position: absolute; left: calc(150px + var(--safe-left)); bottom: calc(26px + var(--safe-bottom)); width: calc(100px * var(--touch)); height: calc(100px * var(--touch)); display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr); gap: 2px; touch-action: none; }
+.dpad-bit { border: 1px solid rgba(255,255,255,.24); background: rgba(4,13,14,.5); color: rgba(255,255,255,.82); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; padding: 0; touch-action: none; backdrop-filter: blur(3px); }
+.dpad-bit span { font-size: calc(11px * var(--touch)); line-height: 1; }
+.dpad-bit small { font-size: calc(4.4px * var(--touch)); letter-spacing: .02em; color: rgba(255,255,255,.66); }
+.dpad-bit:active, .dpad-bit.held { background: rgba(255,255,255,.2); }
+.dpad-bit.up { grid-area: 1 / 2; border-radius: 7px 7px 2px 2px; }
+.dpad-bit.left { grid-area: 2 / 1; border-radius: 7px 2px 2px 7px; }
+.dpad-bit.right { grid-area: 2 / 3; border-radius: 2px 7px 7px 2px; }
+.dpad-bit.down { grid-area: 3 / 2; border-radius: 2px 2px 7px 7px; }
+.dpad-hub { grid-area: 2 / 2; margin: 22%; border: 1px dashed rgba(255,255,255,.16); border-radius: 50%; background: rgba(4,13,14,.34); }
+
+/* --- camera drag surface --- */
 .look-zone { position: absolute; right: 0; top: 0; width: 55%; height: 65%; touch-action: none; }
-.mobile-actions { position: absolute; right: calc(20px + var(--safe-right)); bottom: calc(24px + var(--safe-bottom)); width: calc(210px * var(--hud-scale)); height: calc(180px * var(--hud-scale)); pointer-events: none; }
-.mobile-actions > * { pointer-events: auto; }
-.ps-btn { position: absolute; width: calc(45px * var(--hud-scale)); height: calc(45px * var(--hud-scale)); border-radius: 50%; border: 1px solid rgba(255,255,255,.38); background: rgba(4,13,14,.46); backdrop-filter: blur(4px); display: flex; flex-direction: column; align-items: center; justify-content: center; color: #fff; touch-action: none; box-shadow: 0 3px 12px rgba(0,0,0,.25); }
-.ps-btn:active { background: rgba(255,255,255,.23); transform: scale(.94); }
-.ps-btn span { font-size: calc(17px * var(--hud-scale)); line-height: 1; }
-.ps-btn small { font-size: calc(4.6px * var(--hud-scale)); letter-spacing: .04em; color: rgba(255,255,255,.55); margin-top: 2px; }
-.ps-btn.cross { right: calc(72px * var(--hud-scale)); bottom: calc(5px * var(--hud-scale)); }
-.ps-btn.circle { right: 0; bottom: calc(58px * var(--hud-scale)); }
-.ps-btn.square { right: calc(72px * var(--hud-scale)); bottom: calc(82px * var(--hud-scale)); }
-.ps-btn.triangle { right: calc(139px * var(--hud-scale)); bottom: calc(49px * var(--hud-scale)); width: calc(40px * var(--hud-scale)); height: calc(40px * var(--hud-scale)); }
-.ps-btn.small-btn { width: calc(31px * var(--hud-scale)); height: calc(31px * var(--hud-scale)); border-color: rgba(255,255,255,.2); }
-.ps-btn.small-btn span { font-size: calc(12px * var(--hud-scale)); }
-.ps-btn.small-btn small { font-size: calc(4px * var(--hud-scale)); }
-.ps-btn[data-action="switch"] { right: calc(185px * var(--hud-scale)); bottom: calc(10px * var(--hud-scale)); }
-.ps-btn[data-action="reload"] { right: calc(11px * var(--hud-scale)); bottom: calc(110px * var(--hud-scale)); }
-.mobile-top-actions { position: absolute; right: calc(14px + var(--safe-right)); top: calc(68px + var(--safe-top)); display: flex; gap: 5px; }
-.mobile-top-actions button { width: 30px; height: 30px; border-radius: 50%; background: rgba(4,11,12,.6); border: 1px solid rgba(255,255,255,.2); color: #fff; font-size: 11px; }
-.mobile-aim { position: absolute; right: calc(256px * var(--hud-scale)); bottom: calc(48px * var(--safe-bottom)); width: calc(36px * var(--hud-scale)); height: calc(36px * var(--hud-scale)); border-radius: 50%; border: 1px solid rgba(255,255,255,.23); background: rgba(4,13,14,.38); display: grid; place-items: center; font-size: 14px; color: rgba(255,255,255,.65); }
-.mobile-aim span { position: absolute; bottom: -12px; font-size: 4.5px; letter-spacing: .1em; color: rgba(255,255,255,.4); }
-body.touch .mobile-aim { display: none; }
+
+/* --- right hand: triggers, bumpers, R3 and face buttons --- */
+.mobile-actions { position: absolute; right: calc(16px + var(--safe-right)); bottom: calc(16px + var(--safe-bottom)); width: calc(216px * var(--touch)); height: calc(238px * var(--touch)); pointer-events: none; }
+.mobile-actions > * { pointer-events: auto; position: absolute; }
+.ps-btn { width: calc(48px * var(--touch)); height: calc(48px * var(--touch)); border-radius: 50%; border: 1px solid rgba(255,255,255,.42); background: radial-gradient(circle at 35% 25%, rgba(255,255,255,.16), rgba(4,13,14,.55) 62%); backdrop-filter: blur(5px); display: flex; flex-direction: column; align-items: center; justify-content: center; color: #fff; touch-action: none; box-shadow: 0 3px 12px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.14); transition: transform .08s ease, background .12s ease, border-color .12s ease; }
+.ps-btn:active, .ps-btn.held { background: rgba(255,255,255,.24); transform: scale(.94); }
+.ps-btn span { font-size: calc(18px * var(--touch)); line-height: 1; }
+.ps-btn small { font-size: calc(5.2px * var(--touch)); letter-spacing: .03em; color: rgba(255,255,255,.72); margin-top: 2px; text-align: center; }
+.ps-btn.cross { left: calc(84px * var(--touch)); bottom: calc(8px * var(--touch)); }
+.ps-btn.circle { left: calc(132px * var(--touch)); bottom: calc(56px * var(--touch)); }
+.ps-btn.square { left: calc(36px * var(--touch)); bottom: calc(56px * var(--touch)); }
+.ps-btn.triangle { left: calc(84px * var(--touch)); bottom: calc(104px * var(--touch)); }
+.ps-btn.triangle span { color: #7ef0c6; text-shadow: 0 0 10px rgba(126,240,198,.4); }
+.ps-btn.circle span { color: #ff7a6a; text-shadow: 0 0 10px rgba(255,122,106,.4); }
+.ps-btn.cross span { color: #6ec1ff; text-shadow: 0 0 10px rgba(110,193,255,.4); }
+.ps-btn.square span { color: #ff9ad5; text-shadow: 0 0 10px rgba(255,154,213,.4); }
+.ps-trigger { width: calc(100px * var(--touch)); height: calc(32px * var(--touch)); border-radius: 8px 8px 16px 16px; border: 1px solid rgba(255,255,255,.34); background: linear-gradient(180deg, rgba(255,255,255,.13), rgba(4,13,14,.62)); color: #eef6f2; display: flex; align-items: center; justify-content: center; gap: 5px; touch-action: none; box-shadow: 0 3px 12px rgba(0,0,0,.28); }
+.ps-trigger b, .ps-shoulder b, .touch-r3 b { font-size: calc(7.5px * var(--touch)); letter-spacing: .07em; }
+.ps-trigger small, .ps-shoulder small, .touch-r3 small { font-size: calc(4.8px * var(--touch)); letter-spacing: .03em; color: rgba(255,255,255,.66); }
+.ps-trigger.l2 { left: 0; top: 0; }
+.ps-trigger.r2 { right: 0; top: 0; }
+.ps-trigger.held { border-color: var(--gold); color: var(--gold); background: linear-gradient(180deg, rgba(246,199,104,.38), rgba(246,199,104,.12)); box-shadow: 0 0 16px rgba(246,199,104,.3); }
+.ps-trigger.on { border-color: var(--teal); color: var(--teal); background: linear-gradient(180deg, rgba(67,221,190,.3), rgba(67,221,190,.08)); box-shadow: 0 0 14px rgba(67,221,190,.28); }
+.ps-shoulder { width: calc(64px * var(--touch)); height: calc(24px * var(--touch)); border-radius: 7px; border: 1px solid rgba(255,255,255,.3); background: rgba(4,13,14,.56); color: #e8f2ee; display: flex; align-items: center; justify-content: center; gap: 4px; touch-action: none; }
+.ps-shoulder.l1 { left: 0; top: calc(36px * var(--touch)); }
+.ps-shoulder.r1 { right: 0; top: calc(36px * var(--touch)); }
+.ps-shoulder.held { background: rgba(255,255,255,.22); }
+.touch-r3 { left: calc(84px * var(--touch)); bottom: calc(72px * var(--touch)); width: calc(48px * var(--touch)); height: calc(22px * var(--touch)); border-radius: 6px; border: 1px solid rgba(255,255,255,.22); background: rgba(4,13,14,.5); color: #dfe9e5; display: flex; align-items: center; justify-content: center; gap: 3px; touch-action: none; }
+.touch-r3 b { font-size: calc(6.5px * var(--touch)); }
+.touch-r3 small { font-size: calc(3.8px * var(--touch)); }
+.touch-r3.held { background: rgba(255,255,255,.2); }
+
+/* --- PS5 system bar: Create, Touchpad, Phone, Switch, Options --- */
+.mobile-top-actions { position: absolute; left: 50%; top: calc(10px + var(--safe-top)); transform: translateX(-50%); display: flex; gap: calc(6px * var(--touch)); }
+.mobile-top-actions button { min-width: calc(46px * var(--touch)); height: calc(36px * var(--touch)); padding: 0 5px; border-radius: 8px; background: rgba(4,11,12,.66); border: 1px solid rgba(255,255,255,.2); color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; touch-action: manipulation; backdrop-filter: blur(4px); }
+.mobile-top-actions button:active { background: rgba(255,255,255,.2); border-color: rgba(255,255,255,.4); }
+.mobile-top-actions span { font-size: calc(11px * var(--touch)); line-height: 1; }
+.mobile-top-actions small { font-size: calc(4.8px * var(--touch)); letter-spacing: .04em; color: rgba(255,255,255,.55); }
+body.touch .pause-button, body.force-touch .pause-button { display: none; }
+
+/* keep the live ammo card clear of the PS5 cluster, centered under the system bar */
+body.touch #bottom-right, body.force-touch #bottom-right { top: calc(50px + var(--safe-top)); left: 50%; right: auto; bottom: auto; transform: translateX(-50%) scale(.9); transform-origin: top center; }
+
+/* --- left-handed mirror --- */
+body.lefty .stick-zone { left: auto; right: calc(24px + var(--safe-right)); }
+body.lefty .touch-dpad { left: auto; right: calc(150px + var(--safe-right)); }
+body.lefty .mobile-actions { right: auto; left: calc(16px + var(--safe-left)); }
+body.lefty .look-zone { right: auto; left: 0; top: 34%; width: 56%; height: 52%; }
+
+/* portrait: stack the D-pad above the stick instead of beside it */
+@media (orientation: portrait) and (max-width: 700px) {
+  .touch-dpad { left: calc(24px + var(--safe-left)); bottom: calc(178px + var(--safe-bottom)); }
+  body.lefty .touch-dpad { left: auto; right: calc(24px + var(--safe-right)); }
+  .mobile-actions { transform: scale(.88); transform-origin: right bottom; }
+  body.lefty .mobile-actions { transform-origin: left bottom; }
+  .mobile-top-actions { top: calc(96px + var(--safe-top)); right: calc(8px + var(--safe-right)); left: auto; transform: none; flex-direction: column; gap: 5px; }
+  .mobile-top-actions button { min-width: calc(44px * var(--touch)); height: calc(34px * var(--touch)); }
+  body.touch #bottom-right, body.force-touch #bottom-right { left: calc(50% + 26px); }
+  body.touch .dialogue, body.force-touch .dialogue { bottom: calc(345px + var(--safe-bottom)); width: min(520px, 86vw); }
+}
 
 @media (max-height: 500px) and (orientation: landscape) {
   body.touch .objective-panel, body.force-touch .objective-panel { bottom: 12px; left: 50%; transform: translateX(-24%); width: 220px; padding: 6px 9px; }
   body.touch .objective-panel p, body.force-touch .objective-panel p { display: none; }
   body.touch .minimap-shell, body.force-touch .minimap-shell { width: 110px; height: 110px; }
-  body.touch .stick-zone { width: 95px; height: 95px; bottom: 10px; }
-  body.touch .stick-base { width: 80px; height: 80px; }
-  body.touch .mobile-actions { transform: scale(.8); transform-origin: right bottom; }
+  body.touch .stick-zone, body.force-touch .stick-zone { width: 112px; height: 140px; bottom: 8px; }
+  body.touch .stick-base, body.force-touch .stick-base { width: 96px; height: 96px; }
+  body.touch .touch-dpad, body.force-touch .touch-dpad { left: 140px; bottom: 8px; transform: scale(.98); transform-origin: left bottom; }
+  body.lefty .touch-dpad { left: auto; right: 140px; transform-origin: right bottom; }
+  body.touch .mobile-actions, body.force-touch .mobile-actions { transform: scale(.98); transform-origin: right bottom; }
+  body.lefty .mobile-actions { transform-origin: left bottom; }
+  body.lefty .touch-dpad { transform-origin: right bottom; }
   body.touch #bottom-left, body.force-touch #bottom-left { display: none; }
-  body.touch .dialogue, body.force-touch .dialogue { bottom: 80px; }
+  body.touch .dialogue, body.force-touch .dialogue { top: calc(52px + var(--safe-top)); bottom: auto; width: min(520px, 66vw); padding: 9px 12px; gap: 9px; }
+  body.touch .dialogue-portrait, body.force-touch .dialogue-portrait { flex-basis: 38px; height: 38px; font-size: 19px; }
+  body.touch .dialogue-body p, body.force-touch .dialogue-body p { font-size: 9.5px; }
+  body.touch.in-dialogue .mobile-top-actions, body.force-touch.in-dialogue .mobile-top-actions { opacity: .35; }
 }
 
 /* small phones */
