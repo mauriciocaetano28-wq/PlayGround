@@ -5,39 +5,42 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
 <title>Matteo 5 — GTA 6 BR</title>
 <meta name="theme-color" content="#07100f">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2307100f'/%3E%3Ctext x='16' y='23' font-size='20' text-anchor='middle' fill='%239bffca' font-family='sans-serif'%3EM%3C/text%3E%3C/svg%3E">
 <style>
-:root{
-  --bg:#07100f;--panel:#101a18;--muted:#a1b0aa;--mint:#9bffca;--line:#ffffff16;
-  --accent:#00d2ff;--danger:#ff4d4d;--warn:#ffb700;--ok:#4ade80;
-  --font:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
-}
-* {box-sizing:border-box}
-body{margin:0;min-height:100vh;background:var(--bg);color:#f5fff9;font-family:var(--font);overflow:hidden}
+:root{--bg:#07100f;--muted:#a1b0aa;--mint:#9bffca;--line:#ffffff16;--accent:#00d2ff;--danger:#ff4d4d;--warn:#ffb700;--font:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:#f5fff9;font-family:var(--font)}
 button,input,select{font:inherit;color:inherit}
-.shell{max-width:1180px;margin:auto;padding:28px 34px 40px;position:relative;z-index:10}
+#launcher{position:fixed;inset:0;z-index:10;overflow:auto;background:
+  radial-gradient(ellipse at 80% 0%,#1d4a3f 0,transparent 45%),
+  radial-gradient(ellipse at 10% 100%,#123b34 0,transparent 45%),
+  linear-gradient(180deg,#07100f,#050b0a)}
+#launcher.hidden{display:none}
+.shell{max-width:1180px;margin:auto;padding:26px 34px 40px;position:relative;z-index:2}
 .top{height:48px;display:flex;align-items:center;justify-content:space-between}
 .brand{display:flex;gap:12px;align-items:center;font-size:18px;font-weight:800;letter-spacing:.04em}
 .mark{width:30px;height:30px;border:1px solid #9bffca99;border-radius:9px;display:grid;place-items:center;color:var(--mint);box-shadow:0 0 24px #65ffaf20}
 .status{display:flex;gap:9px;align-items:center;color:#c5d4ce;font-size:12px;letter-spacing:.08em;text-transform:uppercase}
 .dot{width:7px;height:7px;border-radius:50%;background:#83ffc0;box-shadow:0 0 12px #83ffc0}
-.hero{position:relative;overflow:hidden;margin-top:30px;min-height:420px;border:1px solid var(--line);border-radius:24px;background:linear-gradient(95deg,#07110ff5 0%,#091714e8 44%,#0a1a1788 100%),linear-gradient(180deg,transparent 55%,#07100f 100%);display:flex;align-items:flex-end;padding:46px}
-.hero-copy{position:relative;max-width:560px}
+.hero{position:relative;overflow:hidden;margin-top:26px;min-height:430px;border:1px solid var(--line);border-radius:24px;background:linear-gradient(95deg,#07110ff5 0%,#091714e8 48%,#0a1a1766 100%),url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 600'%3E%3Cdefs%3E%3ClinearGradient id='w' x2='0' y2='1'%3E%3Cstop stop-color='%231e7966'/%3E%3Cstop offset='1' stop-color='%230d302d'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath fill='url(%23w)' d='M0 315 Q240 285 430 330 T800 320 T1200 315 V600 H0Z'/%3E%3Cpath fill='%231c3d36' d='M0 210h115v112H0zm130-45h98v157h-98zm115 77h158v81H245zm178-110h110v192H423zm125 45h90v147h-90zm108-88h154v232H656zm171 73h132v159H827zm148-92h110v251H975zm126 108h99v143h-99z'/%3E%3Cpath fill='%23c2ffcd' opacity='.45' d='M18 224h4v11h-4zm146-38h5v12h-5zm76 26h6v10h-6zm213-91h5v14h-5zm67 58h4v11h-4zm184-57h6v13h-6zm141 89h4v12h-4zm166-67h5v13h-5z'/%3E%3Cpath fill='none' stroke='%237fffd0' opacity='.35' d='M40 378q200-24 365 0t350 0 390 4M124 425q160-18 280 0t290 1 381-1M20 492q230-17 405 1t430-3 310 2'/%3E%3C/svg%3E");background-size:cover;background-position:center 55%;display:flex;align-items:flex-end;padding:44px}
+.hero-copy{position:relative;max-width:600px}
 .eyebrow{font-size:11px;letter-spacing:.2em;color:var(--mint);font-weight:750;text-transform:uppercase}
-.hero h1{font-size:clamp(40px,7vw,72px);line-height:.96;letter-spacing:-.075em;margin:12px 0}
-.hero p{color:#c3d1cb;font-size:15px;line-height:1.6;max-width:460px;margin:0 0 24px}
+.hero h1{font-size:clamp(38px,6.6vw,70px);line-height:.95;letter-spacing:-.075em;margin:12px 0}
+.hero p{color:#c3d1cb;font-size:15px;line-height:1.6;max-width:470px;margin:0 0 22px}
 .actions{display:flex;gap:10px;flex-wrap:wrap}
-.btn{padding:12px 20px;border-radius:10px;border:1px solid var(--line);cursor:pointer;font-weight:700;font-size:13px;background:transparent;color:inherit}
+.btn{padding:12px 20px;border-radius:10px;border:1px solid var(--line);cursor:pointer;font-weight:700;font-size:13px;background:transparent;color:inherit;transition:transform .12s,background .15s}
+.btn:active{transform:scale(.97)}
 .btn.primary{background:var(--mint);color:#07100f;border-color:var(--mint);box-shadow:0 8px 32px #83ffc022}
 .btn.secondary{background:#ffffff0b}
 .btn.primary:hover{background:#c2ffdc}
 .btn.secondary:hover{background:#ffffff17}
 .btn:disabled{opacity:.5;cursor:not-allowed}
-.chip{display:inline-flex;align-items:center;gap:7px;border:1px solid #b2ffe125;background:#06130f88;padding:7px 10px;border-radius:7px;font-size:10px;color:#d9ebe1;margin-bottom:16px}
-.section-head{display:flex;align-items:end;justify-content:space-between;margin:28px 2px 14px}
+.chip{display:inline-flex;align-items:center;gap:7px;border:1px solid #b2ffe125;background:#06130f88;padding:7px 10px;border-radius:7px;font-size:10px;color:#d9ebe1;margin-bottom:14px}
+.section-head{display:flex;align-items:end;justify-content:space-between;margin:26px 2px 14px}
 .section-head h2{margin:0;font-size:17px;letter-spacing:-.04em}
 .section-head span{font-size:11px;color:var(--muted)}
 .grid{display:grid;grid-template-columns:1.35fr 1fr 1fr;gap:13px}
-.card{min-height:152px;border-radius:15px;border:1px solid var(--line);background:linear-gradient(145deg,#172421,#0c1513);padding:17px;display:flex;flex-direction:column;justify-content:space-between;cursor:pointer;transition:transform .15s,border-color .15s}
+.card{min-height:150px;border-radius:15px;border:1px solid var(--line);background:linear-gradient(145deg,#172421,#0c1513);padding:17px;display:flex;flex-direction:column;justify-content:space-between;cursor:pointer;transition:transform .15s,border-color .15s}
 .card:hover{transform:translateY(-2px);border-color:var(--mint)}
 .card:active{transform:scale(.99)}
 .card-top{display:flex;justify-content:space-between;align-items:center}
@@ -46,927 +49,1100 @@ button,input,select{font:inherit;color:inherit}
 .card h3{margin:8px 0 4px;font-size:16px}
 .card p{margin:0;color:var(--muted);font-size:12px}
 .arrow{color:#a9b9b1;font-size:18px}
-.foot{margin-top:22px;display:flex;align-items:center;justify-content:space-between;color:#80918a;font-size:10px}
+.foot{margin-top:20px;display:flex;align-items:center;justify-content:space-between;color:#80918a;font-size:10px}
 
-/* Overlays */
-.overlay{position:fixed;inset:0;z-index:40;display:none;align-items:center;justify-content:center;background:#07100f ee}
+/* overlays */
+.overlay{position:fixed;inset:0;z-index:60;display:none;align-items:center;justify-content:center;background:#07100fee}
 .overlay.active{display:flex}
-.overlay .win{width:min(560px,92vw);max-height:88vh;overflow:auto;border-radius:20px;border:1px solid var(--line);background:linear-gradient(145deg,#13201d,#0a1411);padding:30px;display:flex;flex-direction:column;gap:18px}
-.overlay h3{margin:0 0 6px;font-size:20px;letter-spacing:-.03em}
+.overlay .win{width:min(560px,92vw);max-height:88vh;overflow:auto;border-radius:20px;border:1px solid var(--line);background:linear-gradient(145deg,#13201d,#0a1411);padding:30px;display:flex;flex-direction:column;gap:16px}
+.overlay h3{margin:0;font-size:20px;letter-spacing:-.03em}
 .overlay p{color:#c3d1cb;font-size:14px;line-height:1.5;margin:0}
 .install-row{display:flex;align-items:center;gap:10px}
 .bar{flex:1;height:10px;background:#0b1d19;border-radius:6px;overflow:hidden;border:1px solid var(--line)}
-.bar .fill{height:100%;width:0%;background:linear-gradient(90deg,var(--mint),#00d2ff);transition:width .3s}
-.install-note{font-size:12px;color:var(--muted);margin-top:6px}
-.install-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:8px}
+.bar .fill{height:100%;width:0%;background:linear-gradient(90deg,var(--mint),var(--accent));transition:width .2s}
+.install-note{font-size:12px;color:var(--muted)}
+.install-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:6px}
 
-/* Settings panel */
-.settings{position:fixed;inset:0;z-index:50;display:none}
+/* settings */
+.settings{position:fixed;inset:0;z-index:70;display:none}
 .settings.active{display:block}
 .settings .backdrop{position:absolute;inset:0;background:#0007;backdrop-filter:blur(6px)}
-.settings .panel{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(640px,92vw);max-height:85vh;overflow:auto;border-radius:20px;border:1px solid var(--line);background:linear-gradient(145deg,#13201d,#0a1411);padding:30px;box-shadow:0 24px 60px #0008}
-.settings .section{margin:16px 0 6px}
+.settings .panel{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(640px,92vw);max-height:85vh;overflow:auto;border-radius:20px;border:1px solid var(--line);background:linear-gradient(145deg,#13201d,#0a1411);padding:28px;box-shadow:0 24px 60px #0008}
+.settings .section{margin:14px 0 4px}
 .settings .section-title{font-size:11px;letter-spacing:.2em;color:var(--mint);text-transform:uppercase;margin-bottom:10px;font-weight:800}
-.settings label{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#0c1513;cursor:pointer;margin-bottom:8px}
+.settings label{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#0c1513;cursor:pointer;margin-bottom:8px}
 .settings label:hover{border-color:var(--mint)}
 .settings label small{color:var(--muted);font-size:12px}
+.settings select,.settings input[type=range]{background:#07100f;border:1px solid var(--line);border-radius:8px;padding:6px 8px;color:#fff;max-width:260px}
 .settings .opt{font-size:14px;font-weight:700}
 
-/* Game canvas */
-#game{position:fixed;inset:0;z-index:1;background:#0b1d19;display:none}
-
-/* HUD */
-.hud{position:fixed;pointer-events:none;z-index:30;width:100%;height:100%;display:none}
-.hud.active{display:block}
-.topbar{position:absolute;top:16px;left:16px;right:16px;display:flex;justify-content:space-between;align-items:center;pointer-events:auto}
-.wanted{display:flex;align-items:center;gap:6px;color:#fff}
-.wanted .star{width:14px;height:14px;background:#ffd700;clip-path:polygon(50% 0%,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%);box-shadow:0 0 10px #ffd700}
-.wanted .star.off{opacity:.25}
-.wanted span{font-weight:800;font-size:13px;letter-spacing:.08em;color:#ffd700;text-transform:uppercase}
-.minimap{position:absolute;top:16px;right:16px;width:150px;height:150px;border:2px solid rgba(255,255,255,.12);border-radius:12px;background:#0006;backdrop-filter:blur(6px);pointer-events:none;overflow:hidden}
+/* game */
+#game{position:fixed;inset:0;z-index:1;display:none;touch-action:none}
+#hud{position:fixed;inset:0;z-index:20;pointer-events:none;display:none}
+#hud.active{display:block}
+.topbar{position:absolute;top:14px;left:14px;right:14px;display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.wanted{display:flex;flex-direction:column;gap:6px;background:#0006;border:1px solid var(--line);border-radius:10px;padding:8px 12px;backdrop-filter:blur(6px)}
+.stars{display:flex;gap:4px}
+.star{width:15px;height:15px;background:#3a3a3a;clip-path:polygon(50% 0%,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%);transition:background .2s}
+.star.on{background:#ffd700;box-shadow:0 0 10px #ffd700}
+.wanted .lvl{font-weight:800;font-size:11px;letter-spacing:.1em;color:#ffd700;text-transform:uppercase}
+#missionBox{background:#0006;border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:10px;padding:9px 14px;backdrop-filter:blur(6px);max-width:min(420px,50vw)}
+#missionBox .mh{font-size:10px;letter-spacing:.14em;color:var(--accent);text-transform:uppercase;font-weight:800}
+#missionBox .mt{font-size:13px;font-weight:700;margin-top:2px}
+#missionBox .md{font-size:12px;color:#c3d1cb;margin-top:2px}
+.minimap{position:absolute;top:14px;right:14px;width:152px;height:152px;border:2px solid rgba(255,255,255,.16);border-radius:12px;background:#0008;backdrop-filter:blur(4px);overflow:hidden;box-shadow:0 8px 30px #0007}
 .minimap canvas{width:100%;height:100%;display:block}
-.minimap .label{position:absolute;bottom:6px;left:6px;right:6px;background:#0008;color:#fff;font-size:10px;padding:2px 6px;border-radius:4px;text-align:center;pointer-events:none}
-.fullmap-btn{position:absolute;bottom:16px;left:16px;z-index:35;pointer-events:auto}
-.map-full{position:fixed;inset:0;z-index:45;display:none;background:#07100f}
-.map-full.active{display:flex;flex-direction:column}
-.map-full canvas{flex:1;width:100%;height:100%;display:block}
-.map-full .close{position:absolute;top:16px;right:16px;z-index:50;background:#0006;border:1px solid var(--line);color:#fff;padding:10px 14px;border-radius:10px;cursor:pointer}
-.map-full .hint{position:absolute;bottom:16px;left:0;right:0;text-align:center;color:var(--muted);font-size:12px}
+.minimap .mlabel{position:absolute;left:0;right:0;bottom:0;background:#000a;color:#cfe;font-size:9px;padding:3px 5px;text-align:center;letter-spacing:.06em}
+#charBox{position:absolute;left:14px;bottom:14px;background:#0006;border:1px solid var(--line);border-radius:10px;padding:8px 12px;backdrop-filter:blur(6px);font-size:12px;line-height:1.5}
+#charBox b{color:var(--mint)}
+#crosshair{position:absolute;left:50%;top:50%;width:6px;height:6px;margin:-3px 0 0 -3px;border-radius:50%;background:#fff9;box-shadow:0 0 6px #000;display:none}
+#hint{position:absolute;left:50%;top:64%;transform:translateX(-50%);background:#000a;border:1px solid var(--line);border-radius:10px;padding:10px 16px;font-size:12px;color:#dfe;text-align:center;max-width:90vw;transition:opacity .5s}
+.dialog{position:absolute;left:50%;bottom:96px;transform:translateX(-50%);max-width:min(620px,90vw)}
+.bubble{background:#0c1513ee;border:1px solid var(--line);border-left:4px solid var(--mint);padding:11px 16px;border-radius:10px;font-size:14px;line-height:1.5;box-shadow:0 10px 30px #0008;opacity:0;transform:translateY(10px);transition:all .25s}
+.bubble.show{opacity:1;transform:translateY(0)}
+.bubble .name{font-size:11px;letter-spacing:.1em;color:var(--mint);text-transform:uppercase;margin-bottom:3px;font-weight:800}
 
-/* Virtual controls (mobile / PS5 style) */
-.virt{position:fixed;bottom:16px;left:0;right:0;z-index:35;pointer-events:none;display:flex;justify-content:space-between;padding:0 16px;gap:12px}
-.virt.active{pointer-events:auto}
-.stick{position:relative;width:90px;height:90px;border-radius:50%;border:2px solid rgba(255,255,255,.18);background:#0008;touch-action:none}
-.stick .knob{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:44px;height:44px;border-radius:50%;background:var(--mint);border:2px solid rgba(255,255,255,.4);box-shadow:0 0 16px #83ffc044}
-.actions-right{display:flex;flex-direction:column;gap:10px;align-items:flex-end}
-.act{position:relative;width:56px;height:56px;border-radius:14px;border:2px solid rgba(255,255,255,.22);background:#0008;color:#fff;display:grid;place-items:center;font-size:20px;touch-action:none;user-select:none}
+/* virtual controls */
+#virt{position:absolute;left:0;right:0;bottom:14px;display:none;justify-content:space-between;align-items:flex-end;padding:0 18px;pointer-events:none}
+#virt.active{display:flex}
+#virt .left{pointer-events:auto}
+.stick{position:relative;width:104px;height:104px;border-radius:50%;border:2px solid rgba(255,255,255,.2);background:#0007;touch-action:none}
+.stick .knob{position:absolute;left:50%;top:50%;width:48px;height:48px;margin:-24px 0 0 -24px;border-radius:50%;background:var(--mint);border:2px solid rgba(255,255,255,.5);box-shadow:0 0 16px #83ffc044}
+#virt .right{display:grid;grid-template-columns:repeat(2,64px);gap:10px;pointer-events:auto}
+.act{width:64px;height:64px;border-radius:16px;border:2px solid rgba(255,255,255,.24);background:#0007;color:#fff;display:grid;place-items:center;font-size:22px;touch-action:none;user-select:none}
 .act:active{background:var(--mint);color:#07100f}
-.act.lbl{font-size:10px;position:absolute;bottom:-18px;left:50%;transform:translateX(-50%);color:var(--muted);pointer-events:none}
+.act small{position:absolute;font-size:9px;bottom:6px;letter-spacing:.05em;opacity:.8}
 
-/* Dialogue */
-.dialog{position:fixed;bottom:32px;left:50%;transform:translateX(-50%);z-index:33;pointer-events:none;max-width:600px}
-.dialog .bubble{background:#0c1513;border:1px solid var(--line);border-left:4px solid var(--mint);color:#f5fff9;padding:12px 16px;border-radius:10px;font-size:14px;line-height:1.5;box-shadow:0 10px 30px #0008;display:none}
-.dialog .bubble.show{display:block}
-.dialog .name{font-size:11px;letter-spacing:.1em;color:var(--mint);text-transform:uppercase;margin-bottom:4px;font-weight:800}
+/* map */
+#fullmap{position:fixed;inset:0;z-index:45;display:none;flex-direction:column;background:#07100f}
+#fullmap.active{display:flex}
+#mapCanvas{flex:1;width:100%;height:100%;display:block}
+#fullmap .fclose{position:absolute;top:16px;right:16px;z-index:2}
+#fullmap .fhint{position:absolute;bottom:14px;left:0;right:0;text-align:center;color:var(--muted);font-size:12px}
 
-/* Pause */
-.pause{position:fixed;inset:0;z-index:55;display:none;align-items:center;justify-content:center;background:#0008}
-.pause.active{display:flex}
-.pause .win{width:min(420px,88vw);border-radius:16px;border:1px solid var(--line);background:linear-gradient(145deg,#13201d,#0a1411);padding:32px;text-align:center}
-.pause .win h3{margin:0 0 10px}
-.pause .win .actions{justify-content:center;margin-top:18px}
+/* pause */
+#pause{position:fixed;inset:0;z-index:65;display:none;align-items:center;justify-content:center;background:#0008;backdrop-filter:blur(4px)}
+#pause.active{display:flex}
+#pause .win{width:min(420px,88vw);border-radius:16px;border:1px solid var(--line);background:linear-gradient(145deg,#13201d,#0a1411);padding:30px;text-align:center}
+#pause .win h3{margin:0 0 8px;letter-spacing:.05em}
+#pause .actions{justify-content:center;margin-top:18px}
 
-/* Toast */
-.toast{position:fixed;bottom:24px;right:24px;z-index:60;background:#0c1513;border:1px solid var(--line);color:#fff;padding:10px 16px;border-radius:10px;font-size:13px;box-shadow:0 10px 30px #0008;transform:translateY(120px);opacity:0;transition:all .3s}
-.toast.show{transform:translateY(0);opacity:1}
+#toast{position:fixed;bottom:22px;right:22px;z-index:80;background:#0c1513;border:1px solid var(--line);color:#fff;padding:10px 16px;border-radius:10px;font-size:13px;box-shadow:0 10px 30px #0008;transform:translateY(120px);opacity:0;transition:all .3s;pointer-events:none;max-width:80vw}
+#toast.show{transform:translateY(0);opacity:1}
 
 @media(max-width:700px){
-  .shell{padding:20px 16px 30px}
-  .hero{margin-top:22px;padding:30px 22px}
-  .hero h1{font-size:40px}
+  .shell{padding:18px 16px 30px}
+  .hero{margin-top:20px;padding:28px 22px;min-height:400px}
+  .hero h1{font-size:38px}
   .grid{grid-template-columns:1fr}
   .card:first-child{grid-column:auto}
-  .virt{padding:0 10px}
-  .stick{width:80px;height:80px}
-  .stick .knob{width:38px;height:38px}
+  .minimap{width:118px;height:118px}
+  #missionBox{max-width:58vw;padding:7px 10px}
+  #missionBox .mt{font-size:12px}
+  .stick{width:92px;height:92px}
+  .stick .knob{width:42px;height:42px;margin:-21px 0 0 -21px}
+  #virt .right{grid-template-columns:repeat(2,56px);gap:8px}
+  .act{width:56px;height:56px;font-size:19px}
+  #charBox{font-size:11px;padding:6px 9px}
+  #charBox .sub{display:none}
 }
 </style>
 </head>
 <body>
 
-<!-- Matteo 5 Launcher -->
-<main class="shell">
-  <header class="top">
-    <div class="brand"><div class="mark">M</div><span>MATTEO <span style="color:#9bffca">5</span></span></div>
-    <div class="status"><i class="dot"></i><span>SISTEMA PRONTO</span></div>
-  </header>
+<!-- ===== LAUNCHER ===== -->
+<div id="launcher">
+  <main class="shell">
+    <header class="top">
+      <div class="brand"><div class="mark">M</div><span>MATTEO <span style="color:#9bffca">5</span></span></div>
+      <div class="status"><i class="dot"></i><span>SISTEMA PRONTO</span></div>
+    </header>
 
-  <section class="hero">
-    <div class="hero-copy">
-      <div class="chip">✦ CENTRAL DE JOGOS · EDIÇÃO BR</div>
-      <div class="eyebrow">Seu próximo mundo começa aqui</div>
-      <h1>Jogue além<br>do esperado.</h1>
-      <p>Central de jogos Matteo 5. Instale o GTA 6 BR, ajuste gráficos e controles, e entre na cidade de Luiza e Carlos.</p>
-      <div class="actions">
-        <button class="btn primary" id="btnInstall">⬇ Instalar GTA 6 BR</button>
-        <button class="btn secondary" id="btnSettings">⚙ Configurações</button>
+    <section class="hero">
+      <div class="hero-copy">
+        <div class="chip">✦ CENTRAL DE JOGOS · EDIÇÃO BR</div>
+        <div class="eyebrow">Seu próximo mundo começa aqui</div>
+        <h1>GTA 6 BR<br>em 3D.</h1>
+        <p>Mundo aberto da Cidade do Sol: água realista, carros, polícia de 6 estrelas, NPCs em pt-BR e inglês, e o casal Luiza &amp; Carlos em 5 missões.</p>
+        <div class="actions">
+          <button class="btn primary" id="btnPlay">▶ Jogar GTA 6 BR</button>
+          <button class="btn secondary" id="btnSettings">⚙ Configurações</button>
+        </div>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <div class="section-head"><h2>Em destaque</h2><span>CATÁLOGO MATTEO 5</span></div>
-  <section class="grid" aria-label="Jogos em destaque">
-    <article class="card" onclick="app.installGame()">
-      <div class="card-top"><div class="icon">◈</div><span class="arrow">↗</span></div>
-      <div><small>Em preparação · Brasil</small><h3>GTA 6 BR</h3><p>Mundo aberto 3D · Água realista · Polícia 6 estrelas · Luiza e Carlos</p></div>
-    </article>
-    <article class="card" onclick="app.startStory()">
-      <div class="card-top"><div class="icon">⌘</div><span class="arrow">↗</span></div>
-      <div><small>Modo história</small><h3>Luiza &amp; Carlos</h3><p>5 missões · Casal protagonista</p></div>
-    </article>
-    <article class="card" onclick="app.startRP()">
-      <div class="card-top"><div class="icon">◎</div><span class="arrow">↗</span></div>
-      <div><small>Modo RP</small><h3>Vida na cidade</h3><p>Livre para explorar e criar sua história</p></div>
-    </article>
-  </section>
+    <div class="section-head"><h2>Em destaque</h2><span>CATÁLOGO MATTEO 5</span></div>
+    <section class="grid">
+      <article class="card" data-mode="rp">
+        <div class="card-top"><div class="icon">◈</div><span class="arrow">↗</span></div>
+        <div><small>Mundo aberto · Brasil</small><h3>GTA 6 BR</h3><p>3D · Água realista · Polícia · Carros · Mapa</p></div>
+      </article>
+      <article class="card" data-mode="story">
+        <div class="card-top"><div class="icon">⌘</div><span class="arrow">↗</span></div>
+        <div><small>Modo história</small><h3>Luiza &amp; Carlos</h3><p>5 missões · Casal protagonista</p></div>
+      </article>
+      <article class="card" data-mode="rp">
+        <div class="card-top"><div class="icon">◎</div><span class="arrow">↗</span></div>
+        <div><small>Modo RP</small><h3>Vida na cidade</h3><p>Livre para explorar e criar sua história</p></div>
+      </article>
+    </section>
 
-  <footer class="foot"><span>MATTEO 5 · CENTRAL DE JOGOS</span><span class="build-note">Versão jogável</span></footer>
-</main>
+    <footer class="foot"><span>MATTEO 5 · CENTRAL DE JOGOS</span><span>Three.js · WebGL 3D</span></footer>
+  </main>
+</div>
 
-<!-- Install overlay -->
+<!-- ===== INSTALL ===== -->
 <div class="overlay" id="overlayInstall">
   <div class="win">
-    <h3>Instalando GTA 6 BR</h3>
-    <p>Preparando os arquivos do mundo aberto da cidade brasileira...</p>
+    <h3 id="installTitle">Instalando GTA 6 BR</h3>
+    <p id="installSub">Preparando o mundo aberto 3D da Cidade do Sol...</p>
     <div class="install-row"><div class="bar"><div class="fill" id="installFill"></div></div><span id="installPct">0%</span></div>
-    <div class="install-note" id="installNote">Iniciando download...</div>
+    <div class="install-note" id="installNote">Iniciando...</div>
     <div class="install-actions">
-      <button class="btn secondary" id="btnCancelInstall" style="display:none">Cancelar</button>
-      <button class="btn primary" id="btnPlayAfterInstall" style="display:none">Jogar agora</button>
+      <button class="btn secondary" id="btnCancelInstall">Cancelar</button>
+      <button class="btn primary" id="btnPlayAfterInstall" style="display:none">▶ Jogar agora</button>
     </div>
   </div>
 </div>
 
-<!-- Settings overlay -->
+<!-- ===== SETTINGS ===== -->
 <div class="settings" id="overlaySettings">
   <div class="backdrop"></div>
   <div class="panel">
-    <h3>⚙ Configurações — Matteo 5</h3>
+    <h3 style="margin:0 0 4px">⚙ Configurações — Matteo 5</h3>
+    <p style="color:var(--muted);font-size:13px;margin:0 0 6px">Ajustes salvos automaticamente.</p>
     <div class="section">
       <div class="section-title">Gráficos</div>
-      <label><span class="opt">Qualidade</span><select id="gfxQuality" onchange="app.setGfx(this.value)">
-        <option value="low">Baixo (mais leve / roda liso)</option>
-        <option value="medium" selected>Médio (equilibrado)</option>
+      <label><span class="opt">Qualidade</span><select id="gfxQuality">
+        <option value="low">Baixo (roda liso)</option>
+        <option value="medium">Médio (equilibrado)</option>
         <option value="high">Alto (melhor visual)</option>
       </select></label>
-      <label><span class="opt">Tela cheia do jogo</span><input type="checkbox" id="gfxFullscreen" onchange="app.setFullscreen(this.checked)" checked></label>
+      <label><span class="opt">Sombras</span><select id="gfxShadow">
+        <option value="off">Desligadas (mais leve)</option>
+        <option value="on">Ligadas</option>
+      </select></label>
+      <label><span class="opt">Distância de visão</span><select id="gfxView">
+        <option value="near">Curta (mais FPS)</option>
+        <option value="mid">Média</option>
+        <option value="far">Longa</option>
+      </select></label>
     </div>
     <div class="section">
       <div class="section-title">Controles</div>
-      <label><span class="opt">Tipo</span><select id="ctrlType" onchange="app.setControls(this.value)">
-        <option value="auto">Automático (mobile = toque, desktop = teclado)</option>
-        <option value="virtual">Controles virtuais na tela (PS5 / mobile HUD)</option>
-        <option value="keyboard">Apenas teclado e mouse</option>
+      <label><span class="opt">Tipo</span><select id="ctrlType">
+        <option value="auto">Automático (toque no celular)</option>
+        <option value="virtual">Controles virtuais na tela (PS5)</option>
+        <option value="keyboard">Teclado e mouse</option>
       </select></label>
-      <label><span class="opt">Sensibilidade</span><input type="range" id="ctrlSens" min="1" max="3" step="0.5" value="2" onchange="app.setSens(this.value)"></label>
+      <label><span class="opt">Sensibilidade</span><input type="range" id="ctrlSens" min="1" max="3" step="0.5" value="2"></label>
     </div>
     <div class="section">
       <div class="section-title">Idioma dos NPCs</div>
-      <label><span class="opt">Diálogos</span><select id="langNPC" onchange="app.setLang(this.value)">
-        <option value="pt-BR" selected>Português (Brasil)</option>
+      <label><span class="opt">Diálogos</span><select id="langNPC">
+        <option value="pt-BR">Português (Brasil)</option>
         <option value="en">Inglês / English</option>
         <option value="both">Ambos (aleatório)</option>
       </select></label>
     </div>
-    <div class="section" style="display:flex;justify-content:flex-end;gap:10px;margin-top:24px">
-      <button class="btn secondary" onclick="app.closeSettings()">Fechar</button>
-      <button class="btn primary" onclick="app.closeSettings()">Salvar e fechar</button>
+    <div class="section" style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px">
+      <button class="btn secondary" id="btnCloseSettings">Fechar</button>
     </div>
   </div>
 </div>
 
-<!-- Game canvas -->
-<canvas id="game" width="1280" height="720"></canvas>
+<!-- ===== GAME ===== -->
+<canvas id="game"></canvas>
 
-<!-- HUD -->
-<div class="hud" id="hud">
+<div id="hud">
   <div class="topbar">
-    <div class="wanted" id="wanted"><div id="wantedStars"></div><span id="wantedLvl">PROCURADO: 0</span></div>
-    <div id="hudStatus">GTA 6 BR · Cidade do Sol</div>
+    <div style="display:flex;flex-direction:column;gap:10px;align-items:flex-start">
+      <div class="wanted">
+        <div class="stars" id="stars"></div>
+        <div class="lvl" id="wantedLvl">PROCURADO: 0</div>
+      </div>
+      <div id="missionBox" style="display:none"><div class="mh">MISSÃO</div><div class="mt" id="mTitle"></div><div class="md" id="mDesc"></div></div>
+    </div>
+    <div class="minimap"><canvas id="minimap" width="280" height="280"></canvas><div class="mlabel">MAPA COMPLETO: tecla M</div></div>
   </div>
-  <div class="minimap"><canvas id="minimap" width="260" height="260"></canvas><div class="label">MINIMAPA — Pressione M para mapa completo</div></div>
-  <button class="fullmap-btn btn primary" id="btnFullMap" onclick="app.toggleFullMap()">🗺 Mapa tela cheia (M)</button>
-  <div class="dialog" id="dialog"><div class="bubble" id="dialogBubble"><div id="dialogName"></div><div id="dialogText"></div></div></div>
+  <div id="charBox"><b id="charName">Luiza</b> · R$ <span id="money">500</span><br><span class="sub" style="color:var(--muted);font-size:11px">1 Luiza · 2 Carlos · E carro</span></div>
+  <div id="crosshair"></div>
+  <div id="hint"></div>
+  <div class="dialog"><div class="bubble" id="bubble"><div class="name" id="bName"></div><div id="bText"></div></div></div>
 
-  <!-- Virtual controls -->
-  <div class="virt" id="virtControls">
-    <div class="stick" id="stick"><div class="knob" id="stickKnob"></div></div>
-    <div class="actions-right">
-      <div class="act" id="btnJump" ontouchstart="app.touchAction('jump')" onclick="app.touchAction('jump')">A</div>
-      <div class="act" id="btnEnter" ontouchstart="app.touchAction('enter')" onclick="app.touchAction('enter')">△</div>
-      <div class="act" id="btnAction" ontouchstart="app.touchAction('action')" onclick="app.touchAction('action')">✕</div>
+  <div id="virt">
+    <div class="left"><div class="stick" id="stick"><div class="knob" id="knob"></div></div></div>
+    <div class="right">
+      <div class="act" data-act="jump">⤒</div>
+      <div class="act" data-act="enter">E</div>
+      <div class="act" data-act="action">✊</div>
+      <div class="act" data-act="map">🗺</div>
     </div>
   </div>
 </div>
 
-<!-- Fullscreen map -->
-<div class="map-full" id="mapFull">
-  <canvas id="mapCanvas" width="900" height="700"></canvas>
-  <button class="close" onclick="app.toggleFullMap()">✕ Fechar</button>
-  <div class="hint">Use WASD / controle virtual para mover no mapa. Pressione M novamente para fechar.</div>
+<div id="fullmap">
+  <canvas id="mapCanvas"></canvas>
+  <button class="btn secondary fclose" id="btnCloseMap">✕ Fechar</button>
+  <div class="fhint">Mapa da Cidade do Sol · Pressione M para fechar</div>
 </div>
 
-<!-- Pause -->
-<div class="pause" id="overlayPause">
+<div id="pause">
   <div class="win">
     <h3>PAUSADO</h3>
     <div class="actions">
-      <button class="btn primary" onclick="app.resume()">Continuar</button>
-      <button class="btn secondary" onclick="app.closeSettings();app.openSettings()">Configurações</button>
-      <button class="btn secondary" onclick="app.quitToLauncher()">Sair para a central</button>
+      <button class="btn primary" id="btnResume">Continuar</button>
+      <button class="btn secondary" id="btnPauseSettings">Configurações</button>
+      <button class="btn secondary" id="btnQuit">Sair para a central</button>
     </div>
   </div>
 </div>
 
-<!-- Toast -->
-<div class="toast" id="toast"></div>
+<div id="toast"></div>
 
-<script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
-<script src="https://unpkg.com/three@0.160.0/examples/js/controls/PointerLockControls.js"></script>
+<script src="https://unpkg.com/three@0.128.0/build/three.min.js"></script>
+<script>
+if(!window.THREE){document.write('<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"><\/script>');}
+</script>
 <script>
 (function(){
-  const state = {
-    screen:'launcher', // launcher|installing|playing|paused|settings
-    gameMode:null, // story|rp
-    installed:false,
-    char:'luiza', // luiza|carlos
-    lang:'pt-BR',
-    gfx:'medium',
-    controls:'auto',
-    sens:2,
-    fullscreen:false,
-    wanted:0,
-    wantedTimer:0,
-    money:0,
-    mission:null, // {id,title,desc,step,complete}
-    storyStep:0,
-    time:0,
-    lastTime:0,
-    keys:{},
-    touch:{stick:{active:false,dx:0,dy:0},actions:{}}
-  };
+"use strict";
+if(!window.THREE){alert('Não foi possível carregar o motor 3D. Verifique a conexão e recarregue.');return;}
 
-  const $=(s)=>document.querySelector(s);
-  const $$=(s)=>Array.from(document.querySelectorAll(s));
+// ================= STATE =================
+const S = {
+  screen:'launcher', mode:'rp', installed:false, char:'luiza',
+  lang:'pt-BR', gfx:'medium', shadow:'on', view:'mid', controls:'auto', sens:2,
+  wanted:0, money:500, keys:{}, touch:{x:0,y:0,active:false}, camYaw:0, camPitch:0.28,
+  time:0, wantedTimer:0, missionIdx:-1, missionDone:false, hintTimer:0
+};
+const $ = s=>document.querySelector(s);
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 
-  // ---------- App ----------
-  window.app = {
-    init(){
-      this.loadSettings();
-      this.applySettingsUI();
-      this.bindLauncher();
-      this.bindSettings();
-      this.bindInstall();
-      this.resize();
-      window.addEventListener('resize',()=>this.resize());
-      window.addEventListener('keydown',(e)=>this.onKey(e,true));
-      window.addEventListener('keyup',(e)=>this.onKey(e,false));
-      window.addEventListener('mousedown',()=>{
-        if(state.screen==='playing'&&state.controls!=='virtual') this.game.lockPointer();
-      });
-      document.addEventListener('visibilitychange',()=>{
-        if(document.hidden){state.keys={};this.game.wantedDecay();}
-      });
-      this.toast('Bem-vindo ao Matteo 5');
-    },
-    loadSettings(){
-      try{
-        const s=JSON.parse(localStorage.getItem('matteo5_settings')||'{}');
-        state.lang=s.lang||'pt-BR';state.gfx=s.gfx||'medium';state.controls=s.controls||'auto';state.sens=parseFloat(s.sens||2);state.fullscreen=s.fullscreen!==false;
-      }catch(e){}
-    },
-    saveSettings(){
-      localStorage.setItem('matteo5_settings',JSON.stringify({lang:state.lang,gfx:state.gfx,controls:state.controls,sens:state.sens,fullscreen:state.fullscreen}));
-    },
-    applySettingsUI(){
-      $('#gfxQuality').value=state.gfx;
-      $('#gfxFullscreen').checked=state.fullscreen;
-      $('#ctrlType').value=state.controls;
-      $('#ctrlSens').value=state.sens;
-      $('#langNPC').value=state.lang;
-    },
-    setGfx(v){state.gfx=v;this.saveSettings();this.game&&this.game.applyGfx();this.toast('Gráficos: '+v);},
-    setFullscreen(c){state.fullscreen=c;this.saveSettings();},
-    setControls(v){state.controls=v;this.saveSettings();this.applyControlsVisibility();this.toast('Controles: '+v);},
-    setSens(v){state.sens=parseFloat(v);this.saveSettings();},
-    setLang(v){state.lang=v;this.saveSettings();this.toast('Idioma: '+v);},
+// ================= APP =================
+const app = {
+  init(){
+    this.load();
+    this.bindLauncher();
+    this.bindSettings();
+    this.bindInstall();
+    this.bindGameUI();
+    this.applySettingsUI();
+    this.buildStars();
+    this.last=performance.now();
+    this.loop();
+    // prevent scroll/gestures in game
+    document.addEventListener('gesturestart',e=>e.preventDefault());
+  },
+  load(){
+    try{const s=JSON.parse(localStorage.getItem('m5')||'{}');
+      S.lang=s.lang||'pt-BR';S.gfx=s.gfx||'medium';S.shadow=s.shadow||'on';S.view=s.view||'mid';S.controls=s.controls||'auto';S.sens=parseFloat(s.sens||2);
+      S.installed=!!s.installed;
+    }catch(e){}
+  },
+  save(){localStorage.setItem('m5',JSON.stringify({lang:S.lang,gfx:S.gfx,shadow:S.shadow,view:S.view,controls:S.controls,sens:S.sens,installed:S.installed}));},
+  applySettingsUI(){
+    $('#gfxQuality').value=S.gfx;$('#gfxShadow').value=S.shadow;$('#gfxView').value=S.view;
+    $('#ctrlType').value=S.controls;$('#ctrlSens').value=S.sens;$('#langNPC').value=S.lang;
+  },
 
-    openSettings(){state.screen='settings';$('#overlaySettings').classList.add('active');},
-    closeSettings(){state.screen='launcher';$('#overlaySettings').classList.remove('active');},
-    bindSettings(){
-      $('#btnSettings').onclick=()=>this.openSettings();
-    },
-
-    bindLauncher(){
-      $('#btnInstall').onclick=()=>this.installGame();
-    },
-    bindInstall(){
-      $('#btnCancelInstall').onclick=()=>{this.cancelInstall();};
-      $('#btnPlayAfterInstall').onclick=()=>{this.finishInstall();};
-    },
-
-    installGame(){state.screen='installing';$('#overlayInstall').classList.add('active');this.runInstall();},
-    runInstall(){
-      let p=0;const fill=$('#installFill');const pct=$('#installPct');const note=$('#installNote');const cancel=$('#btnCancelInstall');const play=$('#btnPlayAfterInstall');
-      const msgs=['Baixando mapa da cidade...','Gerando ruas e prédios...','Carregando água realista...','Criando NPCs e trânsito...','Ajustando sistema policial...','Finalizando instalação...'];
-      let mi=0;
-      const iv=setInterval(()=>{
-        p+=Math.random()*12+3;
-        if(p>100)p=100;
-        fill.style.width=p+'%';pct.textContent=Math.round(p)+'%';
-        if(Math.random()<0.35){note.textContent=msgs[mi%msgs.length];mi++;}
-        cancel.style.display=p<100?'inline-block':'none';
-        if(p>=100){clearInterval(iv);play.style.display='inline-block';note.textContent='Instalação concluída.';state.installed=true;this.toast('GTA 6 BR instalado');}
-      },140);
-      this._installIv=iv;
-    },
-    cancelInstall(){clearInterval(this._installIv);$('#overlayInstall').classList.remove('active');state.screen='launcher';this.toast('Instalação cancelada');},
-    finishInstall(){$('#overlayInstall').classList.remove('active');state.screen='playing';this.enterGame('rp');},
-
-    startStory(){if(!state.installed){this.installGame();return;}this.enterGame('story');},
-    startRP(){if(!state.installed){this.installGame();return;}this.enterGame('rp');},
-
-    enterGame(mode){
-      state.gameMode=mode;state.screen='playing';
-      $('#game').style.display='block';$('#hud').classList.add('active');
-      $('#overlayInstall').classList.remove('active');
-      this.applyControlsVisibility();
-      if(!this.game){this.game=new Game();}
-      this.game.init(mode);
-      this.game.loop();
-    },
-
-    quitToLauncher(){
-      if(this.game){this.game.dispose();this.game=null;}
-      state.screen='launcher';$('#game').style.display='none';$('#hud').classList.remove('active');
-      $('#mapFull').classList.remove('active');$('#overlayPause').classList.remove('active');
-      this.toast('De volta à central Matteo 5');
-    },
-
-    pause(){state.screen='paused';$('#overlayPause').classList.add('active');if(this.game)this.game.controls.unlock();},
-    resume(){state.screen='playing';$('#overlayPause').classList.remove('active');if(this.game)this.game.controls.lock();},
-    toggleFullMap(){const m=$('#mapFull');const active=m.classList.toggle('active');if(active){if(this.game)this.game.controls.unlock();}else{if(this.game)this.game.controls.lock();}},
-
-    applyControlsVisibility(){
-      const v=$('#virtControls');
-      const show = state.screen==='playing' && (state.controls==='virtual' || (state.controls==='auto' && /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)));
-      v.classList.toggle('active',show);
-    },
-
-    touchAction(act){if(!this.game)return;this.game.onTouch(act);},
-
-    onKey(down,pressed){
-      if(state.screen==='launcher'){if(down.key==='Escape'){}return;}
-      if(state.screen==='settings')return;
-      if(down.key==='Escape'&&state.screen==='playing'){pressed?this.pause():null;return;}
-      if(down.key==='m'||down.key==='M'){if(pressed&&state.screen==='playing')this.toggleFullMap();return;}
-      if(state.screen!=='playing')return;
-      state.keys[down.code]=pressed;
-      if(pressed){
-        if(down.code==='KeyE')this.game.onTouch('enter');
-        if(down.code==='KeyF')this.game.onTouch('action');
-        if(down.code==='Space')this.game.onTouch('jump');
-        if(down.code==='Digit1'){state.char='luiza';this.game.switchChar();this.toast('Personagem: Luiza');}
-        if(down.code==='Digit2'){state.char='carlos';this.game.switchChar();this.toast('Personagem: Carlos');}
-      }
-    },
-
-    resize(){
-      if(this.game)this.game.resize();
-    },
-
-    setMission(title,desc,step){state.mission={title,desc,step,complete:false};this.updateMissionUI();},
-    completeMission(){if(state.mission)state.mission.complete=true;this.updateMissionUI();this.toast('Missão concluída!');},
-    updateMissionUI(){
-      // Mission text shown in HUD status area
-      const el=$('#hudStatus');
-      if(!el)return;
-      if(state.mission&&!state.mission.complete){
-        el.textContent=`Missão: ${state.mission.title} — ${state.mission.desc} (${state.mission.step})`;
-      }else if(state.mission&&state.mission.complete){
-        el.textContent='Missão concluída';
-      }else{
-        el.textContent='GTA 6 BR · Cidade do Sol';
-      }
-    },
-
-    want(level){state.wanted=Math.min(6,Math.max(0,level));this.game&&this.game.updateWantedUI();},
-    addWanted(n){this.want(state.wanted+n);},
-    reduceWanted(){if(state.wanted>0){state.wanted--;this.game&&this.game.updateWantedUI();}},
-
-    speak(npc,textEn,textPt){
-      const d=$('#dialogBubble');const n=$('#dialogName');const t=$('#dialogText');
-      const usePt = state.lang==='pt-BR' || (state.lang==='both' && Math.random()<0.5);
-      n.textContent=npc.name;
-      t.textContent=usePt?(textPt||textEn):textEn;
-      d.classList.add('show');
-      setTimeout(()=>d.classList.remove('show'),3400);
-    },
-
-    toast(msg,ms=2200){
-      const el=$('#toast');el.textContent=msg;el.classList.add('show');
-      setTimeout(()=>el.classList.remove('show'),ms);
-    },
-
-    loop(){
-      if(state.screen!=='playing'){requestAnimationFrame(()=>this.loop());return;}
-      const now=performance.now();const dt=Math.min((now-state.lastTime)/1000,0.05);state.lastTime=now;state.time+=dt;
-      if(this.game)this.game.update(dt);
-      requestAnimationFrame(()=>this.loop());
-    }
-  };
-
-  // ---------- Game (Three.js) ----------
-  window.Game=function(){
-    this.scene=null;this.camera=null;this.renderer=null;this.controls=null;this.clock=new THREE.Clock();
-    this.player=null;this.characters=[];this.vehicles=[];this.npcs=[];this.police=[];this.water=null;
-    this.buildings=[];this.minimapCtx=null;this.mapCtx=null;this.raycaster=new THREE.Raycaster();
-    this.keys=state.keys;this.touch=state.touch;
-    this.wantedDecayTimer=0;this.policeSpawnTimer=0;
-    this.missionMarkers=[];this.currentMission=null;
-  };
-
-  Game.prototype.init=function(mode){
-    // Scene
-    this.scene=new THREE.Scene();this.scene.background=new THREE.Color(0x0b1d19);this.scene.fog=new THREE.Fog(0x07100f,40,260);
-    this.camera=new THREE.PerspectiveCamera(60,window.innerWidth/window.innerHeight,0.1,500);
-    this.renderer=new THREE.WebGLRenderer({canvas:$('#game'),antialias:true,alpha:false});
-    this.renderer.setSize(window.innerWidth,window.innerHeight);this.renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
-    this.renderer.shadowMap.enabled=true;this.renderer.shadowMap.type=THREE.PCFSoftShadowMap;
-
-    // Lights
-    const amb=new THREE.AmbientLight(0xffffff,0.5);this.scene.add(amb);
-    const dir=new THREE.DirectionalLight(0xffffff,1.2);dir.position.set(60,80,40);dir.castShadow=true;
-    dir.shadow.mapSize.set(2048,2048);dir.shadow.camera.near=10;dir.shadow.camera.far=200;dir.shadow.camera.left=-100;dir.shadow.camera.right=100;dir.shadow.camera.top=100;dir.shadow.camera.bottom=-100;
-    this.scene.add(dir);
-    const moon=new THREE.PointLight(0x4ade80,0.6,120);moon.position.set(-40,10,-60);this.scene.add(moon);
-
-    // Ground
-    const ground=new THREE.Mesh(new THREE.PlaneGeometry(400,400),new THREE.MeshStandardMaterial({color:0x0a1a14,roughness:1}));
-    ground.rotation.x=-Math.PI/2;ground.receiveShadow=true;this.scene.add(ground);
-
-    // Water (realistic shader)
-    this.createWater();
-
-    // Buildings city
-    this.createCity();
-
-    // Characters
-    this.createCharacters();
-
-    // Vehicles
-    this.createVehicles();
-
-    // NPCs
-    this.createNPCs();
-
-    // Police
-    this.createPolice();
-
-    // Controls
-    this.controls=new (window.PointerLockControls||THREE.PointerLockControls)(this.camera,document.body);
-    document.body.addEventListener('click',()=>this.controls.lock());
-    this.controls.addEventListener('lock',()=>{state.keys={};});
-    this.controls.addEventListener('unlock',()=>{state.keys={};});
-
-    // Minimap canvas
-    this.minimapCtx=$('#minimap').getContext('2d');
-    this.mapCtx=$('#mapCanvas').getContext('2d');
-
-    // Mission
-    if(state.gameMode==='story'){this.startMission(1);}else{app.setMission('Modo RP','Explore a cidade livremente.',0);}
-
-    this.applyGfx();
-    this.camera.position.set(0,2,6);
-    this.resize();
-    app.toast('Bem-vindo à Cidade do Sol — GTA 6 BR');
-  };
-
-  Game.prototype.createWater=function(){
-    // Simple animated water with a custom shader
-    const waterGeo=new THREE.PlaneGeometry(400,400,128,128);
-    waterGeo.rotateX(-Math.PI/2);
-    const waterMat=new THREE.ShaderMaterial({
-      uniforms:{
-        time:{value:0},
-        color:{value:new THREE.Color(0x003344)},
-        color2:{value:new THREE.Color(0x4ade80)}
-      },
-      vertexShader:`
-        uniform float time;
-        varying vec2 vUv; varying float vWave;
-        void main(){
-          vUv=uv;
-          vec3 pos=position;
-          float wave=sin(uv.x*3.0+time)*cos(uv.y*3.0+time)*0.25;
-          wave+=sin(uv.x*1.5-time*1.3)*0.15;
-          pos.z+=wave;
-          vWave=wave;
-          gl_Position=projectionMatrix*modelViewMatrix*vec4(pos,1.0);
-        }
-      `,
-      fragmentShader:`
-        uniform float time;
-        uniform vec3 color; uniform vec3 color2;
-        varying vec2 vUv; varying float vWave;
-        void main(){
-          vec3 c=mix(color,color2,smoothstep(-0.05,0.05,vWave));
-          c+=vec3(0.05)*sin(vUv.x*10.0+time)*cos(vUv.y*10.0+time);
-          gl_FragColor=vec4(c,1.0);
-        }
-      `,
-      transparent:false
+  bindLauncher(){
+    $('#btnPlay').onclick=()=>this.play('rp');
+    document.querySelectorAll('.card').forEach(c=>c.onclick=()=>this.play(c.dataset.mode));
+  },
+  bindSettings(){
+    $('#btnSettings').onclick=()=>this.openSettings();
+    $('#btnCloseSettings').onclick=()=>this.closeSettings();
+    $('#gfxQuality').onchange=e=>{S.gfx=e.target.value;this.save();this.game&&this.game.applySettings();this.toast('Gráficos: '+e.target.value);};
+    $('#gfxShadow').onchange=e=>{S.shadow=e.target.value;this.save();this.game&&this.game.applySettings();};
+    $('#gfxView').onchange=e=>{S.view=e.target.value;this.save();this.game&&this.game.applySettings();};
+    $('#ctrlType').onchange=e=>{S.controls=e.target.value;this.save();this.updateVirt();this.toast('Controles: '+e.target.value);};
+    $('#ctrlSens').oninput=e=>{S.sens=parseFloat(e.target.value);this.save();};
+    $('#langNPC').onchange=e=>{S.lang=e.target.value;this.save();this.toast('Idioma: '+e.target.value);};
+  },
+  bindInstall(){
+    $('#btnCancelInstall').onclick=()=>{this.cancelInstall();};
+    $('#btnPlayAfterInstall').onclick=()=>{this.afterInstall();};
+  },
+  bindGameUI(){
+    $('#btnCloseMap').onclick=()=>this.toggleMap();
+    $('#btnResume').onclick=()=>this.resume();
+    $('#btnPauseSettings').onclick=()=>{this.openSettings();};
+    $('#btnQuit').onclick=()=>this.quit();
+    // virtual buttons
+    document.querySelectorAll('#virt .act').forEach(b=>{
+      const act=b.dataset.act;
+      const fire=e=>{e.preventDefault();this.touchAction(act);};
+      b.addEventListener('touchstart',fire,{passive:false});
+      b.addEventListener('mousedown',e=>{e.preventDefault();this.touchAction(act);});
     });
-    this.water=new THREE.Mesh(waterGeo,waterMat);
-    this.water.position.y=0.01;this.scene.add(this.water);
-  };
+    this.bindStick();
+  },
+  bindStick(){
+    const stick=$('#stick'),knob=$('#knob');let id=null;
+    const set=(dx,dy)=>{const max=40;const d=Math.hypot(dx,dy);const k=d>max?max/d:1;knob.style.transform=`translate(${dx*k}px,${dy*k}px)`;S.touch.x=dx/max;S.touch.y=dy/max;};
+    const start=e=>{e.preventDefault();const t=e.changedTouches?e.changedTouches[0]:e;id=t.identifier;const r=stick.getBoundingClientRect();const cx=r.left+r.width/2,cy=r.top+r.height/2;S.touch.active=true;set(t.clientX-cx,t.clientY-cy);};
+    const move=e=>{if(!S.touch.active)return;e.preventDefault();const t=Array.from(e.touches||[e]).find(t=>t.identifier===id)||e;const r=stick.getBoundingClientRect();const cx=r.left+r.width/2,cy=r.top+r.height/2;set(t.clientX-cx,t.clientY-cy);};
+    const end=e=>{S.touch.active=false;S.touch.x=0;S.touch.y=0;knob.style.transform='translate(0,0)';};
+    stick.addEventListener('touchstart',start,{passive:false});
+    stick.addEventListener('touchmove',move,{passive:false});
+    stick.addEventListener('touchend',end);
+    stick.addEventListener('touchcancel',end);
+    stick.addEventListener('mousedown',e=>{e.preventDefault();S.touch.active=true;const r=stick.getBoundingClientRect();set(e.clientX-(r.left+r.width/2),e.clientY-(r.top+r.height/2));});
+    window.addEventListener('mousemove',e=>{if(!S.touch.active||!stick.matches(':active'))return;});
+    window.addEventListener('mouseup',()=>{if(S.touch.active){S.touch.active=false;S.touch.x=0;S.touch.y=0;knob.style.transform='translate(0,0)';}});
+  },
 
-  Game.prototype.createCity=function(){
-    const buildMat=new THREE.MeshStandardMaterial({color:0x122220,roughness:0.8});
-    const roofMat=new THREE.MeshStandardMaterial({color:0x1a2b27,roughness:1});
-    const grid=20;
-    for(let gx=-grid;gx<=grid;gx+=10){
-      for(let gz=-grid;gz<=grid;gz+=10){
-        if(Math.abs(gx)<12&&Math.abs(gz)<12){if(Math.random()<0.55){this.addBuilding(gx,gz,buildMat,roofMat);}}
-        else if(Math.random()<0.4){this.addBuilding(gx,gz,buildMat,roofMat);}
+  openSettings(){S.screen==='playing'&&this.pauseGame();$('#overlaySettings').classList.add('active');},
+  closeSettings(){$('#overlaySettings').classList.remove('active');if(S.screen==='paused')this.resume();},
+
+  play(mode){
+    if(!S.installed){this.startInstall(mode);return;}
+    this.enterGame(mode);
+  },
+  startInstall(mode){
+    S.pendingMode=mode;
+    $('#overlayInstall').classList.add('active');
+    $('#btnCancelInstall').style.display='inline-block';
+    $('#btnPlayAfterInstall').style.display='none';
+    this.runInstall();
+  },
+  runInstall(){
+    let p=0;const fill=$('#installFill'),pct=$('#installPct'),note=$('#installNote');
+    const msgs=['Baixando mapa da cidade...','Gerando ruas e prédios...','Criando água realista...','Posicionando NPCs e carros...','Configurando polícia...','Finalizando...'];
+    let mi=0;
+    clearInterval(this._iv);
+    this._iv=setInterval(()=>{
+      p+=Math.random()*14+4;if(p>=100){p=100;}
+      fill.style.width=p+'%';pct.textContent=Math.round(p)+'%';
+      if(Math.random()<0.5){note.textContent=msgs[mi%msgs.length];mi++;}
+      if(p>=100){
+        clearInterval(this._iv);
+        note.textContent='Instalação concluída.';
+        S.installed=true;this.save();
+        $('#btnCancelInstall').style.display='none';
+        $('#btnPlayAfterInstall').style.display='inline-block';
+        this.toast('GTA 6 BR instalado');
+      }
+    },120);
+  },
+  cancelInstall(){clearInterval(this._iv);$('#overlayInstall').classList.remove('active');this.toast('Instalação cancelada');},
+  afterInstall(){$('#overlayInstall').classList.remove('active');this.enterGame(S.pendingMode||'rp');},
+
+  enterGame(mode){
+    S.mode=mode;S.screen='playing';
+    $('#launcher').classList.add('hidden');
+    $('#game').style.display='block';
+    $('#hud').classList.add('active');
+    $('#overlayInstall').classList.remove('active');
+    $('#overlaySettings').classList.remove('active');
+    if(!this.game)this.game=new Game();
+    this.game.start(mode);
+    this.updateVirt();
+    $('#hint').style.display='block';$('#hint').style.opacity=1;
+    $('#hint').textContent='WASD mover · Mouse olhar · E entrar no carro · 1/2 trocar · M mapa · Esc pausa';
+    S.hintTimer=6;
+  },
+  updateVirt(){
+    const isTouch=/Android|iPhone|iPad|iPod|Mobile|Tablet/i.test(navigator.userAgent)||('ontouchstart'in window);
+    const show = S.screen==='playing' && (S.controls==='virtual' || (S.controls==='auto'&&isTouch));
+    $('#virt').classList.toggle('active',show);
+    $('#crosshair').style.display = (S.screen==='playing'&&!show)?'block':'none';
+    $('#charBox').style.left = show?(window.innerWidth<700?'110px':'130px'):'14px';
+  },
+  pauseGame(){S.screen='paused';$('#pause').classList.add('active');if(this.game)this.game.unlock();},
+  resume(){S.screen='playing';$('#pause').classList.remove('active');$('#overlaySettings').classList.remove('active');if(this.game)this.game.lock();},
+  quit(){
+    if(this.game){this.game.dispose();this.game=null;}
+    S.screen='launcher';
+    $('#game').style.display='none';$('#hud').classList.remove('active');
+    $('#fullmap').classList.remove('active');$('#pause').classList.remove('active');$('#overlaySettings').classList.remove('active');
+    $('#launcher').classList.remove('hidden');
+    this.toast('De volta à central Matteo 5');
+  },
+  toggleMap(){
+    const m=$('#fullmap');const on=m.classList.toggle('active');
+    if(on){this.game&&this.game.unlock();this.game&&this.game.drawFullMap();}
+    else{this.game&&this.game.lock();}
+  },
+  touchAction(act){
+    if(!this.game)return;
+    if(act==='map'){this.toggleMap();return;}
+    this.game.action(act);
+  },
+  buildStars(){
+    const box=$('#stars');box.innerHTML='';
+    for(let i=0;i<6;i++){const d=document.createElement('div');d.className='star';box.appendChild(d);}
+  },
+  setWanted(n){
+    S.wanted=clamp(n,0,6);
+    const stars=$('#stars').children;
+    for(let i=0;i<6;i++)stars[i].classList.toggle('on',i<S.wanted);
+    $('#wantedLvl').textContent='PROCURADO: '+S.wanted;
+    if(S.wanted>0)this.toast('Procurado: '+S.wanted+' estrela'+(S.wanted>1?'s':''),1200);
+  },
+  setMission(m){
+    if(!m){$('#missionBox').style.display='none';return;}
+    $('#missionBox').style.display='block';
+    $('#mTitle').textContent=m.title;$('#mDesc').textContent=m.desc;
+  },
+  setMoney(v){S.money=v;$('#money').textContent=v;},
+  setCharName(n){$('#charName').textContent=n;},
+  speak(name,pt,en){
+    const usePt = S.lang==='pt-BR'||(S.lang==='both'&&Math.random()<0.5);
+    $('#bName').textContent=name;
+    $('#bText').textContent=usePt?pt:en;
+    const b=$('#bubble');b.classList.add('show');
+    clearTimeout(this._bt);this._bt=setTimeout(()=>b.classList.remove('show'),3200);
+  },
+  toast(msg,ms=2000){
+    const t=$('#toast');t.textContent=msg;t.classList.add('show');
+    clearTimeout(this._tt);this._tt=setTimeout(()=>t.classList.remove('show'),ms);
+  },
+
+  onKey(e,down){
+    if(S.screen==='launcher'||S.screen==='settings')return;
+    const c=e.code;
+    if(down&&c==='Escape'){e.preventDefault();if(S.screen==='playing')this.pauseGame();else if(S.screen==='paused')this.resume();return;}
+    if(down&&c==='KeyM'&&S.screen==='playing'){e.preventDefault();this.toggleMap();return;}
+    if(S.screen!=='playing')return;
+    S.keys[c]=down;
+    if(down){
+      if(c==='KeyE')this.game.action('enter');
+      if(c==='KeyF')this.game.action('action');
+      if(c==='Space')this.game.action('jump');
+      if(c==='Digit1')this.game.switchChar('luiza');
+      if(c==='Digit2')this.game.switchChar('carlos');
+    }
+  },
+
+  loop(){
+    requestAnimationFrame(()=>this.loop());
+    const now=performance.now();let dt=(now-this.last)/1000;this.last=now;
+    if(dt>0.06)dt=0.06;
+    if(S.screen==='playing'&&this.game){this.game.update(dt);}
+    if(S.hintTimer>0&&S.screen==='playing'){S.hintTimer-=dt;if(S.hintTimer<=0){$('#hint').style.opacity=0;setTimeout(()=>{if(S.hintTimer<=0)$('#hint').style.display='none';},600);}}
+  }
+};
+
+window.addEventListener('keydown',e=>app.onKey(e,true));
+window.addEventListener('keyup',e=>app.onKey(e,false));
+
+// ================= GAME =================
+function Game(){this.ready=false;}
+
+Game.prototype.start=function(mode){
+  if(this.ready){this.reset(mode);return;}
+  this.ready=true;
+  this.mode=mode;
+  this.renderer=new THREE.WebGLRenderer({canvas:$('#game'),antialias:true,powerPreference:'high-performance'});
+  this.renderer.setPixelRatio(Math.min(window.devicePixelRatio,1.5));
+  this.renderer.shadowMap.enabled=true;this.renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+  if('outputEncoding'in this.renderer)this.renderer.outputEncoding=THREE.sRGBEncoding;
+
+  this.scene=new THREE.Scene();
+  this.scene.fog=new THREE.Fog(0xd8b48c,120,380);
+  this.camera=new THREE.PerspectiveCamera(62,window.innerWidth/window.innerHeight,0.1,900);
+  this.renderer.toneMapping=THREE.ACESFilmicToneMapping;
+  this.renderer.toneMappingExposure=1.1;
+
+  this.buildSky();
+  this.buildLights();
+  this.buildWater();
+  this.buildGround();
+  this.buildCity();
+  this.buildPlayer();
+  this.buildVehicles();
+  this.buildNPCs();
+  this.police=[];
+  this.marker=null;
+  this.fixColors();
+
+  this.minimapCtx=$('#minimap').getContext('2d');
+  this.mapCtx=$('#mapCanvas').getContext('2d');
+
+  this.bindInput();
+  this.resize();
+  window.addEventListener('resize',()=>this.resize());
+  this.reset(mode);
+};
+
+Game.prototype.reset=function(mode){
+  this.mode=mode;
+  this.player.position.set(30,0,0);
+  this.player.rotation.y=-Math.PI/2;
+  this.camYaw=Math.PI/2;this.camPitch=0.16;
+  S.camYaw=Math.PI/2;S.camPitch=0.16;
+  this.speedY=0;this.vy=0;
+  this.inCar=false;this.car=null;
+  S.wanted=0;app.setWanted(0);app.setMoney(500);
+  this.police.forEach(p=>this.scene.remove(p.mesh));this.police=[];
+  this.clearMarker();
+  this.missionIdx=-1;this.missionDone=false;
+  this.switchChar('luiza');
+  if(mode==='story')this.startMission(0);
+  else{app.setMission({title:'Modo RP',desc:'Explore a Cidade do Sol livremente.'});}
+  this.applySettings();
+  this.camera.position.set(37,4,0);
+  app.toast('Bem-vindo à Cidade do Sol!');
+};
+
+// ---- world ----
+Game.prototype.buildSky=function(){
+  const cv=document.createElement('canvas');cv.width=16;cv.height=256;
+  const ctx=cv.getContext('2d');
+  const g=ctx.createLinearGradient(0,0,0,256);
+  g.addColorStop(0,'#2a4a8a');
+  g.addColorStop(0.4,'#7a8ac8');
+  g.addColorStop(0.6,'#e89a72');
+  g.addColorStop(0.8,'#ffab6a');
+  g.addColorStop(1,'#ffe4b8');
+  ctx.fillStyle=g;ctx.fillRect(0,0,16,256);
+  const tex=new THREE.CanvasTexture(cv);
+  tex.magFilter=THREE.LinearFilter;tex.minFilter=THREE.LinearFilter;
+  tex.encoding=THREE.sRGBEncoding;
+  this.scene.background=tex;
+};
+
+Game.prototype.fixColors=function(){
+  this.scene.traverse(o=>{
+    if(!o.material)return;
+    const ms=Array.isArray(o.material)?o.material:[o.material];
+    ms.forEach(m=>{
+      if(!m.userData)m.userData={};
+      if(m.userData._lin)return;
+      if(m.color)m.color.convertSRGBToLinear();
+      if(m.emissive)m.emissive.convertSRGBToLinear();
+      m.userData._lin=true;
+    });
+  });
+  if(this.water){const u=this.water.material.uniforms;
+    u.deep.value.convertSRGBToLinear();u.shallow.value.convertSRGBToLinear();u.sun.value.convertSRGBToLinear();}
+  if(this.scene.fog)this.scene.fog.color.convertSRGBToLinear();
+};
+
+Game.prototype.buildLights=function(){
+  const hemi=new THREE.HemisphereLight(0xffe0b0,0x2a3540,0.4);this.scene.add(hemi);
+  const sun=new THREE.DirectionalLight(0xffb878,1.5);
+  sun.position.set(120,150,60);sun.castShadow=true;
+  sun.shadow.mapSize.set(1024,1024);
+  const c=sun.shadow.camera;c.near=10;c.far=420;c.left=-160;c.right=160;c.top=160;c.bottom=-160;
+  this.scene.add(sun);this.sun=sun;
+  const fill=new THREE.DirectionalLight(0x88aaff,0.28);fill.position.set(-80,60,-80);this.scene.add(fill);
+};
+
+Game.prototype.buildWater=function(){
+  const geo=new THREE.PlaneGeometry(1000,1000,96,96);
+  geo.rotateX(-Math.PI/2);
+  const mat=new THREE.ShaderMaterial({
+    uniforms:{uTime:{value:0},deep:{value:new THREE.Color(0x052a38)},shallow:{value:new THREE.Color(0x1f97a8)},sun:{value:new THREE.Color(0xffd9a0)}},
+    vertexShader:[
+      'uniform float uTime;','varying vec3 vP;','varying float vW;',
+      'void main(){','vec3 p=position;',
+      'float w=sin(p.x*0.12+uTime*1.3)*0.18+cos(p.z*0.16+uTime*1.0)*0.12+sin((p.x+p.z)*0.09+uTime*0.7)*0.10;',
+      'p.y+=w;vW=w;vP=p;',
+      'gl_Position=projectionMatrix*modelViewMatrix*vec4(p,1.0);}'
+    ].join('\n'),
+    fragmentShader:[
+      'uniform float uTime;uniform vec3 deep;uniform vec3 shallow;uniform vec3 sun;',
+      'varying vec3 vP;varying float vW;',
+      'void main(){',
+      'float rip=sin(vP.x*0.5+uTime*1.8)*cos(vP.z*0.5-uTime*1.4);',
+      'vec3 col=mix(deep,shallow,clamp(0.4+vW*0.6+rip*0.2,0.0,1.0));',
+      'float glint=pow(max(0.0,sin(vP.x*0.3+uTime*1.2)*cos(vP.z*0.3-uTime*0.9)),8.0);',
+      'col+=sun*glint*0.9;',
+      'float fres=pow(1.0-clamp(abs(normalize(vP).y),0.0,1.0),2.0);',
+      'col+=vec3(0.55,0.75,0.9)*fres*0.2;',
+      'float shore=smoothstep(117.0,104.0,vP.x);',
+      'float foam=shore*(0.55+0.45*sin(vP.z*0.7+uTime*2.2));',
+      'col=mix(col,vec3(0.92,1.0,0.98),clamp(foam,0.0,1.0)*0.55);',
+      'gl_FragColor=vec4(col,1.0);}'
+    ].join('\n')
+  });
+  this.water=new THREE.Mesh(geo,mat);this.water.position.y=-0.7;this.scene.add(this.water);
+};
+
+Game.prototype.buildGround=function(){
+  // city concrete
+  const g=new THREE.Mesh(new THREE.PlaneGeometry(340,400),new THREE.MeshStandardMaterial({color:0x2f363b,roughness:1}));
+  g.rotation.x=-Math.PI/2;g.position.set(-120,0,0);g.receiveShadow=true;this.scene.add(g);
+  // beach sand
+  const sand=new THREE.Mesh(new THREE.PlaneGeometry(70,420),new THREE.MeshStandardMaterial({color:0xb89a6a,roughness:1}));
+  sand.rotation.x=-Math.PI/2;sand.position.set(70,-0.25,0);sand.receiveShadow=true;this.scene.add(sand);
+  // grass patches for color
+  const grassMat=new THREE.MeshStandardMaterial({color:0x3f6b3a,roughness:1});
+  for(let i=0;i<10;i++){
+    const gr=new THREE.Mesh(new THREE.PlaneGeometry(14,14),grassMat);
+    gr.rotation.x=-Math.PI/2;gr.position.set(-260+Math.random()*300,0.015,(Math.random()-0.5)*380);gr.receiveShadow=true;this.scene.add(gr);
+  }
+  // roads grid (dark strips)
+  const roadMat=new THREE.MeshStandardMaterial({color:0x1b2024,roughness:0.95});
+  for(let i=0;i<7;i++){
+    const z=-180+i*60;
+    const r=new THREE.Mesh(new THREE.PlaneGeometry(300,10),roadMat);r.rotation.x=-Math.PI/2;r.position.set(-130,0.02,z);this.scene.add(r);
+  }
+  for(let i=0;i<6;i++){
+    const x=-280+i*50;
+    const r=new THREE.Mesh(new THREE.PlaneGeometry(10,400),roadMat);r.rotation.x=-Math.PI/2;r.position.set(x,0.02,0);this.scene.add(r);
+  }
+  // sidewalks
+  const sideMat=new THREE.MeshStandardMaterial({color:0x565b5d,roughness:1});
+  for(let i=0;i<7;i++){const z=-180+i*60;
+    [-6.5,6.5].forEach(dz=>{const s=new THREE.Mesh(new THREE.PlaneGeometry(300,3),sideMat);s.rotation.x=-Math.PI/2;s.position.set(-130,0.016,z+dz);s.receiveShadow=true;this.scene.add(s);});
+  }
+  for(let i=0;i<6;i++){const x=-280+i*50;
+    [-6.5,6.5].forEach(dx=>{const s=new THREE.Mesh(new THREE.PlaneGeometry(3,400),sideMat);s.rotation.x=-Math.PI/2;s.position.set(x+dx,0.016,0);s.receiveShadow=true;this.scene.add(s);});
+  }
+  // sidewalk lines
+  const lineMat=new THREE.MeshBasicMaterial({color:0xffd45e});
+  for(let i=0;i<7;i++){const z=-180+i*60;for(let j=0;j<30;j++){const m=new THREE.Mesh(new THREE.PlaneGeometry(3,0.5),lineMat);m.rotation.x=-Math.PI/2;m.position.set(-270+j*10,0.03,z);this.scene.add(m);}}
+};
+
+Game.prototype.buildCity=function(){
+  this.buildings=[];
+  const winMat=new THREE.MeshBasicMaterial({color:0xffe6a0});
+  const colors=[0x4a6a7a,0x5a7a62,0x7a5a72,0x8a6a52,0x4a6a72,0x6a5a4a];
+  for(let bx=0;bx<6;bx++){
+    for(let bz=0;bz<7;bz++){
+      if(bx>=5)continue;
+      const cx=-255+bx*50, cz=-180+bz*60;
+      if(Math.random()<0.15)continue;
+      const n=1+Math.floor(Math.random()*2);
+      for(let k=0;k<n;k++){
+        const w=14+Math.random()*14, d=14+Math.random()*14, h=10+Math.random()*45;
+        const ox=(Math.random()-0.5)*18, oz=(Math.random()-0.5)*18;
+        const mat=new THREE.MeshStandardMaterial({color:colors[(Math.random()*colors.length)|0],roughness:0.85,metalness:0.1});
+        const b=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);
+        b.position.set(cx+ox,h/2,cz+oz);b.castShadow=true;b.receiveShadow=true;this.scene.add(b);
+        // windows
+        const rows=Math.floor(h/4),cols=Math.floor(w/4);
+        for(let r=0;r<rows;r++)for(let c2=0;c2<cols;c2++){
+          if(Math.random()<0.4)continue;
+          const win=new THREE.Mesh(new THREE.PlaneGeometry(1.4,1.8),winMat);
+          win.position.set(cx+ox-w/2+2+c2*4,3+r*4,cz+oz+d/2+0.02);this.scene.add(win);
+        }
+        this.buildings.push(b);
       }
     }
-    // Central plaza
-    const plaza=new THREE.Mesh(new THREE.CircleGeometry(22,32),new THREE.MeshStandardMaterial({color:0x0e1b18}));
-    plaza.rotation.x=-Math.PI/2;plaza.position.y=0.02;plaza.receiveShadow=true;this.scene.add(plaza);
-  };
+  }
+  // palms
+  for(let i=0;i<26;i++){
+    const x=40+Math.random()*45, z=(Math.random()-0.5)*360;
+    this.palm(x,z);
+  }
+  for(let i=0;i<10;i++){this.palm(-300+Math.random()*40,(Math.random()-0.5)*360);}
+  // street lights
+  for(let i=0;i<16;i++){
+    const x=-260+Math.random()*280, z=(Math.random()-0.5)*360;
+    const pole=new THREE.Mesh(new THREE.CylinderGeometry(0.15,0.15,7,6),new THREE.MeshStandardMaterial({color:0x222}));
+    pole.position.set(x,3.5,z);this.scene.add(pole);
+    const lamp=new THREE.Mesh(new THREE.SphereGeometry(0.4,8,8),new THREE.MeshBasicMaterial({color:0xfff2b0}));
+    lamp.position.set(x,7,z);this.scene.add(lamp);
+  }
+};
 
-  Game.prototype.addBuilding=function(x,z,mat,roofMat){
-    const h=8+Math.random()*26;
-    const w=6+Math.random()*8;
-    const d=6+Math.random()*8;
-    const mesh=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);
-    mesh.position.set(x,h/2,z);mesh.castShadow=true;mesh.receiveShadow=true;
-    const roof=new THREE.Mesh(new THREE.BoxGeometry(w+1,1.2,d+1),roofMat);
-    roof.position.set(x,h+0.6,z);roof.castShadow=true;
-    const group=new THREE.Group();group.add(mesh);group.add(roof);group.userData={type:'building'};
-    this.scene.add(group);this.buildings.push(group);
-    // windows
-    for(let i=0;i<Math.floor(h/3);i++){
-      const win=new THREE.Mesh(new THREE.PlaneGeometry(1.2,1.2),new THREE.MeshBasicMaterial({color:0xffdd95}));
-      win.position.set(x+(Math.random()-0.5)*(w-1),2+i*3,z+d/2+0.01);
-      group.add(win);
-    }
-  };
+Game.prototype.palm=function(x,z){
+  const g=new THREE.Group();
+  const trunk=new THREE.Mesh(new THREE.CylinderGeometry(0.3,0.45,7,7),new THREE.MeshStandardMaterial({color:0x6b4a2a}));
+  trunk.position.y=3.5;trunk.castShadow=true;g.add(trunk);
+  const leafMat=new THREE.MeshStandardMaterial({color:0x2f8a4a,roughness:0.8});
+  for(let i=0;i<7;i++){
+    const leaf=new THREE.Mesh(new THREE.ConeGeometry(0.6,4,5),leafMat);
+    leaf.position.y=7;leaf.rotation.z=Math.PI/2.6;leaf.rotation.y=i*(Math.PI*2/7);leaf.position.x=Math.cos(i*0.9)*1.6;leaf.position.z=Math.sin(i*0.9)*1.6;leaf.castShadow=true;g.add(leaf);
+  }
+  g.position.set(x,0,z);this.scene.add(g);
+};
 
-  Game.prototype.createCharacters=function(){
-    const makeChar=(name,x,z,color)=>{
-      const group=new THREE.Group();
-      const body=new THREE.Mesh(new THREE.CapsuleGeometry(0.35,1,4,8),new THREE.MeshStandardMaterial({color}));
-      body.position.y=1.1;body.castShadow=true;
-      const head=new THREE.Mesh(new THREE.SphereGeometry(0.3,8,8),new THREE.MeshStandardMaterial({color:0xddaa88}));
-      head.position.y=2.15;
-      group.add(body);group.add(head);
-      group.position.set(x,0,z);group.userData={type:'char',name,health:100,inVehicle:false,vehicle:null};
-      this.scene.add(group);this.characters.push(group);return group;
-    };
-    this.charLuiza=makeChar('Luiza',-2,0,0x6b5b95);
-    this.charCarlos=makeChar('Carlos',2,0,0x4a6fa5);
-    this.player=this.charLuiza;
-    this.scene.add(this.player);
-  };
+// ---- player ----
+function makeHumanoid(skin,shirt,pants,hair){
+  const g=new THREE.Group();
+  const skinM=new THREE.MeshStandardMaterial({color:skin,roughness:0.7});
+  const shirtM=new THREE.MeshStandardMaterial({color:shirt,roughness:0.8});
+  const pantsM=new THREE.MeshStandardMaterial({color:pants,roughness:0.9});
+  const hairM=new THREE.MeshStandardMaterial({color:hair,roughness:0.9});
+  const torso=new THREE.Mesh(new THREE.CylinderGeometry(0.3,0.26,0.95,10),shirtM);torso.position.y=1.18;torso.castShadow=true;g.add(torso);
+  const head=new THREE.Mesh(new THREE.SphereGeometry(0.25,12,12),skinM);head.position.y=1.85;head.castShadow=true;g.add(head);
+  const hairM2=new THREE.Mesh(new THREE.SphereGeometry(0.27,12,12,0,Math.PI*2,0,Math.PI/2),hairM);hairM2.position.y=1.9;g.add(hairM2);
+  const armL=new THREE.Mesh(new THREE.CylinderGeometry(0.09,0.08,0.75,8),skinM);armL.position.set(-0.36,1.2,0);armL.rotation.z=0.18;armL.castShadow=true;g.add(armL);
+  const armR=armL.clone();armR.position.x=0.36;armR.rotation.z=-0.18;g.add(armR);
+  const legL=new THREE.Mesh(new THREE.CylinderGeometry(0.12,0.1,0.85,8),pantsM);legL.position.set(-0.14,0.45,0);legL.castShadow=true;g.add(legL);
+  const legR=legL.clone();legR.position.x=0.14;g.add(legR);
+  return g;
+}
 
-  Game.prototype.switchChar=function(){
-    if(this.player===this.charLuiza){this.player=this.charCarlos;}else{this.player=this.charLuiza;}
-    this.camera.position.copy(this.player.position).add(new THREE.Vector3(0,2,6));
-  };
+Game.prototype.buildPlayer=function(){
+  this.luiza=makeHumanoid(0xd9a878,0x7a4fa0,0x2b2b40,0x2a1a10);
+  this.carlos=makeHumanoid(0xc98f66,0x2f6fb0,0x3a3a3a,0x111111);
+  this.player=this.luiza;
+  this.scene.add(this.luiza);this.scene.add(this.carlos);
+  this.carlos.visible=false;
+  this.player.position.set(-70,0,20);
+};
 
-  Game.prototype.createVehicles=function(){
-    const makeCar=(x,z,color,police=false)=>{
-      const group=new THREE.Group();
-      const body=new THREE.Mesh(new THREE.BoxGeometry(2,1,3.5),new THREE.MeshStandardMaterial({color}));
-      body.position.y=0.8;body.castShadow=true;body.receiveShadow=true;
-      const cabin=new THREE.Mesh(new THREE.BoxGeometry(1.4,0.8,1.6),police?new THREE.MeshStandardMaterial({color:0x111111}):new THREE.MeshStandardMaterial({color:0x222222}));
-      cabin.position.y=1.55;cabin.position.z=-0.4;cabin.castShadow=true;
-      const wheelMat=new THREE.MeshStandardMaterial({color:0x111111});
-      const wheel=(sx,sz)=>{
-        const w=new THREE.Mesh(new THREE.CylinderGeometry(0.45,0.45,0.5,16),wheelMat);
-        w.rotation.z=Math.PI/2;w.position.set(sx,0.55,sz);w.castShadow=true;group.add(w);
-      };
-      wheel(-0.95,-1.45);wheel(0.95,-1.45);wheel(-0.95,1.2);wheel(0.95,1.2);
-      if(police){
-        const light=new THREE.Mesh(new THREE.BoxGeometry(1.6,0.25,0.4),new THREE.MeshBasicMaterial({color:0xff0000}));
-        light.position.set(0,1.85,-0.6);group.add(light);
-        const light2=new THREE.Mesh(new THREE.BoxGeometry(1.6,0.25,0.4),new THREE.MeshBasicMaterial({color:0x0000ff}));
-        light2.position.set(0,1.85,-0.9);group.add(light2);
-      }
-      group.position.set(x,0,z);group.userData={type:'vehicle',police,speed:0,engine:false};
-      this.scene.add(group);this.vehicles.push(group);return group;
-    };
-    // civilian cars
-    for(let i=0;i<14;i++){
-      const x=(Math.random()-0.5)*140;const z=(Math.random()-0.5)*140;
-      makeCar(x,z,0x333333+Math.random()*0x222222,false);
-    }
-    // police cars parked
-    for(let i=0;i<3;i++){
-      makeCar(-40+i*10,-60,0x111111,true);
-    }
-    this.playerCar=null;
-  };
+Game.prototype.switchChar=function(name){
+  if(this.inCar)return;
+  const next = name==='carlos'?this.carlos:this.luiza;
+  app.setCharName(name==='carlos'?'Carlos':'Luiza');
+  if(next===this.player)return;
+  const pos=this.player.position.clone();
+  this.player.visible=false;
+  this.player=next;this.player.visible=true;this.player.position.copy(pos);
+  app.toast('Personagem: '+(name==='carlos'?'Carlos':'Luiza'));
+};
 
-  Game.prototype.createNPCs=function(){
-    const namesPt=['Maria','João','Ana','Pedro','Carla','Lucas'];
-    const namesEn=['Maria','John','Ana','Peter','Carla','Luke'];
-    const dialPt=['Olá!','Bom dia!','Tudo bem?','Vai dar tudo certo.','Cuidado na rua.'];
-    const dialEn=['Hello!','Good morning!','How are you?','Everything will be fine.','Be careful out there.'];
-    for(let i=0;i<22;i++){
-      const x=(Math.random()-0.5)*130;const z=(Math.random()-0.5)*130;
-      const group=new THREE.Group();
-      const body=new THREE.Mesh(new THREE.CapsuleGeometry(0.3,0.9,4,6),new THREE.MeshStandardMaterial({color:0x666666+Math.random()*0x333333}));
-      body.position.y=0.95;body.castShadow=true;
-      group.add(body);group.position.set(x,0,z);group.userData={type:'npc',name:namesPt[Math.floor(Math.random()*namesPt.length)],timer:Math.random()*4,next:0};
-      this.scene.add(group);this.npcs.push(group);
-    }
-  };
+// ---- vehicles ----
+function makeCar(color){
+  const g=new THREE.Group();
+  const bodyM=new THREE.MeshStandardMaterial({color,roughness:0.4,metalness:0.5});
+  const body=new THREE.Mesh(new THREE.BoxGeometry(2.1,0.9,4.2),bodyM);body.position.y=0.75;body.castShadow=true;g.add(body);
+  const cabin=new THREE.Mesh(new THREE.BoxGeometry(1.7,0.8,2),new THREE.MeshStandardMaterial({color:0x11161a,roughness:0.2,metalness:0.3}));
+  cabin.position.set(0,1.45,-0.2);cabin.castShadow=true;g.add(cabin);
+  const wheelM=new THREE.MeshStandardMaterial({color:0x111});
+  const wheel=(x,z)=>{const w=new THREE.Mesh(new THREE.CylinderGeometry(0.45,0.45,0.4,12),wheelM);w.rotation.z=Math.PI/2;w.position.set(x,0.45,z);w.castShadow=true;g.add(w);};
+  wheel(-1,1.35);wheel(1,1.35);wheel(-1,-1.35);wheel(1,-1.35);
+  const lightM=new THREE.MeshBasicMaterial({color:0xfff2b0});
+  const l1=new THREE.Mesh(new THREE.BoxGeometry(0.4,0.25,0.1),lightM);l1.position.set(-0.6,0.8,2.12);g.add(l1);
+  const l2=l1.clone();l2.position.x=0.6;g.add(l2);
+  return g;
+}
 
-  Game.prototype.createPolice=function(){
-    // Police units spawned dynamically; this just prepares tracking array
-  };
+Game.prototype.buildVehicles=function(){
+  this.cars=[];
+  const colors=[0xd23b3b,0x3b6bd2,0xdedede,0x2a2a2a,0xd2a33b,0x3bd27a,0x8a3bd2];
+  for(let i=0;i<16;i++){
+    const car=makeCar(colors[(Math.random()*colors.length)|0]);
+    car.position.set(-250+Math.random()*280,0,(Math.random()-0.5)*360);
+    car.rotation.y=Math.random()*Math.PI*2;
+    car.userData={speed:0};
+    this.scene.add(car);this.cars.push(car);
+  }
+};
 
-  // ---------- Update / Loop ----------
-  Game.prototype.applyGfx=function(){
-    const q=state.gfx;
-    const dist = q==='low'?160:q==='medium'?260:400;
-    this.camera.far=dist;this.camera.updateProjectionMatrix();
-    this.renderer.shadowMap.enabled = q!=='low';
-    this.buildings.forEach(b=>{b.visible = this.camera.position.distanceTo(b.position)<dist;});
-    this.npcs.forEach(n=>{if(q==='low'){n.visible=this.camera.position.distanceTo(n.position)<120;}else{n.visible=this.camera.position.distanceTo(n.position)<dist;}});
-    this.vehicles.forEach(v=>{v.visible=this.camera.position.distanceTo(v.position)<dist;});
-    const c=this.water.material.uniforms; // not needed
-    this.fogDist=dist;
-    this.scene.fog.far=dist;
-  };
+// ---- npcs ----
+Game.prototype.buildNPCs=function(){
+  this.npcs=[];
+  const names=[['Maria','João','Ana','Pedro','Carla','Lucas','Bia','Rafael'],['Maria','John','Ana','Peter','Carla','Luke','Bea','Ralph']];
+  const pt=['Olá!','Bom dia!','Tudo bem?','Vai dar tudo certo.','Cuidado na rua.','Que calor, hein?','Bela cidade!'];
+  const en=['Hello!','Good morning!','How are you?','Everything will be fine.','Be careful out there.','Hot today, huh?','Beautiful city!'];
+  for(let i=0;i<24;i++){
+    const npc=makeHumanoid(0xd9a878+((Math.random()*0x222222)|0),0x888888+((Math.random()*0x444444)|0),0x333344,0x221111);
+    npc.position.set(-260+Math.random()*300,0,(Math.random()-0.5)*360);
+    npc.userData={pt,en,names,timer:Math.random()*3,walk:Math.random()*Math.PI*2,speed:0.6+Math.random()*0.8,home:npc.position.clone()};
+    npc.scale.setScalar(0.95+Math.random()*0.15);
+    this.scene.add(npc);this.npcs.push(npc);
+  }
+};
 
-  Game.prototype.resize=function(){
-    if(!this.renderer)return;
-    const w=window.innerWidth,h=window.innerHeight;
-    this.camera.aspect=w/h;this.camera.updateProjectionMatrix();
-    this.renderer.setSize(w,h,false);
-  };
+// ---- police ----
+Game.prototype.spawnPoliceCar=function(){
+  const car=makeCar(0x14161a);
+  // lights
+  const red=new THREE.Mesh(new THREE.BoxGeometry(0.5,0.3,0.3),new THREE.MeshBasicMaterial({color:0xff2222}));
+  red.position.set(-0.45,1.95,-0.2);car.add(red);
+  const blue=new THREE.Mesh(new THREE.BoxGeometry(0.5,0.3,0.3),new THREE.MeshBasicMaterial({color:0x2244ff}));
+  blue.position.set(0.45,1.95,-0.2);car.add(blue);
+  const ang=Math.random()*Math.PI*2;
+  const d=55+Math.random()*30;
+  car.position.set(this.player.position.x+Math.cos(ang)*d,0,this.player.position.z+Math.sin(ang)*d);
+  car.userData={speed:0,red,blue,flash:0};
+  this.scene.add(car);
+  this.police.push({mesh:car,speed:0});
+  return car;
+};
 
-  Game.prototype.update=function(dt){
-    state.time+=dt;
-    // Water animation
-    if(this.water)this.water.material.uniforms.time.value=state.time;
+// ---- input ----
+Game.prototype.bindInput=function(){
+  const canvas=$('#game');
+  canvas.addEventListener('click',()=>{if(S.screen==='playing'&&S.controls!=='virtual')this.lock();});
+  document.addEventListener('pointerlockchange',()=>{this.locked=document.pointerLockElement===canvas;});
+  document.addEventListener('mousemove',e=>{
+    if(!this.locked)return;
+    S.camYaw-=e.movementX*0.0022*S.sens;
+    S.camPitch=clamp(S.camPitch+e.movementY*0.0022*S.sens,-0.35,1.1);
+  });
+  // touch drag on right half rotates camera
+  let dragging=false,lastX=0,lastY=0,dragId=null;
+  canvas.addEventListener('touchstart',e=>{
+    if(S.controls==='keyboard')return;
+    const t=e.changedTouches[0];
+    if(t.clientX>window.innerWidth*0.45){dragging=true;dragId=t.identifier;lastX=t.clientX;lastY=t.clientY;}
+  },{passive:true});
+  canvas.addEventListener('touchmove',e=>{
+    if(!dragging)return;
+    const t=Array.from(e.changedTouches).find(x=>x.identifier===dragId);if(!t)return;
+    S.camYaw-=(t.clientX-lastX)*0.006;S.camPitch=clamp(S.camPitch+(t.clientY-lastY)*0.004,-0.35,1.1);
+    lastX=t.clientX;lastY=t.clientY;
+  },{passive:true});
+  canvas.addEventListener('touchend',e=>{if(Array.from(e.changedTouches).some(t=>t.identifier===dragId))dragging=false;});
+};
+Game.prototype.lock=function(){const c=$('#game');if(S.controls!=='virtual'&&c.requestPointerLock)c.requestPointerLock();};
+Game.prototype.unlock=function(){if(document.pointerLockElement)document.exitPointerLock();};
 
-    // Player input movement
+// ---- actions ----
+Game.prototype.action=function(act){
+  if(act==='jump'){
+    if(!this.inCar&&this.vy===0){this.vy=5.5;}
+  }else if(act==='enter'){
+    if(this.inCar){this.exitCar();return;}
+    let near=null,best=5;
+    this.cars.forEach(c=>{const d=this.player.position.distanceTo(c.position);if(d<best){best=d;near=c;}});
+    if(near)this.enterCar(near);else app.toast('Nenhum carro próximo');
+  }else if(act==='action'){
+    // punch -> raises wanted
+    app.setWanted(S.wanted+1);
+    app.toast('Você causou confusão!');
+    this.spawnPoliceIfNeeded();
+  }
+};
+Game.prototype.enterCar=function(car){
+  this.inCar=true;this.car=car;this.player.visible=false;
+  car.userData.speed=0;
+  app.toast('No carro — W acelera, S freia, A/D vira');
+};
+Game.prototype.exitCar=function(){
+  if(!this.car)return;
+  this.player.position.copy(this.car.position).add(new THREE.Vector3(2.5,0,0));
+  this.player.position.y=0;
+  this.inCar=false;this.car=null;this.player.visible=true;
+};
+Game.prototype.spawnPoliceIfNeeded=function(){
+  while(this.police.length<S.wanted&&this.police.length<6){this.spawnPoliceCar();}
+};
+
+// ---- missions ----
+const MISSIONS=[
+  {title:'1. Primeiro Encontro',desc:'Luiza vai até a praça encontrar Carlos.',target:new THREE.Vector3(-70,0,-40),type:'reach'},
+  {title:'2. Roubo de Carro',desc:'Entre em qualquer veículo.',target:null,type:'car'},
+  {title:'3. Fuga da Polícia',desc:'Perca a perseguição (procurado = 0).',target:null,type:'lose'},
+  {title:'4. Mirante do Casal',desc:'Leve o carro até o mirante.',target:new THREE.Vector3(-40,0,150),type:'reach'},
+  {title:'5. A Última Noite',desc:'Chegue ao ponto final com Carlos.',target:new THREE.Vector3(10,0,180),type:'reach'}
+];
+Game.prototype.startMission=function(i){
+  if(i>=MISSIONS.length){app.setMission({title:'História concluída',desc:'Luiza e Carlos venceram na Cidade do Sol.'});this.missionDone=true;app.setMoney(S.money+2000);app.toast('Parabéns! História concluída.');return;}
+  this.missionIdx=i;const m=MISSIONS[i];
+  app.setMission({title:m.title,desc:m.desc});
+  if(m.type==='reach'){this.placeMarker(m.target);}
+  if(m.type==='lose'){app.setWanted(Math.max(2,S.wanted));this.spawnPoliceIfNeeded();}
+};
+Game.prototype.placeMarker=function(pos){
+  this.clearMarker();
+  const g=new THREE.Group();
+  const ring=new THREE.Mesh(new THREE.RingGeometry(2,2.7,32),new THREE.MeshBasicMaterial({color:0x00d2ff,side:THREE.DoubleSide,transparent:true,opacity:0.9}));
+  ring.rotation.x=-Math.PI/2;ring.position.y=0.05;g.add(ring);
+  const beam=new THREE.Mesh(new THREE.CylinderGeometry(0.5,0.5,30,10,1,true),new THREE.MeshBasicMaterial({color:0x00d2ff,transparent:true,opacity:0.18,side:THREE.DoubleSide}));
+  beam.position.y=15;g.add(beam);
+  g.position.copy(pos);this.scene.add(g);this.marker=g;
+};
+Game.prototype.clearMarker=function(){if(this.marker){this.scene.remove(this.marker);this.marker=null;}};
+
+// ---- update ----
+Game.prototype.update=function(dt){
+  S.time+=dt;
+  if(this.water)this.water.material.uniforms.uTime.value=S.time;
+
+  // input vector
+  let ix=0,iz=0;
+  if(S.keys['KeyW']||S.keys['ArrowUp'])iz-=1;
+  if(S.keys['KeyS']||S.keys['ArrowDown'])iz+=1;
+  if(S.keys['KeyA']||S.keys['ArrowLeft'])ix-=1;
+  if(S.keys['KeyD']||S.keys['ArrowRight'])ix+=1;
+  if(S.touch.active){ix+=S.touch.x;iz+=S.touch.y;}
+  const run=(S.keys['ShiftLeft']||S.keys['ShiftRight'])?1.8:1;
+
+  const yaw=S.camYaw;
+  const fwd=new THREE.Vector3(-Math.sin(yaw),0,-Math.cos(yaw));
+  const right=new THREE.Vector3(Math.cos(yaw),0,-Math.sin(yaw));
+
+  if(this.inCar&&this.car){
+    const car=this.car;const u=car.userData;
+    const accel=(iz<0?18:0)-(iz>0?14:0);
+    u.speed+=accel*dt;
+    u.speed=clamp(u.speed,-9,24);
+    u.speed*=(1-0.9*dt);
+    const steer=(ix)*dt*u.speed*0.08;
+    car.rotation.y+=steer;
+    car.position.x+=Math.sin(car.rotation.y)*u.speed*dt;
+    car.position.z+=Math.cos(car.rotation.y)*u.speed*dt;
+    car.position.x=clamp(car.position.x,-320,180);
+    car.position.z=clamp(car.position.z,-200,200);
+    // camera behind car
+    const camPos=car.position.clone().add(new THREE.Vector3(Math.sin(car.rotation.y)*-8,5,Math.cos(car.rotation.y)*-8));
+    this.camera.position.lerp(camPos,0.12);
+    this.camera.lookAt(car.position.x,car.position.y+1.5,car.position.z);
+    // car collides -> wanted
+    this.police.forEach(p=>{if(car.position.distanceTo(p.mesh.position)<3&&S.wanted<6){app.setWanted(S.wanted+1);this.spawnPoliceIfNeeded();}});
+  }else{
     const move=new THREE.Vector3();
-    if(state.keys['KeyW']||state.keys['ArrowUp'])move.z-=1;
-    if(state.keys['KeyS']||state.keys['ArrowDown'])move.z+=1;
-    if(state.keys['KeyA']||state.keys['ArrowLeft'])move.x-=1;
-    if(state.keys['KeyD']||state.keys['ArrowRight'])move.x+=1;
-    const run=state.keys['ShiftLeft']||state.keys['ShiftRight'];
-    const speed=(run?6:3)*(state.sens/2);
-    if(move.length()>0){
-      move.normalize().multiplyScalar(speed*dt);
-      // rotate move by camera yaw
-      const yaw=this.camera.rotation.y;
-      const dx=move.x*Math.cos(yaw)-move.z*Math.sin(yaw);
-      const dz=move.x*Math.sin(yaw)+move.z*Math.cos(yaw);
-      this.player.position.x+=dx;this.player.position.z+=dz;
-      this.player.position.y=0.01;
-      this.player.rotation.y=yaw;
+    move.addScaledVector(fwd,-iz).addScaledVector(right,ix);
+    if(move.lengthSq()>0.001){
+      move.normalize().multiplyScalar((run?8:4.2)*dt);
+      this.player.position.add(move);
+      const dir=Math.atan2(move.x,move.z);
+      this.player.rotation.y=dir;
+      this.player.position.x=clamp(this.player.position.x,-320,180);
+      this.player.position.z=clamp(this.player.position.z,-200,200);
     }
-    // Keep camera behind player smoothly
-    const targetCam=this.player.position.clone().add(new THREE.Vector3(0,2.2,6));
-    this.camera.position.lerp(targetCam,0.12);
-    this.camera.lookAt(this.player.position.clone().add(new THREE.Vector3(0,1,-5)));
+    // jump
+    this.vy-=14*dt;this.player.position.y+=this.vy*dt;
+    if(this.player.position.y<0){this.player.position.y=0;this.vy=0;}
+    // camera orbit
+    const dist=7,height=2.6;
+    const cx=this.player.position.x+Math.sin(yaw)*Math.cos(S.camPitch)*dist;
+    const cz=this.player.position.z+Math.cos(yaw)*Math.cos(S.camPitch)*dist;
+    const cy=this.player.position.y+height+Math.sin(S.camPitch)*dist;
+    this.camera.position.lerp(new THREE.Vector3(cx,cy,cz),0.18);
+    this.camera.lookAt(this.player.position.x,this.player.position.y+1.3,this.player.position.z);
+  }
 
-    // Vehicles movement (simple patrol)
-    this.vehicles.forEach(v=>{
-      if(!v.userData.engine&&Math.random()<0.005)v.userData.engine=true;
-      if(v.userData.engine){
-        v.position.x+=Math.sin(state.time+v.position.x)*0.02;
-        v.position.z+=Math.cos(state.time+v.position.z)*0.02;
-        v.rotation.y=Math.atan2(Math.sin(state.time+v.position.x),Math.cos(state.time+v.position.z));
+  // npcs wander + talk
+  this.npcs.forEach(n=>{
+    const u=n.userData;
+    u.walk+=dt*0.5;
+    n.position.x+=Math.cos(u.walk)*u.speed*dt*0.4;
+    n.position.z+=Math.sin(u.walk)*u.speed*dt*0.4;
+    n.rotation.y=Math.atan2(Math.cos(u.walk),Math.sin(u.walk));
+    if(n.position.distanceTo(u.home)>25){n.position.lerp(u.home,0.01);}
+    u.timer-=dt;
+    if(u.timer<=0){
+      u.timer=4+Math.random()*4;
+      if(n.position.distanceTo(this.player.position)<8){
+        const nameIdx=(Math.random()*u.names[0].length)|0;
+        app.speak(u.names[0][nameIdx],u.pt[(Math.random()*u.pt.length)|0],u.en[(Math.random()*u.en.length)|0]);
       }
-      // Enter vehicle
-      if(this.player.position.distanceTo(v.position)<3&&state.keys['KeyE']&&!this.player.userData.inVehicle){
-        this.enterVehicle(v);state.keys['KeyE']=false;
-      }
-      if(this.player.userData.inVehicle&&this.player.userData.vehicle===v){
-        this.camera.position.copy(v.position).add(new THREE.Vector3(0,4,8));
-        this.camera.lookAt(v.position);
-      }
-    });
-
-    // NPCs idle + talk
-    this.npcs.forEach(n=>{
-      n.userData.timer-=dt;
-      if(n.userData.timer<0){n.userData.timer=3+n.random*3;n.userData.next=Math.random()>0.7;}
-      if(n.userData.next&&this.player.position.distanceTo(n.position)<6){
-        n.userData.next=false;
-        const pt=state.lang==='pt-BR'||(state.lang==='both'&&Math.random()<0.5);
-        const d=['Olá!','Bom dia!','Tudo bem?','Vai dar tudo certo.','Cuidado na rua.'];
-        const e=['Hello!','Good morning!','How are you?','Everything will be fine.','Be careful out there.'];
-        const txt=pt?d[Math.floor(Math.random()*d.length)]:e[Math.floor(Math.random()*e.length)];
-        app.speak({name:n.userData.name},txt,txt);
-      }
-    });
-
-    // Police / wanted
-    this.updateWanted(dt);
-    this.spawnPolice();
-
-    // Missions
-    this.updateMission(dt);
-
-    // Minimap
-    this.drawMinimap();
-
-    this.renderer.render(this.scene,this.camera);
-  };
-
-  Game.prototype.enterVehicle=function(v){
-    this.player.userData.inVehicle=true;this.player.userData.vehicle=v;v.userData.engine=true;this.player.visible=false;
-  };
-
-  Game.prototype.exitVehicle=function(){
-    if(!this.player.userData.inVehicle)return;
-    const v=this.player.userData.vehicle;this.player.userData.inVehicle=false;this.player.userData.vehicle=null;this.player.visible=true;
-    this.player.position.copy(v.position).add(new THREE.Vector3(2,0,0));
-  };
-
-  Game.prototype.onTouch=function(act){
-    if(act==='enter'){
-      // find nearest vehicle
-      let near=null,dist=1e9;
-      this.vehicles.forEach(v=>{const d=this.player.position.distanceTo(v.position);if(d<dist&&d<4){dist=d;near=v;}});
-      if(near){if(this.player.userData.inVehicle) this.exitVehicle(); else this.enterVehicle(near);}else{app.toast('Nenhum veículo próximo');}
-    }else if(act==='action'){
-      app.addWanted(1);app.toast('Ação suspeita!');
-    }else if(act==='jump'){
-      this.player.position.y+=1;setTimeout(()=>this.player.position.y=0.01,300);
     }
-  };
+  });
 
-  Game.prototype.updateWanted=function(dt){
-    if(state.wanted>0){
-      this.wantedDecayTimer+=dt;
-      if(this.wantedDecayTimer>3){this.wantedDecayTimer=0;app.reduceWanted();}
+  // police chase
+  this.police.forEach(p=>{
+    if(S.wanted===0)return;
+    const car=p.mesh;
+    const dir=new THREE.Vector3().subVectors(this.player.position,car.position);
+    dir.y=0;const dist=dir.length();
+    dir.normalize();
+    const sp=(8+S.wanted*1.6);
+    if(dist>4){car.position.addScaledVector(dir,sp*dt);}
+    car.rotation.y=Math.atan2(dir.x,dir.z);
+    car.userData.flash+=dt;
+    const on=Math.sin(car.userData.flash*10)>0;
+    car.userData.red.material.color.setHex(on?0xff2222:0x330000);
+    car.userData.blue.material.color.setHex(on?0x2244ff:0x000033);
+  });
+
+  // wanted decay
+  if(S.wanted>0){
+    S.wantedTimer+=dt;
+    if(S.wantedTimer>8){S.wantedTimer=0;app.setWanted(S.wanted-1);}
+  }else{
+    this.police.forEach(p=>this.scene.remove(p.mesh));this.police=[];
+  }
+
+  // mission logic
+  if(S.mode==='story'&&this.missionIdx>=0&&!this.missionDone){
+    const m=MISSIONS[this.missionIdx];
+    let done=false;
+    if(m.type==='reach'&&m.target){
+      const d=this.player.position.distanceTo(m.target);
+      if(d<5){done=true;}
+      if(this.marker)this.marker.rotation.y+=dt;
+    }else if(m.type==='car'&&this.inCar){done=true;}
+    else if(m.type==='lose'&&S.wanted===0){done=true;}
+    if(done){
+      this.clearMarker();
+      app.setMoney(S.money+250);
+      app.toast('Missão concluída! +R$250');
+      this.startMission(this.missionIdx+1);
     }
-    // police chase
-    this.police.forEach(p=>{
-      if(state.wanted===0){return;}
-      const dir=new THREE.Vector3().subVectors(this.player.position,p.position).normalize();
-      p.position.add(dir.multiplyScalar(dt*(2+state.wanted*0.4)));
-      p.lookAt(this.player.position);
-      if(this.player.position.distanceTo(p.position)<2.5){
-        app.addWanted(1);app.toast('Polícia perto!');
-      }
-    });
-  };
+  }
 
-  Game.prototype.spawnPolice=function(){
-    this.policeSpawnTimer+=state.clock.getDelta();
-    if(state.wanted>2&&this.policeSpawnTimer>4&&this.police.length<state.wanted){
-      this.policeSpawnTimer=0;
-      const angle=Math.random()*Math.PI*2;
-      const x=this.player.position.x+Math.cos(angle)*(40+Math.random()*40);
-      const z=this.player.position.z+Math.sin(angle)*(40+Math.random()*40);
-      const car=this.spawnPoliceCar(x,z);
-      this.police.push(car);
-    }
-    // clean far police
-    this.police=this.police.filter(p=>this.player.position.distanceTo(p.position)<300||!this.scene.children.includes(p));
-  };
+  // hint fade
+  this.drawMinimap();
+  this.renderer.render(this.scene,this.camera);
+};
 
-  Game.prototype.spawnPoliceCar=function(x,z){
-    const group=new THREE.Group();
-    const body=new THREE.Mesh(new THREE.BoxGeometry(2,1,3.5),new THREE.MeshStandardMaterial({color:0x111111}));
-    body.position.y=0.8;body.castShadow=true;group.add(body);
-    const light=new THREE.Mesh(new THREE.BoxGeometry(1.6,0.25,0.4),new THREE.MeshBasicMaterial({color:0xff0000}));light.position.set(0,1.85,-0.6);group.add(light);
-    group.position.set(x,0,z);group.userData={type:'police'};
-    this.scene.add(group);return group;
-  };
+Game.prototype.applySettings=function(){
+  const q=S.gfx;
+  this.renderer.shadowMap.enabled = (S.shadow==='on'&&q!=='low');
+  this.sun.castShadow=(S.shadow==='on'&&q!=='low');
+  const far = S.view==='near'?220:S.view==='far'?420:320;
+  this.camera.far=far;this.camera.updateProjectionMatrix();
+  this.scene.fog.far=far*0.95;this.scene.fog.near=far*0.35;
+  const pr = q==='low'?1:q==='high'?Math.min(window.devicePixelRatio,2):Math.min(window.devicePixelRatio,1.5);
+  this.renderer.setPixelRatio(pr);
+  this.renderer.setSize(window.innerWidth,window.innerHeight);
+};
 
-  Game.prototype.updateWantedUI=function(){
-    const box=$('#wantedStars');box.innerHTML='';
-    for(let i=1;i<=6;i++){const s=document.createElement('div');s.className='star'+(i<=state.wanted?'':' off');box.appendChild(s);}
-    $('#wantedLvl').textContent='PROCURADO: '+state.wanted;
-    if(state.wanted>0)app.toast('Nível de procurado: '+state.wanted+'★',900);
-  };
+Game.prototype.resize=function(){
+  if(!this.renderer)return;
+  this.camera.aspect=window.innerWidth/window.innerHeight;this.camera.updateProjectionMatrix();
+  this.renderer.setSize(window.innerWidth,window.innerHeight);
+};
 
-  Game.prototype.startMission=function(id){
-    const missions={
-      1:{title:'Primeiro encontro',desc:'Encontre Carlos na praça.',step:'Vá até o marcador azul.'},
-      2:{title:'Roubo de carro',desc:'Roube um veículo e entregue ao contato.',step:'Entre em um carro com E.'},
-      3:{title:'Fuga da polícia',desc:'Perca a perseguição policial.',step:'Aguarde o procurado zerar.'},
-      4:{title:'Encontro a dois',desc:'Leve Luiza e Carlos ao mirante.',step:'Leve ambos até o ponto final.'},
-      5:{title:'Última missão',desc:'Finalize a história do casal na cidade.',step:'Chegue ao destino final.'}
-    };
-    const m=missions[id];app.setMission(m.title,m.desc,m.step);
-    this.currentMission=id;
-    // create a marker
-    this.createMissionMarker(id);
-  };
+// ---- minimap / map ----
+Game.prototype.drawMinimap=function(){
+  const c=this.minimapCtx;if(!c)return;const cv=$('#minimap');const w=cv.width,h=cv.height;
+  c.clearRect(0,0,w,h);
+  c.fillStyle='rgba(6,26,22,0.85)';c.fillRect(0,0,w,h);
+  const scale=0.55,cx=w/2,cy=h/2;
+  const px=this.player.position.x, pz=this.player.position.z;
+  // roads hint
+  c.strokeStyle='rgba(120,160,150,0.25)';c.lineWidth=2;
+  for(let i=0;i<7;i++){const z=-180+i*60;c.beginPath();c.moveTo(cx+( -280-px)*scale,cy+(z-pz)*scale);c.lineTo(cx+(180-px)*scale,cy+(z-pz)*scale);c.stroke();}
+  for(let i=0;i<6;i++){const x=-280+i*50;c.beginPath();c.moveTo(cx+(x-px)*scale,cy+(-200-pz)*scale);c.lineTo(cx+(x-px)*scale,cy+(200-pz)*scale);c.stroke();}
+  // water side
+  c.fillStyle='rgba(31,168,154,0.18)';c.fillRect(cx+(80-px)*scale,0,w,h);
+  // mission
+  if(this.marker){c.fillStyle='#00d2ff';c.beginPath();c.arc(cx+(this.marker.position.x-px)*scale,cy+(this.marker.position.z-pz)*scale,6,0,Math.PI*2);c.fill();}
+  // police
+  this.police.forEach(p=>{c.fillStyle='#ff3b3b';c.beginPath();c.arc(cx+(p.mesh.position.x-px)*scale,cy+(p.mesh.position.z-pz)*scale,4,0,Math.PI*2);c.fill();});
+  // npcs
+  c.fillStyle='#ffd700';this.npcs.forEach(n=>{if(n.position.distanceTo(this.player.position)<70){c.beginPath();c.arc(cx+(n.position.x-px)*scale,cy+(n.position.z-pz)*scale,2,0,Math.PI*2);c.fill();}});
+  // player arrow
+  const ax=cx,ay=cy;
+  c.save();c.translate(ax,ay);c.rotate(-this.player.rotation.y);
+  c.fillStyle='#9bffca';c.beginPath();c.moveTo(0,-8);c.lineTo(6,7);c.lineTo(0,4);c.lineTo(-6,7);c.closePath();c.fill();
+  c.restore();
+  c.strokeStyle='rgba(155,255,202,0.5)';c.lineWidth=2;c.strokeRect(2,2,w-4,h-4);
+};
 
-  Game.prototype.createMissionMarker=function(id){
-    const positions={1:[0,0,-30],2:[30,0,30],3:[60,0,-10],4:[-40,0,40],5:[70,0,70]};
-    const p=positions[id];
-    if(!p)return;
-    const geo=new THREE.RingGeometry(1.5,2,24);const mat=new THREE.MeshBasicMaterial({color:0x00d2ff,side:THREE.DoubleSide});
-    const m=new THREE.Mesh(geo,mat);m.rotation.x=-Math.PI/2;m.position.set(p[0],0.06,p[1]);this.scene.add(m);this.missionMarkers.push(m);
-    // floating text via canvas? skip for simplicity
-  };
+Game.prototype.drawFullMap=function(){
+  const c=this.mapCtx;if(!c)return;const cv=$('#mapCanvas');
+  cv.width=cv.clientWidth||900;cv.height=cv.clientHeight||700;
+  const w=cv.width,h=cv.height;
+  c.fillStyle='#07100f';c.fillRect(0,0,w,h);
+  const scale=Math.min(w/560,h/460),cx=w/2,cy=h/2;
+  const px=this.player.position.x,pz=this.player.position.z;
+  // water
+  c.fillStyle='#0b3a3a';c.fillRect(cx+(80-px)*scale,0,w,h);
+  // land
+  c.fillStyle='#0e2019';c.fillRect(0,0,cx+(80-px)*scale,h);
+  // roads
+  c.strokeStyle='#22302c';c.lineWidth=8;
+  for(let i=0;i<7;i++){const z=-180+i*60;c.beginPath();c.moveTo(cx+(-300-px)*scale,cy+(z-pz)*scale);c.lineTo(cx+(80-px)*scale,cy+(z-pz)*scale);c.stroke();}
+  for(let i=0;i<6;i++){const x=-280+i*50;c.beginPath();c.moveTo(cx+(x-px)*scale,cy+(-210-pz)*scale);c.lineTo(cx+(x-px)*scale,cy+(210-pz)*scale);c.stroke();}
+  // buildings
+  c.fillStyle='#2a3d37';this.buildings.forEach(b=>{c.fillRect(cx+(b.position.x-px)*scale-4,cy+(b.position.z-pz)*scale-4,8,8);});
+  // mission
+  if(this.marker){c.fillStyle='#00d2ff';c.beginPath();c.arc(cx+(this.marker.position.x-px)*scale,cy+(this.marker.position.z-pz)*scale,10,0,Math.PI*2);c.fill();c.fillStyle='#fff';c.font='12px sans-serif';c.fillText('OBJETIVO',cx+(this.marker.position.x-px)*scale+12,cy+(this.marker.position.z-pz)*scale);}
+  // police
+  this.police.forEach(p=>{c.fillStyle='#ff3b3b';c.beginPath();c.arc(cx+(p.mesh.position.x-px)*scale,cy+(p.mesh.position.z-pz)*scale,6,0,Math.PI*2);c.fill();});
+  // npcs
+  c.fillStyle='#ffd700';this.npcs.forEach(n=>{c.beginPath();c.arc(cx+(n.position.x-px)*scale,cy+(n.position.z-pz)*scale,3,0,Math.PI*2);c.fill();});
+  // player
+  c.save();c.translate(cx,cy);c.rotate(-this.player.rotation.y);c.fillStyle='#9bffca';c.beginPath();c.moveTo(0,-12);c.lineTo(9,10);c.lineTo(0,6);c.lineTo(-9,10);c.closePath();c.fill();c.restore();
+  c.fillStyle='#fff';c.font='bold 20px sans-serif';c.fillText('CIDADE DO SOL',24,40);
+  c.fillStyle='#9bffca';c.font='13px sans-serif';c.fillText('● você   ● polícia   ● NPC   ● objetivo',24,64);
+  c.fillStyle='#2a6a5a';c.font='13px sans-serif';c.fillText('OCEANO',w-150,84);
+};
 
-  Game.prototype.updateMission=function(dt){
-    if(!state.mission)return;
-    if(state.mission.complete)return;
-    const id=this.currentMission;
-    if(id){
-      // check proximity to marker
-      const m=this.missionMarkers.find(mm=>mm.userData&&mm.userData.mission===id);
-      // simple: complete mission 1 when close
-      const p=this.player.position;
-      if(id===1&&p.distanceTo(new THREE.Vector3(0,0,-30))<5){app.completeMission();this.startMission(2);}
-      if(id===2&&this.player.userData.inVehicle){app.completeMission();this.startMission(3);}
-      if(id===3&&state.wanted===0){app.completeMission();this.startMission(4);}
-      if(id===4&&p.distanceTo(new THREE.Vector3(-40,0,40))<5){app.completeMission();this.startMission(5);}
-      if(id===5&&p.distanceTo(new THREE.Vector3(70,0,70))<5){app.completeMission();app.toast('História concluída! Parabéns, Luiza e Carlos.');}
-    }
-  };
+Game.prototype.dispose=function(){
+  if(this.renderer){this.renderer.dispose();}
+  this.ready=false;this.locked=false;
+  if(document.pointerLockElement)document.exitPointerLock();
+};
 
-  Game.prototype.drawMinimap=function(){
-    const c=this.minimapCtx;const cv=$('#minimap');const w=cv.width,h=cv.height;
-    c.fillStyle='#0004';c.fillRect(0,0,w,h);
-    c.strokeStyle='rgba(155,255,202,0.35)';c.lineWidth=2;c.strokeRect(2,2,w-4,h-4);
-    const scale=0.8;const cx=w/2,cy=h/2;
-    // player
-    c.fillStyle='#9bffca';c.beginPath();c.arc(cx+this.player.position.x*scale,cy+this.player.position.z*scale,5,0,Math.PI*2);c.fill();
-    c.strokeStyle='#fff';c.beginPath();c.arc(cx+this.player.position.x*scale,cy+this.player.position.z*scale,7,0,Math.PI*2);c.stroke();
-    // direction arrow
-    c.save();c.translate(cx+this.player.position.x*scale,cy+this.player.position.z*scale);c.rotate(this.player.rotation.y);c.fillStyle='#fff';c.beginPath();c.moveTo(0,-9);c.lineTo(5,6);c.lineTo(-5,6);c.fill();c.restore();
-    // npcs
-    c.fillStyle='#ffd700';this.npcs.forEach(n=>{if(this.player.position.distanceTo(n.position)<80){c.beginPath();c.arc(cx+n.position.x*scale,cy+n.position.z*scale,3,0,Math.PI*2);c.fill();}});
-    // police
-    c.fillStyle='#ff4d4d';this.police.forEach(p=>{c.beginPath();c.arc(cx+p.position.x*scale,cy+p.position.z*scale,4,0,Math.PI*2);c.fill();});
-    // mission
-    if(this.missionMarkers.length){c.fillStyle='#00d2ff';this.missionMarkers.forEach(mm=>{c.beginPath();c.arc(cx+mm.position.x*scale,cy+mm.position.z*scale,6,0,Math.PI*2);c.fill();});}
-  };
-
-  Game.prototype.drawFullMap=function(){
-    const c=this.mapCtx;const cv=$('#mapCanvas');const w=cv.width,h=cv.height;
-    c.fillStyle='#07100f';c.fillRect(0,0,w,h);
-    c.strokeStyle='#9bffca';c.lineWidth=2;c.strokeRect(20,20,w-40,h-40);
-    const scale=1.6;const ox=w/2,oy=h/2;
-    c.fillStyle='rgba(155,255,202,0.15)';
-    this.buildings.forEach(b=>{c.fillRect(ox+b.position.x*scale-12,oy+b.position.z*scale-12,24,24);});
-    c.fillStyle='#9bffca';c.beginPath();c.arc(ox+this.player.position.x*scale,oy+this.player.position.z*scale,6,0,Math.PI*2);c.fill();
-    this.police.forEach(p=>{c.fillStyle='#ff4d4d';c.beginPath();c.arc(ox+p.position.x*scale,oy+p.position.z*scale,5,0,Math.PI*2);c.fill();});
-    c.fillStyle='#ffd700';this.npcs.forEach(n=>{c.beginPath();c.arc(ox+n.position.x*scale,oy+n.position.z*scale,3,0,Math.PI*2);c.fill();});
-    c.fillStyle='#fff';c.font='16px sans-serif';c.fillText('VOCÊ',ox+this.player.position.x*scale+8,oy+this.player.position.z*scale-8);
-    c.fillStyle='var(--mint, #9bffca)';c.font='20px sans-serif';c.fillText('MAPA — CIDADE DO SOL',ox-140,30);
-  };
-
-  Game.prototype.lockPointer=function(){if(state.screen==='playing')this.controls.lock();};
-  Game.prototype.dispose=function(){
-    this.controls.dispose();this.renderer.dispose();
-  };
-
-  // Touch stick handling
-  (function(){
-    const stick=$('#stick');const knob=$('#stickKnob');const touch=state.touch;
-    let activeId=null,startX=0,startY=0;
-    const getPos=(e)=>{
-      const r=stick.getBoundingClientRect();const t=e.touches[0]||e.changedTouches[0];
-      return {x:t.clientX-r.left-r.width/2,y:t.clientY-r.top-r.height/2};
-    };
-    stick.addEventListener('touchstart',e=>{e.preventDefault();touch.stick.active=true;activeId=e.changedTouches[0].identifier;const p=getPos(e);startX=p.x;startY=p.y;touch.stick.dx=0;touch.stick.dy=0;updateKnob(p.x,p.y);},{passive:false});
-    window.addEventListener('touchmove',e=>{
-      if(!touch.stick.active)return;e.preventDefault();
-      const t=Array.from(e.touches).find(t=>t.identifier===activeId);if(!t)return;
-      const r=stick.getBoundingClientRect();const dx=t.clientX-r.left-r.width/2;const dy=t.clientY-r.top-r.height/2;
-      const dist=Math.hypot(dx,dy);const max=34;
-      const nx=dx/dist*Math.min(dist,max);const ny=dy/dist*Math.min(dist,max);
-      touch.stick.dx=nx/max;touch.stick.dy=ny/max;
-      updateKnob(nx,ny);
-    },{passive:false});
-    window.addEventListener('touchend',e=>{
-      if(!touch.stick.active)return;if(Array.from(e.changedTouches).some(t=>t.identifier===activeId)){touch.stick.active=false;touch.stick.dx=0;touch.stick.dy=0;updateKnob(0,0);}
-    });
-    function updateKnob(x,y){knob.style.transform=`translate(${x}px,${y}px)`;}
-    // apply stick movement in game loop
-    const _upd=Game.prototype.update;
-    Game.prototype.update=function(dt){
-      _upd.call(this,dt);
-      if(touch.stick.active){
-        const move=new THREE.Vector3(touch.stick.dx,0,-touch.stick.dy);
-        if(move.length()>0){
-          const yaw=this.camera.rotation.y;
-          const dx=move.x*Math.cos(yaw)-move.z*Math.sin(yaw);
-          const dz=move.x*Math.sin(yaw)+move.z*Math.cos(yaw);
-          const sp=5*(state.sens/2)*dt;
-          this.player.position.x+=dx*sp;this.player.position.z+=dz*sp;this.player.position.y=0.01;this.player.rotation.y=yaw;
-        }
-      }
-    };
-  })();
-
-  // Action buttons wiring
-  (function(){
-    const wire=(id,act)=>{const b=$(id);const go=()=>{app.touchAction(act);};b.addEventListener('touchstart',e=>{e.preventDefault();go();},{passive:false});b.addEventListener('click',go);};
-    wire('#btnJump','jump');wire('#btnEnter','enter');wire('#btnAction','action');
-  })();
-
-  app.init();
-  app.loop();
+app.init();
+window.__app=app;
+window.__S=S;
 })();
 </script>
 </body>
