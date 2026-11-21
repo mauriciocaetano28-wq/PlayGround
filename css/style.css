@@ -497,7 +497,7 @@ body.touch-mode .touch-brand{display:none}
 @media (min-width:900px){body.touch-mode .touch-brand{display:block}}
 body.touch-mode .wanted-row{align-self:flex-start}
 body.touch-mode .wanted-stars svg{width:13px;height:13px}
-body.touch-mode.menu-mode .touch-controls{opacity:.62;transition:opacity .3s}
+body.touch-mode.menu-mode .touch-controls{display:none!important;opacity:0;pointer-events:none}
 body.touch-mode.menu-mode .touch-controls button{pointer-events:none}
 body.touch-mode.menu-mode .touch-top,
 body.touch-mode.menu-mode .touch-brand{display:none}
