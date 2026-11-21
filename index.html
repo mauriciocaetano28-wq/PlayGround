@@ -1,0 +1,422 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+  <meta name="theme-color" content="#071416">
+  <meta name="description" content="Matteo 5 apresenta GTA 6 BR: Costa Dourada — uma experiência original de mundo aberto brasileiro no navegador.">
+  <title>Matteo 5 · GTA 6 BR — Costa Dourada</title>
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+  <script type="importmap">{ "imports": { "three": "./vendor/three.module.js" } }</script>
+</head>
+<body>
+<div id="app">
+  <canvas id="game-canvas" aria-label="Mundo aberto 3D de Costa Dourada"></canvas>
+  <div id="world-vignette"></div>
+  <div id="cinema-bars"><span></span><span></span></div>
+
+  <!-- ================= BOOT ================= -->
+  <section id="boot-screen" class="screen visible" aria-live="polite">
+    <div class="boot-noise"></div>
+    <div class="boot-center">
+      <div class="boot-mark">
+        <svg viewBox="0 0 64 64" aria-hidden="true"><path d="M10 46V20l10 14 12-20 12 20 10-14v26H10Z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><path d="M13 51h38" stroke="currentColor" stroke-width="1" opacity=".45"/></svg>
+      </div>
+      <h1>MATTEO<span>5</span></h1>
+      <p class="boot-tagline">O MUNDO INTEIRO NA PALMA DA MÃO</p>
+      <div class="boot-progress"><i id="boot-bar"></i></div>
+      <p class="boot-status" id="boot-status">Acordando o sistema…</p>
+    </div>
+    <div class="boot-footer">
+      <span>MATTEO OS 5.2.1</span>
+      <span>BRASIL · 2026</span>
+      <span>60 FPS READY</span>
+    </div>
+  </section>
+
+  <!-- ================= EMULATOR DASHBOARD ================= -->
+  <section id="emulator" class="screen emulator" aria-label="Painel Matteo 5">
+    <div class="emu-scrim"></div>
+    <header class="emu-topbar">
+      <div class="emu-logo">
+        <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M7 34V16l7 10 10-16 10 16 7-10v18H7Z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M9 38h30" stroke="currentColor" opacity=".4"/></svg>
+        <span>MATTEO <b>5</b></span>
+      </div>
+      <div class="emu-status">
+        <span class="status-dot"></span><span id="emu-clock">21:42</span>
+        <span class="emu-net">◒ 100%</span>
+        <button class="emu-profile" type="button" aria-label="Perfil"><span>LC</span></button>
+      </div>
+    </header>
+    <div class="emu-layout">
+      <nav class="emu-side" aria-label="Menu do sistema">
+        <button class="side-item active" data-emu-tab="library"><i>▦</i><span>Biblioteca</span></button>
+        <button class="side-item" data-emu-tab="store"><i>◇</i><span>Loja</span></button>
+        <button class="side-item" data-emu-tab="gallery"><i>▧</i><span>Galeria</span></button>
+        <button class="side-item" data-emu-tab="settings"><i>⚙</i><span>Ajustes</span></button>
+        <div class="side-bottom">
+          <button class="side-item" id="emu-settings"><i>⚙</i><span>Sistema</span></button>
+          <div class="side-version">v5.2.1 · Estável</div>
+        </div>
+      </nav>
+      <main class="emu-main">
+        <div class="emu-heading">
+          <div><p class="eyebrow">BIBLIOTECA · BRASIL</p><h1>Boa noite, <span>Luiza.</span></h1></div>
+          <div class="emu-head-meta"><span class="pill"><i></i> CONSOLE ONLINE</span><span class="pill ghost">2 vagas RP</span></div>
+        </div>
+
+        <article class="game-hero" id="game-hero">
+          <div class="hero-art" aria-hidden="true">
+            <div class="hero-sun"></div>
+            <div class="hero-sky"></div>
+            <div class="hero-mountains"></div>
+            <div class="hero-city"></div>
+            <div class="hero-sea"></div>
+            <div class="hero-palm p1"></div><div class="hero-palm p2"></div>
+            <div class="hero-car"></div>
+            <div class="hero-grain"></div>
+          </div>
+          <div class="hero-shade"></div>
+          <div class="hero-content">
+            <div class="hero-badges"><span class="badge exclusive">EXPERIÊNCIA EXCLUSIVA</span><span class="badge">MUNDO ABERTO</span></div>
+            <p class="hero-kicker">MATTEO 5 WORLD PREMIERE</p>
+            <h2>GTA <em>6</em> <span>BR</span></h2>
+            <h3>Costa Dourada</h3>
+            <p class="hero-copy">Sol, concreto e consequências. Uma cidade litorânea viva, cinco missões cinematográficas e um modo roleplay sem fim.</p>
+            <div class="hero-meta">
+              <span><b>5</b> MISSÕES</span><span><b>2</b> PROTAGONISTAS</span><span><b>6</b> NÍVEIS DE PROCURADO</span><span><b>60</b> FPS</span>
+            </div>
+            <div class="hero-actions">
+              <button class="btn primary" id="btn-install" type="button"><span class="btn-icon">↓</span><span class="btn-label">Baixar e instalar</span><small>6,8 GB · grátis</small></button>
+              <button class="btn secondary play" id="btn-game-menu" type="button"><span class="btn-icon">▶</span><span class="btn-label">Jogar</span></button>
+            </div>
+            <div class="install-progress" id="install-progress" hidden>
+              <div class="install-top"><span id="install-label">Baixando pacote de mundo…</span><span id="install-pct">0%</span></div>
+              <div class="install-track"><i id="install-fill"></i></div>
+              <div class="install-detail"><span>servidor: costa-01</span><span id="install-speed">— MB/s</span></div>
+            </div>
+          </div>
+          <div class="hero-side">
+            <div class="hero-score"><span>METACRÍTICA</span><strong>96</strong><em>ACLAMADO</em></div>
+            <div class="hero-notice">Jogue com fones<br><b>trilha original</b></div>
+          </div>
+          <div class="hero-progress-mini"><span>INSTALADO</span><i id="hero-installed-bar"></i></div>
+        </article>
+
+        <div class="emu-lower">
+          <section class="emu-card next-panel">
+            <div class="card-head"><div><p class="eyebrow">CONTINUE JOGANDO</p><h3 id="continue-title">Capítulo 1 · Maré de Mudança</h3></div><button class="tiny-link" id="btn-continue">Continuar →</button></div>
+            <div class="continue-row">
+              <div class="chapter-art"><span>01</span><i></i></div>
+              <div class="continue-info">
+                <div class="continue-bar"><i id="story-progress-bar" style="width:0%"></i></div>
+                <div class="continue-meta"><span id="continue-progress">0 de 5 missões</span><span>Luiza & Carlos</span></div>
+                <p id="continue-copy">O sol nasce sobre a orla. Luiza ainda não sabe que a cidade está prestes a cobrar suas dívidas.</p>
+              </div>
+            </div>
+          </section>
+          <section class="emu-card community-panel">
+            <div class="card-head"><div><p class="eyebrow">COMUNIDADE</p><h3>Costa RP · 24/7</h3></div><span class="live-tag"><i></i> AO VIVO</span></div>
+            <div class="community-stats"><span><b>128</b> jogadores</span><span><b>42 ms</b> ping</span><span><b>1.2k</b> sessões</span></div>
+            <div class="avatar-stack"><span>LC</span><span>RA</span><span>BS</span><span>+125</span></div>
+            <p class="community-copy">Táxi, entregas, segurança e histórias que só acontecem aqui. Entre no servidor e faça seu nome.</p>
+          </section>
+          <section class="emu-card quick-panel">
+            <div class="card-head"><div><p class="eyebrow">ATALHOS</p><h3>Rápido</h3></div></div>
+            <button class="quick-link" id="quick-map"><span>▧</span><div><b>Mapa interativo</b><small>Ver Costa Dourada</small></div><i>→</i></button>
+            <button class="quick-link" id="quick-settings"><span>◈</span><div><b>Ajustes gráficos</b><small>Desempenho & HUD</small></div><i>→</i></button>
+          </section>
+        </div>
+      </main>
+    </div>
+    <footer class="emu-footer"><span>⌁ Pressione <kbd>Enter</kbd> para jogar</span><span>Original game art · Matteo 5 Studio · 2026</span></footer>
+  </section>
+
+  <!-- ================= MAIN GAME MENU ================= -->
+  <section id="game-menu" class="screen game-menu" aria-label="Menu do jogo">
+    <div class="menu-scrim"></div>
+    <header class="menu-topbar">
+      <div class="emu-logo small">
+        <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M7 34V16l7 10 10-16 10 16 7-10v18H7Z" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+        <span>MATTEO <b>5</b></span>
+      </div>
+      <div class="menu-top-actions">
+        <button id="menu-lang" class="menu-icon-btn" type="button">PT <span>/ EN</span></button>
+        <button id="menu-settings" class="menu-icon-btn" type="button">⚙</button>
+        <button id="menu-back-emu" class="menu-icon-btn" type="button">⌂</button>
+      </div>
+    </header>
+    <div class="menu-layout">
+      <div class="menu-copy">
+        <div class="menu-label"><i></i> UMA PRODUÇÃO MATTEO 5 STUDIO</div>
+        <h1>GTA <em>6</em><span>BR</span></h1>
+        <h2>COSTA DOURADA</h2>
+        <p class="menu-tagline">A cidade não perdoa.<br>O mar lembra de tudo.</p>
+        <div class="menu-meta"><span>MUNDO ABERTO</span><span>PORTUGUÊS / ENGLISH</span><span>1 JOGADOR</span></div>
+        <div class="menu-actions">
+          <button class="menu-item featured" data-start="continue"><span class="mi-index">01</span><span class="mi-text"><b id="menu-continue-label">Continuar história</b><small id="menu-continue-sub">Capítulo 1 · Maré de Mudança</small></span><span class="mi-arrow">→</span></button>
+          <button class="menu-item" data-start="story"><span class="mi-index">02</span><span class="mi-text"><b>Modo história</b><small>5 missões · Luiza & Carlos</small></span><span class="mi-arrow">→</span></button>
+          <button class="menu-item" data-start="rp"><span class="mi-index">03</span><span class="mi-text"><b>Roleplay</b><small>Costa RP · trabalhos e reputação</small></span><span class="mi-arrow">→</span></button>
+          <button class="menu-item" data-start="free"><span class="mi-index">04</span><span class="mi-text"><b>Mundo livre</b><small>Explore sem limites</small></span><span class="mi-arrow">→</span></button>
+        </div>
+      </div>
+      <aside class="menu-side">
+        <div class="character-showcase">
+          <div class="char-glow"></div>
+          <div class="char-badge">PROTAGONISTAS</div>
+          <div class="char-row">
+            <div class="char-card luiza"><span class="char-initials">L</span><div><b>LUIZA</b><small>Ritmo · Rua · Lealdade</small></div><i>01</i></div>
+            <div class="char-card carlos"><span class="char-initials">C</span><div><b>CARLOS</b><small>Motor · Sangue-frio · Fé</small></div><i>02</i></div>
+          </div>
+        </div>
+        <div class="menu-side-card">
+          <p class="eyebrow">SESSÃO ATUAL</p>
+          <div class="session-row"><span>Nível de procurado</span><b><i class="dot"></i> Limpo</b></div>
+          <div class="session-row"><span>Dinheiro</span><b id="menu-money">R$ 2.500</b></div>
+          <div class="session-row"><span>Progresso</span><b id="menu-progress">0 / 5</b></div>
+          <div class="session-row"><span>Modo RP</span><b><i class="dot green"></i> Disponível</b></div>
+        </div>
+        <div class="menu-side-note"><span>⌁</span><p>Uma obra de ficção. Pessoas, lugares e marcas são inventados.</p></div>
+      </aside>
+    </div>
+    <footer class="menu-footer"><span>MATTEO 5 · WORLD PREMIERE</span><span>Use <kbd>WASD</kbd> + mouse · <kbd>F</kbd> veículos · <kbd>M</kbd> mapa</span><span>© 2026 Costa Dourada</span></footer>
+  </section>
+
+  <!-- ================= LOADING / STORY TRANSITION ================= -->
+  <section id="loading-screen" class="screen loading-screen">
+    <div class="loading-art"><div class="load-sun"></div><div class="load-city"></div><div class="load-sea"></div></div>
+    <div class="loading-content">
+      <p class="eyebrow" id="loading-eyebrow">MATTEO 5 APRESENTA</p>
+      <h1 id="loading-title">COSTA DOURADA</h1>
+      <h2 id="loading-subtitle">Onde o mar encontra a ambição.</h2>
+      <div class="loading-track"><i id="loading-bar"></i></div>
+      <p class="loading-hint" id="loading-hint">Dica: use a rampa do calçadão para chegar mais rápido à praia.</p>
+    </div>
+  </section>
+
+  <!-- ================= GAME HUD ================= -->
+  <section id="hud" class="hud hidden" aria-label="Interface do jogo">
+    <div id="top-left">
+      <div class="minimap-shell">
+        <button id="minimap-expand" class="minimap-expand" type="button" aria-label="Abrir mapa">⤢</button>
+        <div class="minimap-ring"></div>
+        <canvas id="minimap" width="440" height="440"></canvas>
+        <div class="minimap-header"><span id="minimap-district">ORLA CENTRAL</span><span id="minimap-time">21:42</span></div>
+        <div class="minimap-compass">N</div>
+      </div>
+      <div class="district-card"><span class="district-line"></span><div><b id="district-name">Orla Central</b><small id="district-weather">Noite clara · 24°C</small></div></div>
+      <div class="activity-chips" id="activity-chips"></div>
+    </div>
+
+    <div id="top-right">
+      <div class="wanted-shell" id="wanted-shell">
+        <div class="wanted-stars" id="wanted-stars"></div>
+        <div class="wanted-label"><span id="wanted-label">PROCURADO</span><i id="wanted-pulse"></i></div>
+        <div class="search-progress" id="search-progress"><i></i></div>
+      </div>
+      <div class="clock-weather">
+        <div class="clock-time" id="clock-time">21:42</div>
+        <div class="clock-day" id="clock-day">SEXTA · NOITE</div>
+        <div class="weather-icon" aria-hidden="true"><span class="moon"></span></div>
+      </div>
+      <div class="money-shell"><span>DINHEIRO</span><b id="money">R$ 2.500</b><i id="money-delta"></i></div>
+      <div class="fps-badge" id="fps-badge">60 FPS</div>
+    </div>
+
+    <div id="objective-panel" class="objective-panel">
+      <div class="objective-kicker"><span id="objective-mode">MISSÃO 01</span><i></i></div>
+      <h3 id="objective-title">Maré de Mudança</h3>
+      <p id="objective-text">Encontre Carlos no quiosque da orla.</p>
+      <div class="objective-dist"><span class="waypoint-dot"></span><b id="objective-distance">128 m</b><span id="objective-extra">CHECKPOINT</span></div>
+      <div class="objective-progress" id="objective-progress" hidden><i></i></div>
+    </div>
+
+    <div id="crosshair" class="crosshair"><span></span><i></i><b></b><em></em></div>
+    <div id="hitmarker" class="hitmarker">✕</div>
+    <div id="damage-vignette"></div>
+    <div id="low-health"></div>
+
+    <div id="bottom-left">
+      <div class="player-card">
+        <div class="player-avatar" id="player-avatar">L</div>
+        <div class="player-info">
+          <div class="player-name"><b id="player-name">LUIZA</b><span id="player-tag">ESTRADA</span></div>
+          <div class="health-bar"><i id="health-fill"></i><span id="health-value">100</span></div>
+          <div class="armor-bar"><i id="armor-fill"></i></div>
+        </div>
+      </div>
+      <div id="stamina-row" class="stamina-row"><span>FÔLEGO</span><div class="stamina-bar"><i id="stamina-fill"></i></div></div>
+      <div class="radio-row"><button class="radio-btn" id="radio-btn" type="button">◉</button><div><span>RÁDIO COSTA</span><b id="radio-station">MARÉ 98.5</b></div><button class="radio-next" id="radio-next" type="button">›</button></div>
+    </div>
+
+    <div id="bottom-right">
+      <div class="weapon-card" id="weapon-card">
+        <div class="weapon-icon" id="weapon-icon">◐</div>
+        <div class="weapon-info"><span id="weapon-name">PISTOLA</span><b><span id="ammo">12</span><small>/ 48</small></b></div>
+        <button id="reload-btn" class="reload-btn" type="button" aria-label="Recarregar">↻</button>
+      </div>
+      <div class="control-hint desktop-hint"><span><kbd>WASD</kbd> mover</span><span><kbd>F</kbd> entrar</span><span><kbd>E</kbd> interagir</span><span><kbd>M</kbd> mapa</span><span><kbd>P</kbd> trocar</span></div>
+    </div>
+
+    <div id="dialogue" class="dialogue">
+      <div class="dialogue-portrait" id="dialogue-portrait">C</div>
+      <div class="dialogue-body">
+        <div class="dialogue-top"><b id="dialogue-name">CARLOS</b><span id="dialogue-lang">PT-BR</span></div>
+        <p id="dialogue-text">“A maré tá mansa hoje. Amanhã ela cobra.”</p>
+        <div id="dialogue-hint" class="dialogue-hint"><kbd>E</kbd> continuar <i>1/3</i></div>
+      </div>
+    </div>
+
+    <div id="interaction-prompt" class="interaction-prompt"><span class="key">E</span><div><b id="interact-title">CONVERSAR</b><small id="interact-sub">Com Carlos</small></div></div>
+    <div id="subtitle-toast" class="subtitle-toast"></div>
+    <div id="notifications" class="notifications"></div>
+    <div id="hud-toast" class="hud-toast"></div>
+
+    <div id="mobile-controls" class="mobile-controls">
+      <div id="stick-zone" class="stick-zone"><div class="stick-base"><div class="stick-ring"></div><div class="stick-knob" id="stick-knob"></div></div><span>MOVER</span></div>
+      <div id="look-zone" class="look-zone" aria-label="Área de câmera"></div>
+      <div class="mobile-actions">
+        <button class="ps-btn cross" data-action="interact" type="button"><span>✕</span><small>INTERAGIR</small></button>
+        <button class="ps-btn circle" data-action="fire" type="button"><span>◯</span><small>ATIRAR</small></button>
+        <button class="ps-btn square" data-action="jump" type="button"><span>□</span><small>SALTAR</small></button>
+        <button class="ps-btn triangle" data-action="vehicle" type="button"><span>△</span><small>VEÍCULO</small></button>
+        <button class="ps-btn small-btn" data-action="switch" type="button"><span>⇄</span><small>TROCAR</small></button>
+        <button class="ps-btn small-btn" data-action="reload" type="button"><span>↻</span><small>RECARGA</small></button>
+      </div>
+      <div class="mobile-top-actions">
+        <button id="mobile-map" type="button">▧</button>
+        <button id="mobile-phone" type="button">▤</button>
+        <button id="mobile-pause" type="button">Ⅱ</button>
+      </div>
+      <div class="mobile-aim" id="mobile-aim">◉<span>MIRA</span></div>
+    </div>
+
+    <button id="switch-character" class="switch-character" type="button"><span class="avatar-small" id="switch-avatar">C</span><div><b id="switch-name">CARLOS</b><small>TROCAR · P</small></div></button>
+    <button id="pause-button" class="pause-button" type="button" aria-label="Pausar">Ⅱ</button>
+  </section>
+
+  <!-- ================= FULL MAP ================= -->
+  <section id="map-overlay" class="overlay map-overlay" aria-label="Mapa completo">
+    <header class="overlay-head">
+      <div><p class="eyebrow">COSTA DOURADA · MAPA</p><h2>Mapa da cidade</h2></div>
+      <div class="map-legend"><span><i class="lg-player"></i> Você</span><span><i class="lg-mission"></i> Missão</span><span><i class="lg-shop"></i> Serviço</span><span><i class="lg-police"></i> Polícia</span></div>
+      <button class="round-close" id="map-close" type="button">✕</button>
+    </header>
+    <div class="map-stage">
+      <canvas id="big-map" width="1600" height="1000"></canvas>
+      <div class="map-zoom"><button id="map-zoom-in" type="button">+</button><button id="map-zoom-out" type="button">−</button></div>
+      <aside class="map-side">
+        <div class="map-side-block"><p class="eyebrow">DISTRITO</p><h3 id="map-district">Orla Central</h3><p id="map-district-desc">Areia, neon e dinheiro fácil. O coração de Costa Dourada.</p></div>
+        <div class="map-side-block"><p class="eyebrow">MARCADOR ATIVO</p><h4 id="map-objective">Maré de Mudança</h4><div class="map-meta"><span>Missão 01</span><b id="map-objective-dist">128 m</b></div></div>
+        <div class="map-side-block map-side-list" id="map-markers"></div>
+        <button class="btn secondary full" id="map-close-2" type="button">Voltar ao jogo</button>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ================= PAUSE ================= -->
+  <section id="pause-menu" class="overlay pause-menu" aria-label="Menu de pausa">
+    <div class="pause-bg"></div>
+    <div class="pause-card">
+      <header class="pause-head">
+        <div><p class="eyebrow">MATTEO 5 · JOGO PAUSADO</p><h1>COSTA <em>DOURADA</em></h1></div>
+        <div class="pause-profile"><span>LC</span><div><b>Luiza & Carlos</b><small id="pause-session">Sessão story · 00:12:40</small></div></div>
+        <button id="pause-close" class="round-close" type="button">✕</button>
+      </header>
+      <div class="pause-body">
+        <nav class="pause-tabs">
+          <button class="active" data-pause-tab="main">Continuar</button>
+          <button data-pause-tab="missions">Missões</button>
+          <button data-pause-tab="settings">Configurações</button>
+          <button data-pause-tab="controls">Controles</button>
+          <button data-pause-tab="save">Salvar</button>
+        </nav>
+        <div class="pause-panel active" data-pause-panel="main">
+          <div class="pause-hero">
+            <div class="pause-hero-art"><span>COSTA<br>DOURADA</span><i></i></div>
+            <div class="pause-hero-info"><p class="eyebrow" id="pause-mode-label">MODO HISTÓRIA</p><h2 id="pause-mission-title">Capítulo 1 · Maré de Mudança</h2><p id="pause-mission-desc">Luiza precisa encontrar Carlos na orla antes que a cidade acorde.</p><div class="pause-stats"><div><span>MISSÕES</span><b id="pause-progress">0/5</b></div><div><span>DINHEIRO</span><b id="pause-money">R$ 2.500</b></div><div><span>PROCURADO</span><b id="pause-wanted">Limpo</b></div><div><span>TEMPO</span><b id="pause-time">00:12:40</b></div></div><button class="btn primary" id="resume-btn" type="button">Continuar jogo <span>▶</span></button></div>
+          </div>
+        </div>
+        <div class="pause-panel" data-pause-panel="missions">
+          <div class="panel-head"><div><p class="eyebrow">MODO HISTÓRIA</p><h2>Cinco histórias. Uma cidade.</h2></div><span id="mission-count-badge">1 / 5</span></div>
+          <div class="mission-list" id="mission-list"></div>
+        </div>
+        <div class="pause-panel" data-pause-panel="settings">
+          <div class="panel-head"><div><p class="eyebrow">MATTEO 5 · SISTEMA</p><h2>Configurações</h2></div><span class="settings-autosave">Salvo automaticamente</span></div>
+          <div id="settings-container" class="settings-container"></div>
+        </div>
+        <div class="pause-panel" data-pause-panel="controls">
+          <div class="panel-head"><div><p class="eyebrow">ENTRADA</p><h2>Controles</h2></div><span class="settings-autosave">Teclado · toque · gamepad</span></div>
+          <div class="controls-grid" id="controls-grid"></div>
+        </div>
+        <div class="pause-panel" data-pause-panel="save">
+          <div class="panel-head"><div><p class="eyebrow">PROGRESSO</p><h2>Salvar e sair</h2></div></div>
+          <div class="save-panel">
+            <div class="save-art"><span>LC</span><b>COSTA DOURADA</b><small>SAVE SLOT 01</small></div>
+            <div class="save-info"><p>Seu progresso é salvo neste navegador. As configurações, missões concluídas, dinheiro e posição serão restaurados ao continuar.</p><div class="save-status"><span>Último salvamento</span><b id="last-save">agora</b></div><button class="btn primary" id="save-btn" type="button">Salvar agora</button><button class="btn ghost full" id="quit-to-menu" type="button">Sair para o menu</button></div>
+          </div>
+        </div>
+      </div>
+      <footer class="pause-footer"><span>MATTEO 5 · AUTO-SAVE ATIVO</span><span><kbd>Esc</kbd> continuar</span><span id="pause-clock">21:42</span></footer>
+    </div>
+  </section>
+
+  <!-- ================= PHONE ================= -->
+  <section id="phone-overlay" class="overlay phone-overlay" aria-label="Celular">
+    <div class="phone-device">
+      <div class="phone-notch"></div>
+      <div class="phone-status"><span>21:42</span><i>▮▮▮</i></div>
+      <div class="phone-screen">
+        <div class="phone-head"><div><small>COSTA RP</small><h3 id="phone-name">LUIZA</h3></div><span class="rp-online"><i></i> ONLINE</span></div>
+        <div class="phone-wallet"><span>SALDO</span><b id="phone-money">R$ 2.500</b><small id="phone-rep">REP 12</small></div>
+        <div class="phone-apps">
+          <button class="app-card active" data-job="taxi"><span class="app-icon">◈</span><div><b>Rota Costa</b><small>Táxi na orla</small></div><i>→</i></button>
+          <button class="app-card" data-job="delivery"><span class="app-icon">▣</span><div><b>Leva Já</b><small>Entregas rápidas</small></div><i>→</i></button>
+          <button class="app-card" data-job="security"><span class="app-icon">◉</span><div><b>Olho Vivo</b><small>Segurança de quiosque</small></div><i>→</i></button>
+          <button class="app-card" data-job="tour"><span class="app-icon">◫</span><div><b>Costa Tour</b><small>Leve turistas ao mirante</small></div><i>→</i></button>
+        </div>
+        <div class="phone-job-info" id="phone-job-info"><p class="eyebrow">TRABALHO SELECIONADO</p><h4 id="phone-job-title">Rota Costa</h4><p id="phone-job-desc">Leve um passageiro até o destino. Quanto mais rápido, maior a gorjeta.</p><button class="phone-start" id="phone-start" type="button">Aceitar trabalho</button></div>
+        <div class="phone-footer"><span>◉</span><span>◆</span><span>▤</span><span>◈</span></div>
+      </div>
+      <button class="phone-close" id="phone-close" type="button">✕</button>
+    </div>
+  </section>
+
+  <!-- ================= MISSION CINEMATIC ================= -->
+  <section id="mission-card" class="mission-card">
+    <div class="mission-card-bg"></div>
+    <div class="mission-card-index"><span id="mission-card-num">01</span><small>CAPÍTULO</small></div>
+    <div class="mission-card-copy"><p class="eyebrow" id="mission-card-kicker">MODO HISTÓRIA · LUIZA</p><h1 id="mission-card-title">MARÉ DE MUDANÇA</h1><p id="mission-card-desc">Encontre Carlos no quiosque da orla.</p></div>
+    <div class="mission-card-side"><span>COSTA DOURADA</span><i></i><span>MATTEO 5 STUDIO</span></div>
+  </section>
+
+  <section id="mission-complete" class="overlay mission-complete">
+    <div class="complete-card">
+      <p class="eyebrow">MISSÃO CONCLUÍDA</p>
+      <h1 id="complete-title">MARÉ DE MUDANÇA</h1>
+      <div class="complete-stars" id="complete-stars">★★★★★</div>
+      <div class="complete-reward"><span>RECOMPENSA</span><b id="complete-reward">R$ 2.500</b></div>
+      <div class="complete-stats" id="complete-stats"></div>
+      <button class="btn primary" id="complete-continue" type="button">Continuar <span>→</span></button>
+    </div>
+  </section>
+
+  <!-- ================= WASTED ================= -->
+  <section id="wasted-screen" class="overlay wasted-screen">
+    <div class="wasted-shade"></div>
+    <div class="wasted-copy">
+      <p class="eyebrow">VOCÊ FOI NOCAUTEADO</p>
+      <h1>FORA DE JOGO<span>.</span></h1>
+      <p id="wasted-sub">A maré devolve tudo. Menos o orgulho.</p>
+      <div class="wasted-options"><button class="btn primary" id="respawn-btn" type="button">Voltar ao checkpoint</button><button class="btn ghost" id="wasted-menu" type="button">Menu principal</button></div>
+    </div>
+  </section>
+
+  <section id="toast-layer" class="toast-layer"></section>
+
+  <div id="rotate-hint" class="rotate-hint"><div>⟳</div><p>Gire o dispositivo para uma experiência melhor.</p></div>
+</div>
+<script type="module" src="src/main.js"></script>
+</body>
+</html>
