@@ -204,6 +204,9 @@ function closeOverlay(id) {
   const el = $(id);
   if (!el) return;
   el.classList.add('hidden');
+  // The full map lives inside the game runtime, so closing its DOM panel
+  // must also release the gameplay lock.
+  if (game && id === 'map-overlay') game.mapOpen = false;
   if (game && MODALS.includes(id)) {
     game.uiModalOpen = MODALS.some((m) => {
       const e = $(m);

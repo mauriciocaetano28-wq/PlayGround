@@ -295,17 +295,31 @@
       <div class="sub-en" id="sub-en"></div>
     </div>
 
+    <div class="mobile-status" id="mobile-status">
+      <div class="ms-char" id="ms-char"><svg><use href="#portrait-luiza"/></svg></div>
+      <div class="ms-core">
+        <div class="ms-top"><b id="ms-name">LUIZA</b><span class="ms-cash">R$ <b id="ms-money">2.450</b></span><span class="ms-ammo"><b id="ms-ammo">12</b>/<em id="ms-ammo-reserve">48</em></span></div>
+        <div class="ms-bars">
+          <i class="ms-health" id="ms-health" style="width:100%"></i>
+          <i class="ms-armor" id="ms-armor" style="width:40%"></i>
+          <i class="ms-stamina" id="ms-stamina" style="width:100%"></i>
+        </div>
+      </div>
+    </div>
+
     <div class="touch-controls hidden" id="touch-controls">
+      <div class="touch-brand">MATTEO 5 <span>PS5 VIRTUAL</span></div>
+      <div class="touch-look-hint" id="touch-look-hint"><span>↔</span> ARRASTE PARA OLHAR</div>
       <div class="touch-top">
         <button class="touch-mini" id="tbtn-map"><svg><use href="#icon-map"/></svg></button>
         <button class="touch-mini" id="tbtn-pause"><svg><use href="#icon-pause"/></svg></button>
       </div>
       <div class="joystick" id="joystick"><div class="stick-base"></div><div class="stick-knob" id="stick-knob"></div><span class="stick-label">MOVER</span></div>
-      <div class="touch-actions">
-        <button class="tbtn glyph-tri" data-touch="switch"><svg><use href="#glyph-triangle"/></svg><small>PERSONAGEM</small></button>
-        <button class="tbtn glyph-cir" data-touch="interact"><svg><use href="#glyph-circle"/></svg><small>INTERAGIR</small></button>
-        <button class="tbtn glyph-sq" data-touch="melee"><svg><use href="#glyph-square"/></svg><small>ATACAR</small></button>
-        <button class="tbtn glyph-cr" data-touch="jump"><svg><use href="#glyph-cross"/></svg><small>PULAR</small></button>
+      <div class="touch-actions" id="touch-actions">
+        <button class="tbtn glyph-tri ps-tri" data-touch="switch"><svg><use href="#glyph-triangle"/></svg><small>PERSONAGEM</small></button>
+        <button class="tbtn glyph-cir ps-cir" data-touch="interact"><svg><use href="#glyph-circle"/></svg><small>INTERAGIR</small></button>
+        <button class="tbtn glyph-sq ps-sq" data-touch="melee"><svg><use href="#glyph-square"/></svg><small>ATACAR</small></button>
+        <button class="tbtn glyph-cr ps-cr" data-touch="jump"><svg><use href="#glyph-cross"/></svg><small>PULAR</small></button>
         <button class="tbtn shoulder l2" data-touch="aim"><span>L2</span><small>MIRAR</small></button>
         <button class="tbtn shoulder r2" data-touch="shoot"><span>R2</span><small>ATIRAR</small></button>
         <button class="tbtn shoulder r1" data-touch="sprint"><span>R1</span><small>CORRER</small></button>
@@ -318,6 +332,7 @@
     <header class="overlay-head">
       <div><small>MATTEO 5 // SISTEMA DE NAVEGAÇÃO</small><h2>MAPA DE SANTO MATTEO</h2></div>
       <div class="map-head-actions">
+        <span class="map-zoom-level" id="map-zoom-level">1.0×</span>
         <button class="pill" id="map-zoom-out">−</button><button class="pill" id="map-zoom-in">+</button>
         <button class="icon-btn close-overlay" data-close="map-overlay"><svg><use href="#icon-close"/></svg></button>
       </div>

@@ -807,6 +807,8 @@ export class Game {
     const rpA = $('rp-avatar'); if (rpA) rpA.innerHTML = `<svg><use href="#portrait-${isL ? 'luiza' : 'carlos'}"/></svg>`;
     const rpN = $('rp-name'); if (rpN) rpN.textContent = isL ? 'LUIZA ANDRADE' : 'CARLOS MENDES';
     const pc = $('pause-char-name'); if (pc) pc.textContent = isL ? 'LUIZA' : 'CARLOS';
+    const msChar = $('ms-char'); if (msChar) msChar.innerHTML = `<svg><use href="#portrait-${isL ? 'luiza' : 'carlos'}"/></svg>`;
+    const msName = $('ms-name'); if (msName) msName.textContent = isL ? 'LUIZA' : 'CARLOS';
   }
 
   ensureWorldActors() {
@@ -1045,11 +1047,11 @@ export class Game {
     document.body.classList.toggle('touch-mode', touchOn);
     const tc = $('touch-controls');
     if (tc) tc.classList.toggle('hidden', !touchOn);
-    if (tc) tc.style.transform = `scale(${(st.touchScale ?? 100) / 100})`;
+    if (tc) tc.style.setProperty('--touch-scale', ((st.touchScale ?? 100) / 100).toString());
     const mm = $('minimap-wrap');
     if (mm) {
       const size = st.minimap === 'small' ? 142 : st.minimap === 'large' ? 218 : 184;
-      mm.style.width = size + 'px'; mm.style.height = size + 'px';
+      mm.style.setProperty('--mm-size', size + 'px');
     }
     $('fps-counter').classList.toggle('hidden', !st.showFps);
     this.audio.setVolumes(st);
@@ -1076,6 +1078,7 @@ export class Game {
   showHUD() {
     $('hud').classList.remove('hidden');
     if (this._touchEnabled()) $('touch-controls').classList.remove('hidden');
+    if (this._touchHint) this._touchHint.classList.remove('hide');
     this._updateCharHUD();
     this._updateMoneyHUD();
   }
@@ -1198,9 +1201,13 @@ export class Game {
       // pointer lock engages (movement = -cursor position). Ignore that frame
       // and clamp outliers so the camera never snaps on lock.
       if (performance.now() < (this._lockGrace || 0)) return;
+      const rawX = e.movementX || 0, rawY = e.movementY || 0;
+      // A single real mouse event should never jump hundreds of pixels.
+      // This rejects the synthetic pointer-lock event on every browser.
+      if (Math.abs(rawX) > 180 || Math.abs(rawY) > 180) return;
       const sens = (this.settings.sens ?? 100) / 100 * 0.0024;
-      const mx = clamp(e.movementX || 0, -140, 140);
-      const my = clamp(e.movementY || 0, -140, 140);
+      const mx = clamp(rawX, -90, 90);
+      const my = clamp(rawY, -90, 90);
       this._camYaw -= mx * sens;
       this._camPitch = clamp(this._camPitch + my * sens * (this.settings.invert ? -1 : 1), -0.42, 1.02);
       this._lastLookAt = performance.now();
@@ -1214,7 +1221,7 @@ export class Game {
     document.addEventListener('pointerlockchange', () => {
       if (document.pointerLockElement === canvas) {
         // Give the browser a beat to flush its synthetic lock event.
-        this._lockGrace = performance.now() + 180;
+        this._lockGrace = performance.now() + 320;
       } else this.input.aim = false;
     });
     document.addEventListener('mousedown', (e) => { if (e.button === 2) this.mouse.right = true; });
@@ -1267,6 +1274,7 @@ export class Game {
       if (!this._touchEnabled() || this.mode === 'attract' || this.paused || this.mapOpen) return;
       if (e.pointerType === 'mouse') return;
       if (e.clientX < window.innerWidth * 0.42) return;
+      if (this._touchHint) this._touchHint.classList.add('hide');
       this.touch.lookId = e.pointerId;
       this.touch.lastX = e.clientX; this.touch.lastY = e.clientY;
       try { this.canvas.setPointerCapture(e.pointerId); } catch (_) {}
@@ -1286,26 +1294,48 @@ export class Game {
 
     document.querySelectorAll('[data-touch]').forEach((btn) => {
       const action = btn.dataset.touch;
+      const stopFire = () => {
+        if (this._touchFireTimer) { clearInterval(this._touchFireTimer); this._touchFireTimer = null; }
+      };
       btn.addEventListener('pointerdown', (e) => {
         e.preventDefault(); e.stopPropagation();
+        try { btn.setPointerCapture(e.pointerId); } catch (_) {}
+        btn.classList.add('pressed');
         if (this.paused || this.dialogueActive) return;
-        if (action === 'aim') { this.input.aim = true; return; }
-        if (action === 'shoot') { this.input.aim = true; this._shoot(); return; }
-        if (action === 'sprint') { this.input.sprint = true; return; }
-        if (action === 'interact') this._interact();
-        if (action === 'melee') this._melee();
-        if (action === 'jump') this._jump();
-        if (action === 'switch') this.openSwitch();
+        if (action === 'aim') { this.input.aim = true; this._haptic(8); return; }
+        if (action === 'shoot') {
+          this.input.aim = true;
+          this._shoot();
+          this._haptic(14);
+          stopFire();
+          const rate = Math.max(90, (this.player?.weapon?.fireRate || 0.26) * 1000);
+          this._touchFireTimer = setInterval(() => {
+            if (!this.paused && !this.dialogueActive && this.mode !== 'attract') this._shoot();
+          }, rate);
+          return;
+        }
+        if (action === 'sprint') { this.input.sprint = true; this._haptic(6); return; }
+        if (action === 'interact') { this._interact(); this._haptic(8); }
+        if (action === 'melee') { this._melee(); this._haptic(12); }
+        if (action === 'jump') { this._jump(); this._haptic(8); }
+        if (action === 'switch') { this.openSwitch(); this._haptic(8); }
       });
-      btn.addEventListener('pointerup', (e) => {
+      const release = () => {
+        btn.classList.remove('pressed');
         if (action === 'aim') this.input.aim = false;
+        if (action === 'shoot') { stopFire(); this.input.aim = false; }
         if (action === 'sprint') this.input.sprint = false;
-      });
-      btn.addEventListener('pointercancel', () => {
-        if (action === 'aim') this.input.aim = false;
-        if (action === 'sprint') this.input.sprint = false;
-      });
+      };
+      btn.addEventListener('pointerup', release);
+      btn.addEventListener('pointercancel', release);
+      btn.addEventListener('lostpointercapture', release);
     });
+    this._touchHint = $('touch-look-hint');
+  }
+
+  _haptic(ms = 10) {
+    if (this.settings.vibration === false) return;
+    try { if (navigator.vibrate) navigator.vibrate(ms); } catch (_) {}
   }
 
   /* ============================================================
@@ -2997,6 +3027,8 @@ export class Game {
     if (!p) return;
     const el = $('hud-money');
     if (el) el.textContent = Math.floor(p.money).toLocaleString('pt-BR');
+    const ms = $('ms-money');
+    if (ms) ms.textContent = Math.floor(p.money).toLocaleString('pt-BR');
     const delta = $('cash-delta');
     if (delta) {
       const d = p.money - (this._lastMoney ?? p.money);
@@ -3017,6 +3049,11 @@ export class Game {
     const va = $('val-armor'); if (va) va.textContent = Math.round(p.armor);
     const am = $('ammo-mag'); if (am) am.textContent = p.weapon.mag;
     const ar = $('ammo-reserve'); if (ar) ar.textContent = p.weapon.reserve;
+    const msH = $('ms-health'); if (msH) msH.style.width = clamp(p.health, 0, 100) + '%';
+    const msA = $('ms-armor'); if (msA) msA.style.width = clamp(p.armor, 0, 100) + '%';
+    const msS = $('ms-stamina'); if (msS) msS.style.width = clamp(p.stamina, 0, 100) + '%';
+    const msM = $('ms-ammo'); if (msM) msM.textContent = p.weapon.mag;
+    const msR = $('ms-ammo-reserve'); if (msR) msR.textContent = p.weapon.reserve;
 
     const cross = $('crosshair');
     if (cross) {
@@ -3158,45 +3195,127 @@ export class Game {
     const cx = (p.pos.x + 1000) * mapScale;
     const cz = (p.pos.z + 1000) * mapScale;
     const sw = span * mapScale;
+    const half = size / 2;
+    const radius = half - 5;
+    const t = performance.now() / 1000;
 
     ctx.clearRect(0, 0, size, size);
     ctx.save();
-    ctx.beginPath(); ctx.arc(size / 2, size / 2, size / 2 - 4, 0, Math.PI * 2); ctx.clip();
-    ctx.fillStyle = '#08202a'; ctx.fillRect(0, 0, size, size);
+    ctx.beginPath(); ctx.arc(half, half, radius, 0, Math.PI * 2); ctx.clip();
+    const bg = ctx.createRadialGradient(half, half, 4, half, half, radius);
+    bg.addColorStop(0, '#0d3440');
+    bg.addColorStop(1, '#061a22');
+    ctx.fillStyle = bg; ctx.fillRect(0, 0, size, size);
     ctx.imageSmoothingEnabled = true;
     ctx.drawImage(map, cx - sw / 2, cz - sw / 2, sw, sw, 0, 0, size, size);
 
+    // Soft vignette so the circular crop reads like a radar.
+    const vg = ctx.createRadialGradient(half, half, radius * 0.55, half, half, radius);
+    vg.addColorStop(0, 'rgba(0,0,0,0)');
+    vg.addColorStop(1, 'rgba(2,9,13,.42)');
+    ctx.fillStyle = vg; ctx.fillRect(0, 0, size, size);
+
     const toScreen = (x, z) => ({
-      x: (x - p.pos.x) / span * size + size / 2,
-      y: (z - p.pos.z) / span * size + size / 2
+      x: (x - p.pos.x) / span * size + half,
+      y: (z - p.pos.z) / span * size + half
     });
-    const dot = (x, z, color, r = 5) => {
-      const s = toScreen(x, z);
-      if (s.x < -20 || s.x > size + 20 || s.y < -20 || s.y > size + 20) return;
+    const clampToRing = (s, pad = 18) => {
+      const dx = s.x - half, dy = s.y - half;
+      const d = Math.hypot(dx, dy);
+      const max = radius - pad;
+      if (d <= max) return s;
+      return { x: half + dx / d * max, y: half + dy / d * max };
+    };
+    const dot = (x, z, color, r = 5, glow = true) => {
+      const s = clampToRing(toScreen(x, z), r + 3);
       ctx.beginPath(); ctx.arc(s.x, s.y, r, 0, Math.PI * 2);
       ctx.fillStyle = color; ctx.fill();
       ctx.strokeStyle = 'rgba(0,0,0,.55)'; ctx.lineWidth = 2; ctx.stroke();
+      if (glow) {
+        ctx.beginPath(); ctx.arc(s.x, s.y, r + 3, 0, Math.PI * 2);
+        ctx.strokeStyle = color; ctx.globalAlpha = 0.28; ctx.lineWidth = 1.5; ctx.stroke();
+        ctx.globalAlpha = 1;
+      }
+    };
+    const diamond = (x, z, color, r = 6) => {
+      const s = clampToRing(toScreen(x, z), r + 3);
+      ctx.save(); ctx.translate(s.x, s.y); ctx.rotate(Math.PI / 4);
+      ctx.fillStyle = color; ctx.fillRect(-r, -r, r * 2, r * 2);
+      ctx.strokeStyle = 'rgba(0,0,0,.55)'; ctx.lineWidth = 2; ctx.strokeRect(-r, -r, r * 2, r * 2);
+      ctx.restore();
+    };
+    const star = (x, z, color, r = 7) => {
+      const s = clampToRing(toScreen(x, z), r + 4);
+      ctx.save(); ctx.translate(s.x, s.y);
+      ctx.beginPath();
+      for (let i = 0; i < 10; i++) {
+        const a = -Math.PI / 2 + i * Math.PI / 5;
+        const rr = i % 2 === 0 ? r : r * 0.44;
+        if (i === 0) ctx.moveTo(Math.cos(a) * rr, Math.sin(a) * rr);
+        else ctx.lineTo(Math.cos(a) * rr, Math.sin(a) * rr);
+      }
+      ctx.closePath();
+      ctx.fillStyle = color; ctx.fill();
+      ctx.strokeStyle = 'rgba(0,0,0,.6)'; ctx.lineWidth = 1.5; ctx.stroke();
+      ctx.restore();
     };
 
-    for (const m of this.markers) {
-      if (m.userData.kind === 'mission') dot(m.position.x, m.position.z, '#ffd27a', 6);
-      if (m.userData.kind === 'rp') dot(m.position.x, m.position.z, '#2ee6c8', 5);
+    // Route to the active objective, clipped at the minimap rim.
+    if (this._objectivePos) {
+      const target = toScreen(this._objectivePos.x, this._objectivePos.z);
+      const edge = clampToRing(target, 10);
+      ctx.save();
+      ctx.setLineDash([7, 6]);
+      ctx.lineDashOffset = -t * 22;
+      ctx.strokeStyle = 'rgba(255,196,107,.85)';
+      ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.moveTo(half, half); ctx.lineTo(edge.x, edge.y); ctx.stroke();
+      ctx.restore();
+      const pulse = 5 + Math.sin(t * 4) * 1.6;
+      ctx.beginPath(); ctx.arc(edge.x, edge.y, pulse + 5, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(255,196,107,.45)'; ctx.lineWidth = 2; ctx.stroke();
+      star(this._objectivePos.x, this._objectivePos.z, '#ffc46b', 7);
     }
-    if (this._objectivePos) dot(this._objectivePos.x, this._objectivePos.z, '#ffc46b', 6);
-    for (const v of this.vehicles) if (v.isPolice && !v.destroyed) dot(v.pos.x, v.pos.z, '#5cc8ff', 5);
+
+    for (const m of this.markers) {
+      if (m.userData.kind === 'mission') star(m.position.x, m.position.z, '#ffd27a', 6);
+      if (m.userData.kind === 'rp') diamond(m.position.x, m.position.z, '#2ee6c8', 5);
+      if (m.userData.kind === 'garage') diamond(m.position.x, m.position.z, '#b58cff', 4);
+    }
+    for (const v of this.vehicles) if (v.isPolice && !v.destroyed) dot(v.pos.x, v.pos.z, '#5cc8ff', 4);
     for (const c of this.cops) if (!c.dead) dot(c.pos.x, c.pos.z, '#5cc8ff', 4);
+    if (this._targetCar) dot(this._targetCar.pos.x, this._targetCar.pos.z, '#ff8a5c', 6);
 
+    // Player arrow: canvas up maps to world +z, so heading = PI - yaw.
     ctx.save();
-    ctx.translate(size / 2, size / 2);
-    ctx.rotate(-p.yaw);
+    ctx.translate(half, half);
+    ctx.rotate(Math.PI - p.yaw);
+    ctx.shadowColor = 'rgba(255,196,107,.9)';
+    ctx.shadowBlur = 12;
     ctx.beginPath();
-    ctx.moveTo(0, -12); ctx.lineTo(8, 9); ctx.lineTo(0, 5); ctx.lineTo(-8, 9); ctx.closePath();
+    ctx.moveTo(0, -15); ctx.lineTo(10, 11); ctx.lineTo(0, 6); ctx.lineTo(-10, 11); ctx.closePath();
     ctx.fillStyle = '#ffc46b'; ctx.fill();
-    ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.stroke();
+    ctx.shadowBlur = 0;
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.6; ctx.stroke();
+    ctx.restore();
+
+    // Compass ticks around the rim.
+    ctx.save();
+    ctx.translate(half, half);
+    for (let i = 0; i < 24; i++) {
+      const a = (i / 24) * Math.PI * 2;
+      const major = i % 6 === 0;
+      ctx.beginPath();
+      ctx.moveTo(Math.cos(a) * (radius - (major ? 9 : 4)), Math.sin(a) * (radius - (major ? 9 : 4)));
+      ctx.lineTo(Math.cos(a) * radius, Math.sin(a) * radius);
+      ctx.strokeStyle = major ? 'rgba(255,255,255,.55)' : 'rgba(255,255,255,.2)';
+      ctx.lineWidth = major ? 2 : 1;
+      ctx.stroke();
+    }
     ctx.restore();
     ctx.restore();
 
-    ctx.beginPath(); ctx.arc(size / 2, size / 2, size / 2 - 4, 0, Math.PI * 2);
+    ctx.beginPath(); ctx.arc(half, half, radius, 0, Math.PI * 2);
     ctx.strokeStyle = 'rgba(255,255,255,.18)'; ctx.lineWidth = 2; ctx.stroke();
   }
 
@@ -3251,6 +3370,21 @@ export class Game {
       ctx.fillStyle = color; ctx.fill();
       ctx.strokeStyle = 'rgba(0,0,0,.6)'; ctx.lineWidth = 2; ctx.stroke();
     };
+
+    // Animated route from the player to the active objective.
+    if (this._objectivePos && p) {
+      const a = worldToMap(p.pos.x, p.pos.z);
+      const b = worldToMap(this._objectivePos.x, this._objectivePos.z);
+      ctx.save();
+      ctx.setLineDash([16, 12]);
+      ctx.lineDashOffset = -performance.now() / 55;
+      ctx.strokeStyle = 'rgba(255,196,107,.9)';
+      ctx.lineWidth = 7;
+      ctx.lineCap = 'round';
+      ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+      ctx.restore();
+    }
+
     for (const m of this.markers) {
       if (m.userData.kind === 'mission') dot(m.position.x, m.position.z, '#ffd27a', 9);
       if (m.userData.kind === 'rp') dot(m.position.x, m.position.z, '#2ee6c8', 7);
@@ -3273,7 +3407,10 @@ export class Game {
       playerEl.style.display = 'block';
       playerEl.style.left = sx + 'px';
       playerEl.style.top = sy + 'px';
+      playerEl.style.transform = `translate(-50%,-50%) rotate(${Math.PI - p.yaw}rad)`;
     }
+    const zl = $('map-zoom-level');
+    if (zl) zl.textContent = z.toFixed(1) + '×';
     this._updateMapMissions();
   }
 
@@ -3303,6 +3440,8 @@ export class Game {
     const el = $('pause-menu');
     if (el) el.classList.toggle('hidden', !want);
     if (want) {
+      if (this._touchFireTimer) { clearInterval(this._touchFireTimer); this._touchFireTimer = null; }
+      this.input.aim = false; this.input.sprint = false;
       this._populatePause();
       document.exitPointerLock && document.exitPointerLock();
       this.audio.play('ui-back');

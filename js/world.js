@@ -176,8 +176,14 @@ export class World {
     this.wheels = [];
     this.billboards = [];
     this.docks = [
-      { x1: 700, x2: 870, z1: 112, z2: 184, h: 0.58 },
-      { x1: 700, x2: 806, z1: -46, z2: 66, h: 0.58 }
+      // Píer do Sol: passarela estreita + praça na ponta.
+      { x1: 700, x2: 858, z1: 136, z2: 146, h: 0.62 },
+      { x1: 858, x2: 882, z1: 120, z2: 168, h: 0.62 },
+      // Marina Maré: dock principal + dedos de atracação.
+      { x1: 700, x2: 798, z1: 4, z2: 12, h: 0.55 },
+      { x1: 734, x2: 740, z1: -28, z2: 44, h: 0.55 },
+      { x1: 764, x2: 770, z1: -28, z2: 44, h: 0.55 },
+      { x1: 794, x2: 798, z1: -28, z2: 44, h: 0.55 }
     ];
     this.tod = settings.tod || 'golden';
     this.time = 0;
@@ -342,7 +348,7 @@ export class World {
 
   _buildWater() {
     const q = this.settings.water || 'medium';
-    const seg = q === 'high' ? 200 : q === 'low' ? 64 : 128;
+    const seg = q === 'high' ? 220 : q === 'low' ? 72 : 144;
     const geo = new THREE.PlaneGeometry(2500, 2600, seg, seg);
     geo.rotateX(-Math.PI / 2);
     this.waterUniforms = {
@@ -353,81 +359,154 @@ export class World {
       uShallow: { value: new THREE.Color('#249a9c') },
       uFoam: { value: new THREE.Color('#f4f7ee') },
       uFog: { value: new THREE.Color('#e9a87e') },
+      uSkyTop: { value: new THREE.Color('#2a6a8a') },
+      uSkyHorizon: { value: new THREE.Color('#ffb27d') },
       uCamPos: { value: new THREE.Vector3() },
-      uNight: { value: 0 }
+      uNight: { value: 0 },
+      uShoreX: { value: SHORE_X },
+      uDetail: { value: q === 'low' ? 0.85 : 1.0 }
     };
     const mat = new THREE.ShaderMaterial({
       uniforms: this.waterUniforms,
       fog: false,
       vertexShader: `
         uniform float uTime;
+        uniform float uDetail;
         varying vec3 vWorld;
         varying vec3 vNormal;
         varying float vWave;
-        float wave(vec2 p, float t){
-          return sin(p.x*0.055 + t*1.05)*0.38
-               + sin(p.y*0.082 - t*0.82)*0.24
-               + sin((p.x+p.y)*0.032 + t*0.58)*0.5
-               + sin((p.x-p.y)*0.115 + t*1.5)*0.08;
+
+        // Directional swell: long Pacific-style rollers crossing the bay.
+        float swell(vec2 p, float t){
+          float h = 0.0;
+          h += sin(dot(p, vec2( 0.052, 0.031)) + t * 1.05) * 0.180;
+          h += sin(dot(p, vec2(-0.028, 0.074)) - t * 0.82) * 0.120;
+          h += sin(dot(p, vec2( 0.016, 0.018)) + t * 0.52) * 0.200;
+          h += sin(dot(p, vec2( 0.110,-0.090)) + t * 1.55) * 0.035;
+          h += sin(dot(p, vec2(-0.190, 0.060)) + t * 2.20) * 0.020;
+          return h;
         }
+
         void main(){
           vec3 pos = position;
-          vec4 wp = modelMatrix * vec4(pos,1.0);
+          vec4 wp = modelMatrix * vec4(pos, 1.0);
           float t = uTime;
-          float w = wave(wp.xz, t);
+          float w = swell(wp.xz, t) * uDetail;
           wp.y += w;
+
+          // Analytic-ish normal from finite differences on the swell field.
+          float e = 1.25;
+          float hL = swell(wp.xz - vec2(e, 0.0), t) * uDetail;
+          float hR = swell(wp.xz + vec2(e, 0.0), t) * uDetail;
+          float hD = swell(wp.xz - vec2(0.0, e), t) * uDetail;
+          float hU = swell(wp.xz + vec2(0.0, e), t) * uDetail;
+          vNormal = normalize(vec3((hL - hR) / (2.0 * e), 1.0, (hD - hU) / (2.0 * e)));
           vWorld = wp.xyz;
-          float dx = cos(wp.x*0.055+t*1.05)*0.055*0.38
-                   + cos((wp.x+wp.z)*0.032+t*0.58)*0.032*0.5
-                   + cos((wp.x-wp.z)*0.115+t*1.5)*0.115*0.08;
-          float dz = cos(wp.z*0.082-t*0.82)*0.082*0.24
-                   + cos((wp.x+wp.z)*0.032+t*0.58)*0.032*0.5
-                   - cos((wp.x-wp.z)*0.115+t*1.5)*0.115*0.08;
-          vNormal = normalize(vec3(-dx, 1.0, -dz));
           vWave = w;
           gl_Position = projectionMatrix * viewMatrix * wp;
         }`,
       fragmentShader: `
-        uniform float uTime, uNight;
-        uniform vec3 uSunDir, uSunColor, uDeep, uShallow, uFoam, uFog, uCamPos;
+        uniform float uTime, uNight, uShoreX, uDetail;
+        uniform vec3 uSunDir, uSunColor, uDeep, uShallow, uFoam, uFog, uSkyTop, uSkyHorizon, uCamPos;
         varying vec3 vWorld;
         varying vec3 vNormal;
         varying float vWave;
-        float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1,311.7)))*43758.5453); }
+
+        float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
         float noise(vec2 p){
-          vec2 i=floor(p), f=fract(p); f=f*f*(3.0-2.0*f);
-          return mix(mix(hash(i),hash(i+vec2(1,0)),f.x),mix(hash(i+vec2(0,1)),hash(i+vec2(1,1)),f.x),f.y);
+          vec2 i = floor(p), f = fract(p);
+          f = f * f * (3.0 - 2.0 * f);
+          return mix(mix(hash(i), hash(i + vec2(1.0, 0.0)), f.x),
+                     mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), f.x), f.y);
         }
+        float fbm(vec2 p){
+          float v = 0.0, a = 0.5;
+          for (int i = 0; i < 3; i++) {
+            v += a * noise(p);
+            p = p * 2.03 + vec2(17.1, 9.7);
+            a *= 0.5;
+          }
+          return v;
+        }
+
         void main(){
           vec3 viewDir = normalize(uCamPos - vWorld);
           vec3 N = normalize(vNormal);
-          float ripple = (noise(vWorld.xz*0.22 + uTime*0.28) - 0.5);
-          N = normalize(N + vec3(ripple*0.09, 0.0, ripple*0.07));
-          float fres = pow(1.0 - max(dot(N, viewDir), 0.0), 3.0);
-          float shore = smoothstep(720.0, 1080.0, vWorld.x);
-          vec3 base = mix(uShallow, uDeep, shore*0.82);
-          vec3 skyRef = mix(vec3(0.55,0.75,0.82), uFog, 0.55);
-          base = mix(base, skyRef, fres*0.5);
-          vec3 R = reflect(-normalize(uSunDir), N);
-          float spec = pow(max(dot(R, viewDir), 0.0), 240.0);
-          base += uSunColor * spec * (1.35 - uNight*0.6);
-          float sparkle = pow(max(dot(R, viewDir), 0.0), 26.0);
-          base += uSunColor * sparkle * 0.11 * (0.4 + 0.6*noise(vWorld.xz*0.8 + uTime));
-          float band = smoothstep(760.0, 700.0, vWorld.x);
-          float foamNoise = noise(vWorld.xz*0.11 + vec2(uTime*0.5, 0.0));
-          float foamLine = smoothstep(0.5, 0.78, sin(vWorld.x*0.55 - uTime*1.9 + foamNoise*3.0)*0.5+0.5);
-          float crest = smoothstep(0.62, 0.92, vWave*0.5+0.5) * smoothstep(1100.0, 760.0, vWorld.x);
-          float foam = clamp(band*foamLine*0.9 + crest*0.22, 0.0, 1.0);
-          base = mix(base, uFoam, foam*0.78);
+
+          // Two scales of moving capillary ripples on top of the swell.
+          vec2 q = vWorld.xz;
+          float n1 = fbm(q * 0.30 + vec2(uTime * 0.34, uTime * 0.11));
+          float n2 = fbm(q * 1.05 - vec2(uTime * 0.58, uTime * 0.24));
+          vec3 detail = vec3(
+            (n1 - 0.5) * 0.34 * uDetail + (n2 - 0.5) * 0.13 * uDetail,
+            0.0,
+            (n2 - 0.5) * 0.30 * uDetail - (n1 - 0.5) * 0.10 * uDetail
+          );
+          N = normalize(N + detail);
+
+          float ndv = clamp(dot(N, viewDir), 0.0, 1.0);
+          // Schlick Fresnel, water F0 ~0.02.
+          float fres = 0.02 + 0.98 * pow(1.0 - ndv, 5.0);
+
+          // Sky reflection tinted by the time-of-day gradient.
+          vec3 R = reflect(-viewDir, N);
+          float skyMix = smoothstep(-0.12, 0.75, R.y);
+          vec3 skyRef = mix(uSkyHorizon, uSkyTop, skyMix);
+          vec3 sunDir = normalize(uSunDir);
+          float sunR = max(dot(R, sunDir), 0.0);
+          skyRef += uSunColor * pow(sunR, 120.0) * 1.1;
+          skyRef += uSunColor * pow(sunR, 12.0) * 0.08;
+
+          // Depth: turquoise shallows fading to deep Atlantic blue.
+          float shoreDist = max(0.0, vWorld.x - uShoreX);
+          float depthMix = smoothstep(0.0, 300.0, shoreDist);
+          vec3 body = mix(uShallow, uDeep, depthMix);
+          // Sub-surface glow on wave crests.
+          body += uShallow * smoothstep(0.35, 1.15, vWave) * 0.14;
+
+          // Sun specular + broad glitter path.
+          vec3 H = normalize(sunDir + viewDir);
+          float ndh = max(dot(N, H), 0.0);
+          float spec = pow(ndh, 620.0);
+          float glint = pow(ndh, 46.0);
+          body += uSunColor * spec * 2.6;
+          body += uSunColor * glint * 0.18;
+          float sparkle = pow(ndh, 130.0) * smoothstep(0.55, 0.95, noise(q * 2.6 + uTime * 0.9));
+          body += uSunColor * sparkle * 0.55;
+
+          vec3 col = mix(body, skyRef, fres * 0.74);
+
+          // Shore foam: thin lacy lines rolling up the sand.
+          float shoreBand = 1.0 - smoothstep(0.0, 30.0, shoreDist);
+          float drift = fbm(q * 0.48 + vec2(uTime * 0.5, -uTime * 0.2));
+          float lines = sin(shoreDist * 0.85 - uTime * 2.3 + drift * 4.2) * 0.5 + 0.5;
+          float lace = smoothstep(0.62, 0.96, lines)
+                     * smoothstep(0.30, 0.78, fbm(q * 1.35 - vec2(uTime * 0.3, uTime * 0.22)));
+          float wash = (1.0 - smoothstep(0.0, 5.0, shoreDist)) * 0.5;
+          float foamShore = shoreBand * (lace * 0.8 + wash);
+          // Whitecaps only on the tallest crests, kept small and broken up.
+          float crestFoam = smoothstep(0.72, 1.0, vWave * 0.5 + 0.5)
+                          * smoothstep(0.58, 0.92, fbm(q * 0.62 + vec2(uTime * 0.7, uTime * 0.3)))
+                          * 0.14;
+          float foam = clamp(foamShore + crestFoam, 0.0, 1.0);
+          col = mix(col, uFoam, foam * 0.8);
+
+          // Moonlit cool shift at night.
+          col = mix(col, col * vec3(0.58, 0.72, 1.0), uNight * 0.38);
+
+          // Aerial perspective into the sunset haze.
           float dist = length(uCamPos - vWorld);
-          base = mix(base, uFog, smoothstep(850.0, 2700.0, dist));
-          gl_FragColor = vec4(base, 1.0);
+          col = mix(col, uFog, smoothstep(760.0, 2750.0, dist));
+
+          gl_FragColor = vec4(col, 1.0);
           #include <tonemapping_fragment>
           #include <colorspace_fragment>
         }`
     });
     this.water = new THREE.Mesh(geo, mat);
-    this.water.position.set(1950, WATER_LEVEL, 0);
+    // A borda oeste fica sob a areia molhada: as cristas lambem a praia
+    // em vez de formar uma parede d'água na linha da maré.
+    this.water.position.set(1930, -0.5, 0);
     this.water.frustumCulled = false;
     this.scene.add(this.water);
   }
@@ -459,7 +538,7 @@ export class World {
       new THREE.MeshStandardMaterial({ color: 0xb69a6d, roughness: 0.55, metalness: 0.08 })
     );
     wet.rotation.x = -Math.PI / 2;
-    wet.position.set(690, 0.012, 0);
+    wet.position.set(690, 0.02, 0);
     this.scene.add(wet);
 
     // Promenade stone
@@ -668,6 +747,8 @@ export class World {
       this.waterUniforms.uShallow.value.set(p.waterShallow);
       this.waterUniforms.uFoam.value.set(p.waterFoam);
       this.waterUniforms.uFog.value.set(p.fog);
+      this.waterUniforms.uSkyTop.value.set(p.skyTop);
+      this.waterUniforms.uSkyHorizon.value.set(p.skyHorizon);
       this.waterUniforms.uSunColor.value.set(p.sun);
       this.waterUniforms.uSunDir.value.copy(this.sunDir);
       this.waterUniforms.uNight.value = p.night;
@@ -1376,59 +1457,118 @@ World.prototype._buildLandmarks = function () {
   }
 
   // --- Pier & marina docks ---
-  const deckMat = new THREE.MeshStandardMaterial({ color: 0xa37a4c, roughness: 0.92 });
+  const deckBase = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.92 });
   const postMat = new THREE.MeshStandardMaterial({ color: 0x5d452d, roughness: 0.95 });
   const railMat = new THREE.MeshStandardMaterial({ color: 0x8b6a44, roughness: 0.9 });
-  const buildDock = (x1, x2, z1, z2, h) => {
+
+  // Procedural deck planks, in both grain directions.
+  const makePlanks = (vertical) => {
+    const cv = document.createElement('canvas');
+    cv.width = cv.height = 128;
+    const c2 = cv.getContext('2d');
+    c2.fillStyle = '#a37a4c'; c2.fillRect(0, 0, 128, 128);
+    for (let i = 0; i < 4; i++) {
+      const o = i * 32;
+      c2.fillStyle = i % 2 ? 'rgba(58,38,20,.16)' : 'rgba(255,235,200,.07)';
+      if (vertical) c2.fillRect(o, 0, 32, 128); else c2.fillRect(0, o, 128, 32);
+      c2.strokeStyle = 'rgba(52,34,18,.6)'; c2.lineWidth = 2;
+      c2.beginPath();
+      if (vertical) { c2.moveTo(o, 0); c2.lineTo(o, 128); } else { c2.moveTo(0, o); c2.lineTo(128, o); }
+      c2.stroke();
+    }
+    const tex = new THREE.CanvasTexture(cv);
+    tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+    tex.colorSpace = THREE.SRGBColorSpace;
+    tex.anisotropy = 4;
+    return tex;
+  };
+  const plankV = makePlanks(true), plankH = makePlanks(false);
+
+  const buildDock = (x1, x2, z1, z2, h, railEdges = [], lights = false) => {
     const w = x2 - x1, d = z2 - z1;
-    const deck = new THREE.Mesh(new THREE.BoxGeometry(w, 0.35, d), deckMat);
-    deck.position.set((x1 + x2) / 2, h - 0.18, (z1 + z2) / 2);
+    const alongX = w >= d;
+    const tex = (alongX ? plankH : plankV).clone();
+    tex.needsUpdate = true;
+    tex.repeat.set(alongX ? Math.max(1, w / 12) : Math.max(1, w / 2.4), alongX ? Math.max(1, d / 2.4) : Math.max(1, d / 12));
+    const deckMat = deckBase.clone();
+    deckMat.map = tex;
+    const deck = new THREE.Mesh(new THREE.BoxGeometry(w, 0.32, d), deckMat);
+    deck.position.set((x1 + x2) / 2, h - 0.16, (z1 + z2) / 2);
     deck.receiveShadow = true;
     this.scene.add(deck);
-    for (let x = x1 + 3; x < x2; x += 7) {
-      for (const z of [z1 + 0.5, z2 - 0.5]) {
-        const post = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.26, 4.2, 6), postMat);
+
+    // Perimeter piles.
+    for (let x = x1 + 3; x < x2; x += 8) {
+      for (const z of [z1 + 0.4, z2 - 0.4]) {
+        const post = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.24, 4.2, 6), postMat);
         post.position.set(x, h - 2.1, z); this.scene.add(post);
       }
     }
-    for (const z of [z1 + 0.6, z2 - 0.6]) {
-      const rail = new THREE.Mesh(new THREE.BoxGeometry(w, 0.1, 0.1), railMat);
-      rail.position.set((x1 + x2) / 2, h + 1.0, z); this.scene.add(rail);
-      for (let x = x1 + 2; x <= x2; x += 5) {
-        const p = new THREE.Mesh(new THREE.BoxGeometry(0.1, 1.1, 0.1), railMat);
-        p.position.set(x, h + 0.45, z); this.scene.add(p);
+    for (let z = z1 + 3; z < z2; z += 8) {
+      for (const x of [x1 + 0.4, x2 - 0.4]) {
+        const post = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.24, 4.2, 6), postMat);
+        post.position.set(x, h - 2.1, z); this.scene.add(post);
       }
     }
-    // string lights
-    this.lightString = this.lightString || [];
-    for (let x = x1 + 4; x < x2; x += 9) {
-      const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.12, 6, 5), new THREE.MeshStandardMaterial({ color: 0xfff1c0, emissive: 0xffc46b, emissiveIntensity: 1.2 }));
-      bulb.position.set(x, h + 2.1, z2 - 1.2); this.scene.add(bulb);
-      this.lightString.push(bulb);
+
+    // Guard rails only on the edges that meet open water.
+    for (const edge of railEdges) {
+      const isZ = edge === 'z1' || edge === 'z2';
+      const len = isZ ? w : d;
+      const cx = isZ ? (x1 + x2) / 2 : (edge === 'x1' ? x1 + 0.2 : x2 - 0.2);
+      const cz = isZ ? (edge === 'z1' ? z1 + 0.2 : z2 - 0.2) : (z1 + z2) / 2;
+      const rail = new THREE.Mesh(
+        isZ ? new THREE.BoxGeometry(len, 0.1, 0.1) : new THREE.BoxGeometry(0.1, 0.1, len),
+        railMat
+      );
+      rail.position.set(cx, h + 0.95, cz); this.scene.add(rail);
+      for (let t = 2; t < len; t += 4) {
+        const p = new THREE.Mesh(new THREE.BoxGeometry(0.09, 1.0, 0.09), railMat);
+        p.position.set(isZ ? x1 + t : cx, h + 0.48, isZ ? cz : z1 + t);
+        this.scene.add(p);
+      }
+    }
+
+    if (lights) {
+      this.lightString = this.lightString || [];
+      for (let x = x1 + 4; x < x2; x += 9) {
+        const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.12, 6, 5), new THREE.MeshStandardMaterial({ color: 0xfff1c0, emissive: 0xffc46b, emissiveIntensity: 1.2 }));
+        bulb.position.set(x, h + 2.1, z1 + 1.2); this.scene.add(bulb);
+        this.lightString.push(bulb);
+      }
     }
   };
-  buildDock(700, 872, 112, 184, 0.58);
-  buildDock(700, 806, -46, 66, 0.58);
 
-  // Pier sign
+  // Píer do Sol: passarela + praça na ponta.
+  buildDock(700, 858, 136, 146, 0.62, ['z1', 'z2'], true);
+  buildDock(858, 882, 120, 168, 0.62, ['x2', 'z1', 'z2']);
+  // Marina Maré: dock principal + dedos de atracação.
+  buildDock(700, 798, 4, 12, 0.55, ['z1', 'z2'], true);
+  for (const [fx1, fx2] of [[734, 740], [764, 770], [794, 798]]) {
+    buildDock(fx1, fx2, -28, 4, 0.55, ['x1', 'x2']);
+    buildDock(fx1, fx2, 12, 44, 0.55, ['x1', 'x2']);
+  }
+
+  // Pier arch at the beach entrance
   {
     const tex = makeTextTexture([{ text: 'PÍER DO SOL', size: 80 }, { text: 'SUNSET · DRINKS · MAR', size: 26, color: '#ffd9a1' }], { w: 640, h: 220, bg: '#0d2b34', accent: '#ffc46b' });
-    const sign = new THREE.Mesh(new THREE.PlaneGeometry(10, 3.4), new THREE.MeshStandardMaterial({ map: tex, emissive: 0xffffff, emissiveMap: tex, emissiveIntensity: 0.35 }));
-    sign.position.set(792, 4.7, 184); this.scene.add(sign);
-    const back = new THREE.Mesh(new THREE.BoxGeometry(10.4, 3.8, 0.3), darkMetal);
-    back.position.set(792, 4.7, 184.2); this.scene.add(back);
-    for (const off of [-4, 4]) {
-      const p = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.2, 4.2, 6), darkMetal);
-      p.position.set(792 + off, 2.1, 184.4); this.scene.add(p);
+    const sign = new THREE.Mesh(new THREE.PlaneGeometry(9, 3.1), new THREE.MeshStandardMaterial({ map: tex, emissive: 0xffffff, emissiveMap: tex, emissiveIntensity: 0.35 }));
+    sign.position.set(702, 5.5, 141); sign.rotation.y = -Math.PI / 2; this.scene.add(sign);
+    const back = new THREE.Mesh(new THREE.BoxGeometry(0.3, 3.5, 9.4), darkMetal);
+    back.position.set(702.2, 5.5, 141); this.scene.add(back);
+    for (const off of [-4.5, 4.5]) {
+      const p = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.2, 6.4, 6), darkMetal);
+      p.position.set(702, 3.2, 141 + off); this.scene.add(p);
     }
   }
 
-  // Marina boats
-  this._makeBoat(742, 92, 0.08, 0xf1eee2, 11);
-  this._makeBoat(786, 96, Math.PI + 0.04, 0x2ec4b6, 9);
-  this._makeBoat(742, -74, -0.06, 0xff7a59, 8);
-  this._makeBoat(820, 212, 0.2, 0xf1eee2, 14);
-  this._makeBoat(858, 236, -0.1, 0x2d6e8c, 10);
+  // Marina boats, moored in the slips.
+  this._makeBoat(752, -10, Math.PI / 2, 0xf1eee2, 10);
+  this._makeBoat(782, -14, Math.PI / 2, 0x2ec4b6, 9);
+  this._makeBoat(752, 30, Math.PI / 2, 0xff7a59, 9);
+  this._makeBoat(782, 32, Math.PI / 2, 0xf1eee2, 11);
+  this._makeBoat(824, 208, 0.2, 0xf1eee2, 14);
+  this._makeBoat(862, 232, -0.1, 0x2d6e8c, 10);
 
   // --- Ferris wheel ---
   {
@@ -1638,27 +1778,65 @@ World.prototype._buildMountains = function () {
     { x: 900, z: -1160, r: 280, h: 140, m: 2 },
     { x: -1450, z: 80, r: 360, h: 290, m: 0 }
   ];
+  // Break up the perfect cone silhouettes with deterministic vertex noise.
+  const roughen = (geo, amp, seed) => {
+    const pos = geo.attributes.position;
+    for (let i = 0; i < pos.count; i++) {
+      const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
+      const a = Math.atan2(z, x);
+      const n = Math.sin(a * 3.1 + seed) * 0.5
+              + Math.sin(a * 7.3 - seed * 1.7 + y * 0.03) * 0.3
+              + Math.sin(y * 0.09 + seed) * 0.2;
+      pos.setXYZ(i, x * (1 + n * amp), y + Math.sin(a * 5 + seed) * amp * y * 0.4, z * (1 + n * amp));
+    }
+    geo.computeVertexNormals();
+    return geo;
+  };
   for (const h of hills) {
-    const mesh = new THREE.Mesh(new THREE.ConeGeometry(h.r, h.h, 7, 1), hillMats[h.m]);
+    const geo = roughen(new THREE.ConeGeometry(h.r, h.h, 11, 3), 0.13, h.x * 0.01 + h.z * 0.02);
+    const mesh = new THREE.Mesh(geo, hillMats[h.m]);
     mesh.position.set(h.x, h.h / 2 - 8, h.z);
     mesh.rotation.y = this.rand() * Math.PI;
     this.scene.add(mesh);
   }
 
-  // Granite peak rising from the sea (original "Pico do Matteo")
+  // Granite peaks rising from the sea (original "Pico do Matteo").
   const granite = new THREE.MeshStandardMaterial({ color: 0x7d8378, roughness: 0.95, flatShading: true });
-  const peak = new THREE.Mesh(new THREE.SphereGeometry(1, 14, 12), granite);
-  peak.scale.set(115, 210, 95);
-  peak.position.set(1320, 55, -480);
+  const peakGeo = (r, h, seed) => {
+    const pts = [];
+    const steps = 12;
+    for (let i = 0; i <= steps; i++) {
+      const t = i / steps;
+      const profile = Math.sqrt(Math.max(0, 1 - t * t)) * (0.94 + 0.06 * Math.sin(t * Math.PI));
+      pts.push(new THREE.Vector2(Math.max(0.001, r * profile), t * h));
+    }
+    const geo = new THREE.LatheGeometry(pts, 20);
+    const pos = geo.attributes.position;
+    for (let i = 0; i < pos.count; i++) {
+      const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
+      const a = Math.atan2(z, x);
+      const n = Math.sin(a * 3.4 + seed) * 0.55
+              + Math.sin(a * 8.1 - seed * 1.9 + y * 0.035) * 0.3
+              + Math.sin(y * 0.08 + seed) * 0.15;
+      const k = 1 + n * 0.11;
+      pos.setXYZ(i, x * k, y, z * k);
+    }
+    geo.computeVertexNormals();
+    return geo;
+  };
+  const peak = new THREE.Mesh(peakGeo(132, 244, 1.7), granite);
+  peak.position.set(1320, -8, -480);
   this.scene.add(peak);
-  const peak2 = new THREE.Mesh(new THREE.SphereGeometry(1, 12, 10), granite);
-  peak2.scale.set(62, 118, 58);
-  peak2.position.set(1450, 25, -390);
+  const peak2 = new THREE.Mesh(peakGeo(74, 142, 4.3), granite);
+  peak2.position.set(1450, -8, -390);
   this.scene.add(peak2);
-  const green = new THREE.Mesh(new THREE.SphereGeometry(1, 10, 8), new THREE.MeshStandardMaterial({ color: 0x35583c, roughness: 1, flatShading: true }));
-  green.scale.set(90, 60, 75);
-  green.position.set(1310, 160, -470);
-  this.scene.add(green);
+  const greenMat = new THREE.MeshStandardMaterial({ color: 0x35583c, roughness: 1, flatShading: true });
+  const skirt = new THREE.Mesh(peakGeo(146, 78, 2.6), greenMat);
+  skirt.position.set(1320, -8, -480);
+  this.scene.add(skirt);
+  const skirt2 = new THREE.Mesh(peakGeo(84, 48, 5.1), greenMat);
+  skirt2.position.set(1450, -8, -390);
+  this.scene.add(skirt2);
 
   // Hillside sign
   const tex = makeTextTexture([{ text: 'MATTEO 5', size: 116 }, { text: 'SANTO MATTEO · BRASIL', size: 30, color: '#ffe3ad' }], { w: 1024, h: 300, bg: '#102018', accent: '#ffc46b', border: false });
@@ -1755,6 +1933,19 @@ World.prototype._buildMap = function () {
   g.fillRect(mx(570), 0, mx(700) - mx(570), H);
   g.fillStyle = '#b39a68';
   g.fillRect(mx(596), 0, mx(700) - mx(596), H);
+  // Beach hatching
+  g.save();
+  g.beginPath(); g.rect(mx(596), 0, mx(700) - mx(596), H); g.clip();
+  g.strokeStyle = 'rgba(92,70,40,.22)'; g.lineWidth = 1.5;
+  for (let y = -W; y < H + W; y += 11) {
+    g.beginPath(); g.moveTo(mx(596), y); g.lineTo(mx(700), y + (mx(700) - mx(596))); g.stroke();
+  }
+  g.restore();
+  // Coastline glow
+  g.strokeStyle = 'rgba(125,251,227,.5)'; g.lineWidth = 6;
+  g.beginPath(); g.moveTo(mx(700), 0); g.lineTo(mx(700), H); g.stroke();
+  g.strokeStyle = 'rgba(255,255,255,.35)'; g.lineWidth = 1.5;
+  g.beginPath(); g.moveTo(mx(700), 0); g.lineTo(mx(700), H); g.stroke();
 
   // District tints
   const tint = (x1, z1, x2, z2, color) => {
@@ -1774,9 +1965,17 @@ World.prototype._buildMap = function () {
   g.fillStyle = '#1d6f78';
   g.beginPath(); g.arc(mx(-188), mz(188), 16, 0, Math.PI * 2); g.fill();
 
-  // Roads
+  // Roads — dark casing + lighter asphalt for a readable GTA-style map.
   g.lineCap = 'butt';
-  g.strokeStyle = '#6c7a72';
+  g.strokeStyle = '#26343a';
+  g.lineWidth = 15;
+  for (const x of ROADS_X) {
+    g.beginPath(); g.moveTo(mx(x), mz(-860)); g.lineTo(mx(x), mz(720)); g.stroke();
+  }
+  for (const z of ROADS_Z) {
+    g.beginPath(); g.moveTo(mx(-860), mz(z)); g.lineTo(mx(573), mz(z)); g.stroke();
+  }
+  g.strokeStyle = '#7b8a82';
   g.lineWidth = 10;
   for (const x of ROADS_X) {
     g.beginPath(); g.moveTo(mx(x), mz(-860)); g.lineTo(mx(x), mz(720)); g.stroke();
@@ -1785,17 +1984,33 @@ World.prototype._buildMap = function () {
     g.beginPath(); g.moveTo(mx(-860), mz(z)); g.lineTo(mx(573), mz(z)); g.stroke();
   }
   // Major avenues
-  g.strokeStyle = '#a39772';
-  g.lineWidth = 15;
+  g.strokeStyle = '#3a3a30';
+  g.lineWidth = 20;
   for (const x of [0, -280, 280, 560]) {
     g.beginPath(); g.moveTo(mx(x), mz(-860)); g.lineTo(mx(x), mz(720)); g.stroke();
   }
   g.beginPath(); g.moveTo(mx(-860), mz(0)); g.lineTo(mx(573), mz(0)); g.stroke();
+  g.strokeStyle = '#c2b184';
+  g.lineWidth = 14;
+  for (const x of [0, -280, 280, 560]) {
+    g.beginPath(); g.moveTo(mx(x), mz(-860)); g.lineTo(mx(x), mz(720)); g.stroke();
+  }
+  g.beginPath(); g.moveTo(mx(-860), mz(0)); g.lineTo(mx(573), mz(0)); g.stroke();
+  g.save();
+  g.setLineDash([12, 14]);
+  g.strokeStyle = 'rgba(255,244,205,.55)';
+  g.lineWidth = 2;
+  for (const x of [0, -280, 280, 560]) {
+    g.beginPath(); g.moveTo(mx(x), mz(-860)); g.lineTo(mx(x), mz(720)); g.stroke();
+  }
+  g.beginPath(); g.moveTo(mx(-860), mz(0)); g.lineTo(mx(573), mz(0)); g.stroke();
+  g.restore();
 
   // Docks
   g.fillStyle = '#7b5f3c';
-  g.fillRect(mx(700), mz(112), mx(872) - mx(700), mz(184) - mz(112));
-  g.fillRect(mx(700), mz(-46), mx(806) - mx(700), mz(66) - mz(-46));
+  for (const d of this.docks) {
+    g.fillRect(mx(d.x1), mz(d.z1), Math.max(1.5, mx(d.x2) - mx(d.x1)), Math.max(1.5, mz(d.z2) - mz(d.z1)));
+  }
 
   // Buildings
   const districtColor = (x, z) => {
@@ -1826,9 +2041,11 @@ World.prototype._buildMap = function () {
   g.textAlign = 'center';
   g.textBaseline = 'middle';
   for (const d of DISTRICTS) {
-    if (d.id === 'marina') continue;
-    g.font = '700 22px "Barlow Condensed", Arial, sans-serif';
-    g.fillStyle = 'rgba(255,226,173,.72)';
+    g.font = d.id === 'marina' ? '700 20px "Barlow Condensed", Arial, sans-serif' : '800 24px "Barlow Condensed", Arial, sans-serif';
+    g.lineWidth = 5;
+    g.strokeStyle = 'rgba(3,10,14,.72)';
+    g.strokeText(d.name, mx(d.x), mz(d.z));
+    g.fillStyle = d.id === 'marina' ? 'rgba(190,235,238,.8)' : 'rgba(255,226,173,.9)';
     g.fillText(d.name, mx(d.x), mz(d.z));
   }
 
@@ -2000,11 +2217,14 @@ World.prototype.randomRoadPoint = function (rng = Math.random) {
 
 World.prototype.setWaterQuality = function (q) {
   if (!this.water) return;
-  const seg = q === 'high' ? 200 : q === 'low' ? 64 : 128;
+  const seg = q === 'high' ? 220 : q === 'low' ? 72 : 144;
   this.water.geometry.dispose();
   const geo = new THREE.PlaneGeometry(2500, 2600, seg, seg);
   geo.rotateX(-Math.PI / 2);
   this.water.geometry = geo;
+  if (this.waterUniforms && this.waterUniforms.uDetail) {
+    this.waterUniforms.uDetail.value = q === 'low' ? 0.85 : 1.0;
+  }
 };
 
 /* ============================================================
