@@ -196,6 +196,7 @@ export function createCharacter(options = {}) {
     phase: 0,
     currentWeapon: 'pistol',
     isPlayer,
+    female,
     name
   };
 
