@@ -1,0 +1,430 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no" />
+  <meta name="theme-color" content="#060912" />
+  <meta name="description" content="Matteo 5 — GTA 6 BR: uma experiência open-world original na Baía Dourada. Jogue no navegador." />
+  <title>Matteo 5 — GTA 6 BR · Baía Dourada</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop stop-color='%23ff8a3d'/%3E%3Cstop offset='1' stop-color='%23ff4f7b'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='16' fill='%23070b16'/%3E%3Ccircle cx='46' cy='22' r='11' fill='url(%23g)'/%3E%3Cpath d='M0 44h64v20H0z' fill='%2318d6c6' opacity='.8'/%3E%3Cpath d='M8 44c8-8 14 4 22-2s12-6 26 2' fill='none' stroke='%23fff' stroke-width='2' opacity='.6'/%3E%3C/svg%3E" />
+  <link rel="preload" href="/fonts/ChakraPetch-700-latin.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="/fonts/Manrope-500-latin.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="stylesheet" href="/fonts/fonts-local.css" />
+  <link rel="stylesheet" href="/src/styles.css" />
+</head>
+<body>
+  <div id="app">
+
+    <!-- ============ EMULATOR SHELL ============ -->
+    <div id="shell" class="shell">
+      <div class="shell-bg" aria-hidden="true">
+        <div class="aurora aurora-a"></div>
+        <div class="aurora aurora-b"></div>
+        <div class="aurora aurora-c"></div>
+        <div class="grid-fade"></div>
+        <div class="grain"></div>
+        <div id="particles" class="particles"></div>
+      </div>
+
+      <header class="topbar">
+        <a class="brand" href="#" aria-label="Matteo 5">
+          <span class="brand-mark">
+            <svg viewBox="0 0 40 40" aria-hidden="true"><defs><linearGradient id="bm" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ffb35c"/><stop offset="1" stop-color="#ff5f8f"/></linearGradient></defs><path d="M20 3l15 8.5v17L20 37 5 28.5v-17z" fill="none" stroke="url(#bm)" stroke-width="2"/><path d="M13 26V14l7 7 7-7v12" fill="none" stroke="#fff" stroke-width="2.4" stroke-linejoin="round"/></svg>
+          </span>
+          <span class="brand-word">MATTEO<span class="brand-5">5</span></span>
+        </a>
+        <nav class="topnav" aria-label="Navegação do sistema">
+          <button class="topnav-item active" data-scroll="home">Jogos</button>
+          <button class="topnav-item" data-open="gallery">Galeria</button>
+          <button class="topnav-item" data-open="settings">Definições</button>
+          <button class="topnav-item" data-open="credits">Créditos</button>
+        </nav>
+        <div class="topstatus">
+          <span class="status-chip"><span class="dot-online"></span> Online</span>
+          <span id="shellClock" class="clock">--:--</span>
+          <span class="sysicons" aria-hidden="true">
+            <svg viewBox="0 0 24 16" class="ico-wifi"><path d="M2 6c5-4 15-4 20 0M5 9c3.5-2.6 10.5-2.6 14 0M8.5 12c2-1.4 5-1.4 7 0" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><circle cx="12" cy="14.2" r="1.1" fill="currentColor"/></svg>
+            <svg viewBox="0 0 28 16" class="ico-bat"><rect x="1" y="2" width="22" height="12" rx="3" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="3.4" y="4.4" width="15" height="7.2" rx="1.4" fill="currentColor"/><rect x="24.2" y="5.5" width="2.4" height="5" rx="1" fill="currentColor"/></svg>
+          </span>
+          <button class="avatar" aria-label="Perfil de jogador">MC</button>
+        </div>
+      </header>
+
+      <main class="dash" id="home">
+        <section class="hero-card" aria-labelledby="heroTitle">
+          <div class="hero-art" aria-hidden="true">
+            <svg viewBox="0 0 1100 720" preserveAspectRatio="xMidYMid slice">
+              <defs>
+                <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0" stop-color="#12183c"/><stop offset=".45" stop-color="#5b3a73"/>
+                  <stop offset=".72" stop-color="#e2686b"/><stop offset=".9" stop-color="#ffb066"/>
+                </linearGradient>
+                <radialGradient id="sunGlow"><stop stop-color="#ffd994" stop-opacity=".95"/><stop offset=".38" stop-color="#ff9a5a" stop-opacity=".55"/><stop offset="1" stop-color="#ff6e6e" stop-opacity="0"/></radialGradient>
+                <linearGradient id="sea" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#ffac74"/><stop offset=".18" stop-color="#d97678"/><stop offset=".55" stop-color="#2e5d7c"/><stop offset="1" stop-color="#071e2f"/></linearGradient>
+                <linearGradient id="cityG" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#1b1b36"/><stop offset="1" stop-color="#0a1024"/></linearGradient>
+                <linearGradient id="logoG" x1="0" y1="0" x2="1" y2=".4"><stop stop-color="#ffd08a"/><stop offset=".45" stop-color="#ff7f57"/><stop offset="1" stop-color="#ff4f83"/></linearGradient>
+                <filter id="soft"><feGaussianBlur stdDeviation="9"/></filter>
+              </defs>
+              <rect width="1100" height="720" fill="url(#sky)"/>
+              <circle cx="820" cy="356" r="230" fill="url(#sunGlow)"/>
+              <circle cx="820" cy="358" r="72" fill="#ffdf9d" opacity=".95"/>
+              <g fill="#ffd9b8" opacity=".22">
+                <ellipse cx="240" cy="150" rx="180" ry="16"/><ellipse cx="330" cy="168" rx="120" ry="10"/>
+                <ellipse cx="760" cy="118" rx="210" ry="14"/><ellipse cx="900" cy="146" rx="140" ry="9"/>
+                <ellipse cx="560" cy="210" rx="150" ry="8"/>
+              </g>
+              <g fill="none" stroke="#1a1732" stroke-width="2.5" opacity=".8">
+                <path d="M120 176q9-8 18 0M150 166q7-6 14 0M930 210q8-7 16 0"/>
+              </g>
+              <!-- distant hills -->
+              <path d="M0 372c90-54 160-78 250-58 60 14 90 34 140 30 70-6 130-58 210-50 60 6 96 42 160 38 50-4 78-30 130-30 60 0 110 30 210 18v52H0z" fill="#2d2448" opacity=".9"/>
+              <path d="M0 400c120-22 210-6 300-16 90-10 160-44 250-32 100 14 180 44 300 30 90-10 150-22 250-6v56H0z" fill="#1e1a34"/>
+              <!-- sea -->
+              <rect y="404" width="1100" height="200" fill="url(#sea)"/>
+              <g stroke="#ffd3a3" stroke-linecap="round" fill="none" opacity=".75">
+                <path d="M620 418h240" stroke-width="2"/><path d="M700 432h150" stroke-width="1.4" opacity=".7"/>
+                <path d="M560 448h310" stroke-width="2.4" opacity=".55"/><path d="M760 466h240" stroke-width="1.2" opacity=".5"/>
+                <path d="M600 486h200" stroke-width="1.8" opacity=".35"/><path d="M680 512h290" stroke-width="1.4" opacity=".3"/>
+              </g>
+              <!-- skyline -->
+              <g fill="url(#cityG)">
+                <rect x="-10" y="304" width="54" height="104" rx="2"/><rect x="52" y="330" width="42" height="78"/><rect x="100" y="280" width="36" height="128"/><rect x="144" y="318" width="58" height="90"/><rect x="208" y="344" width="42" height="64"/><rect x="258" y="296" width="30" height="112"/>
+                <rect x="300" y="326" width="64" height="82"/><rect x="372" y="252" width="44" height="156"/><rect x="424" y="288" width="54" height="120"/><rect x="486" y="312" width="38" height="96"/><rect x="532" y="236" width="58" height="172"/><rect x="598" y="300" width="46" height="108"/><rect x="650" y="332" width="60" height="76"/><rect x="718" y="310" width="34" height="98"/><rect x="760" y="344" width="58" height="64"/><rect x="826" y="326" width="44" height="82"/><rect x="878" y="352" width="62" height="56"/><rect x="948" y="320" width="50" height="88"/><rect x="1006" y="342" width="94" height="66"/>
+              </g>
+              <g fill="#ffcf8a" opacity=".55">
+                <rect x="382" y="270" width="5" height="7"/><rect x="398" y="270" width="5" height="7"/><rect x="382" y="290" width="5" height="7"/><rect x="414" y="308" width="5" height="7"/><rect x="546" y="258" width="6" height="8"/><rect x="562" y="258" width="6" height="8"/><rect x="546" y="282" width="6" height="8"/><rect x="578" y="306" width="6" height="8"/><rect x="112" y="300" width="5" height="7"/><rect x="126" y="322" width="5" height="7"/><rect x="266" y="318" width="5" height="7"/><rect x="440" y="308" width="5" height="7"/><rect x="960" y="342" width="5" height="7"/><rect x="978" y="366" width="5" height="7"/>
+              </g>
+              <!-- favela lights -->
+              <g>
+                <path d="M40 404v-44l20-10 16 8v46z" fill="#b54b54"/><path d="M78 404v-38l18-8 14 10v36z" fill="#d08a4d"/>
+                <path d="M112 404v-50l22-6 16 10v46z" fill="#6a9e8f"/><path d="M150 404v-30l18-6 14 6v30z" fill="#a35a7d"/>
+                <g fill="#ffe2a6"><rect x="48" y="370" width="4" height="4"/><rect x="60" y="384" width="4" height="4"/><rect x="86" y="376" width="4" height="4"/><rect x="122" y="366" width="4" height="4"/><rect x="136" y="382" width="4" height="4"/><rect x="158" y="384" width="4" height="4"/></g>
+              </g>
+              <!-- pier + ferris wheel -->
+              <g fill="#081222">
+                <rect x="805" y="388" width="290" height="10"/>
+                <rect x="830" y="398" width="5" height="32"/><rect x="870" y="398" width="5" height="32"/><rect x="912" y="398" width="5" height="32"/><rect x="1000" y="398" width="5" height="26"/><rect x="1044" y="398" width="5" height="26"/>
+                <circle cx="1010" cy="332" r="62" fill="none" stroke="#0a1525" stroke-width="5"/>
+                <circle cx="1010" cy="332" r="4" fill="#ffd38a"/>
+                <g stroke="#0a1525" stroke-width="2.6">
+                  <path d="M1010 270v124M948 332h124M966 288l88 88M966 376l88-88"/>
+                </g>
+                <g fill="#ffd38a" opacity=".9"><circle cx="1010" cy="270" r="3"/><circle cx="1063" cy="301" r="3"/><circle cx="1072" cy="332" r="3"/><circle cx="1063" cy="363" r="3"/><circle cx="1010" cy="394" r="3"/><circle cx="957" cy="363" r="3"/><circle cx="948" cy="332" r="3"/><circle cx="957" cy="301" r="3"/></g>
+              </g>
+              <!-- palms foreground -->
+              <g fill="#05101b">
+                <path d="M175 420c-4-48-4-96 14-150 6-18 16-34 30-44l8 12c-12 16-16 36-18 58-3 44 0 86 8 124z"/>
+                <path d="M220 236c-36-18-64-8-84 8 26-4 50 0 72 12 6 4 12 4 16-2-1 12 4 22 12 30 4-18 0-32-6-44 22-4 38-16 48-32-24 8-42 10-58 6z"/>
+                <path d="M232 244c26-6 48 2 64 20-22-8-40-8-56 0 8-10 6-22-2-34 14 0 28-8 38-20-16 6-30 6-44 0z"/>
+                <path d="M0 424c2-36 6-74 18-112 2-6 8-6 10 0 6 36 8 74 8 112z"/>
+                <path d="M28 318c-22-12-40-6-52 6 16-4 32 0 46 8 4 2 8 0 10-4 2 8 8 14 14 18 0-12-4-22-10-30 14-4 24-12 30-24-16 6-28 8-38 6z"/>
+              </g>
+              <g fill="#04101c">
+                <path d="M1040 420c-2-40-2-80 10-122 4-16 12-30 24-40l6 10c-8 14-12 30-14 48-2 38 0 72 6 104z"/>
+                <path d="M1072 274c-28-14-50-6-66 6 20-4 40 0 56 10 4 2 8 2 12-2-2 10 2 18 8 24 4-14 0-26-4-34 18-4 30-12 38-26-18 8-32 10-44 8z"/>
+              </g>
+              <!-- sand -->
+              <path d="M0 584c220-20 440-26 700-12 140 8 280 16 400 12v136H0z" fill="#d99a66" opacity=".18"/>
+            </svg>
+            <div class="hero-scan"></div>
+          </div>
+
+          <div class="hero-topline">
+            <span class="pill pill-gold"><span class="pill-dot"></span> EXCLUSIVO MATTEO 5</span>
+            <span class="pill pill-ghost" id="heroInstallState">NÃO INSTALADO</span>
+          </div>
+
+          <div class="hero-content">
+            <div class="game-logo" id="heroTitle">
+              <div class="logo-row">
+                <span class="logo-gta">GTA</span>
+                <span class="logo-six">6</span>
+                <span class="logo-br">BR</span>
+              </div>
+              <div class="logo-rule"><span></span><b>BAÍA DOURADA</b><span></span></div>
+              <p class="logo-tag">UMA CIDADE. DUAS HISTÓRIAS. SEIS ESTRELAS.</p>
+            </div>
+            <p class="hero-desc">Um emulador fictício. Uma metrópole litorânea viva. Luiza e Carlos têm cinco missões para virar o jogo — ou seis estrelas para se perder nele.</p>
+            <div class="hero-actions">
+              <button class="btn btn-primary" id="btnPlay" data-action="play">
+                <span class="btn-ico"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l10-6.5z" fill="currentColor"/></svg></span>
+                <span class="btn-label"><b id="btnPlayLabel">BAIXAR GTA 6 BR</b><small id="btnPlaySub">Instalação gratuita · 8,4 GB</small></span>
+              </button>
+              <button class="btn btn-ghost" data-action="howto">
+                <span class="btn-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.2a2.5 2.5 0 114 2c-.9.8-1.6 1.3-1.6 2.6"/><circle cx="12" cy="17" r=".8" fill="currentColor" stroke="none"/></svg></span>
+                <span class="btn-label"><b>Como jogar</b><small>Controles e modos</small></span>
+              </button>
+              <button class="btn btn-icon" data-action="favorite" aria-label="Favoritar">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 20s-7-4.35-7-9.5A3.9 3.9 0 0112 7a3.9 3.9 0 017 3.5C19 15.65 12 20 12 20z"/></svg>
+              </button>
+            </div>
+            <div class="hero-progress" id="heroProgress">
+              <div class="hero-progress-bar"><i></i></div>
+              <span>Preparando mídia fictícia…</span>
+            </div>
+          </div>
+
+          <div class="hero-meta">
+            <span class="meta-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 19h16M6 19V9l6-4 6 4v10"/></svg> Mundo aberto</span>
+            <span class="meta-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/></svg> 5 missões + RP</span>
+            <span class="meta-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 16l4-8 4 5 4-7 4 10"/></svg> 60 fps alvo</span>
+            <span class="meta-item rating"><b>16</b> Violência, drogas, linguagem</span>
+          </div>
+        </section>
+
+        <aside class="sys-column">
+          <section class="sys-card">
+            <header>
+              <span class="sys-kicker">SISTEMA</span>
+              <span class="sys-ver">5.0.4</span>
+            </header>
+            <div class="sys-device">
+              <div class="device-art">
+                <svg viewBox="0 0 120 84" aria-hidden="true">
+                  <defs><linearGradient id="dev" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#26314d"/><stop offset="1" stop-color="#0b1220"/></linearGradient><linearGradient id="devline" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#18d6c6"/><stop offset="1" stop-color="#ff7f57"/></linearGradient></defs>
+                  <rect x="8" y="16" width="104" height="52" rx="10" fill="url(#dev)" stroke="#33415f"/>
+                  <rect x="24" y="28" width="52" height="28" rx="4" fill="#050b15" stroke="#2b3a58"/>
+                  <path d="M30 48l10-13 8 9 6-6 10 10z" fill="url(#devline)" opacity=".75"/>
+                  <circle cx="92" cy="36" r="4" fill="#18d6c6"/><circle cx="102" cy="36" r="4" fill="#46536e"/>
+                  <rect x="88" y="48" width="16" height="3" rx="1.5" fill="#36435f"/>
+                  <path d="M18 16l6-6M102 16l-6-6" stroke="#33415f" stroke-width="2"/>
+                </svg>
+              </div>
+              <div>
+                <b>Matteo 5</b>
+                <span>Edição Baía · 1 TB</span>
+              </div>
+              <span class="dot-online big"></span>
+            </div>
+            <div class="storage">
+              <div class="storage-row"><span>Armazenamento do sistema</span><span id="storageLabel">936 GB livres</span></div>
+              <div class="storage-bar"><i style="width:34%"></i><b style="width:8.4%"></b></div>
+              <div class="storage-key"><span><i class="key-a"></i>Sistema</span><span><i class="key-b"></i>GTA 6 BR</span></div>
+            </div>
+            <div class="sys-rows">
+              <div class="sys-row"><span class="sys-ico">🎮</span><div><b>Controle conectado</b><small>DualShock 5 · USB</small></div><span class="tag-on">ATIVO</span></div>
+              <div class="sys-row"><span class="sys-ico">🌐</span><div><b>Baía Dourada Online</b><small>Servidor: Orla Sul</small></div><span class="tag-live">12 ms</span></div>
+              <div class="sys-row"><span class="sys-ico">💾</span><div><b>Salvamento automático</b><small>Perfil: Matteo</small></div><span class="tag-on">ON</span></div>
+            </div>
+            <button class="sys-action" data-open="settings">Personalizar sistema <span>›</span></button>
+          </section>
+
+          <section class="tip-card">
+            <span class="tip-kicker">DICA DO DIA</span>
+            <p id="tipText">No modo RP, durma no apartamento da Orla para recuperar energia e salvar o progresso.</p>
+            <div class="tip-dots"><i class="on"></i><i></i><i></i></div>
+          </section>
+        </aside>
+
+        <nav class="tile-row" aria-label="Atalhos do jogo">
+          <button class="tile" data-action="mode" data-mode="story">
+            <span class="tile-ico tile-story"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 25V7h10a4 4 0 014 4v14"/><path d="M26 25V7H16"/><path d="M6 25h20M10 12h4M10 16h4M20 12h4"/></svg></span>
+            <span class="tile-body"><b>Modo História</b><small>5 capítulos · Luiza &amp; Carlos</small></span>
+            <span class="tile-go">›</span>
+          </button>
+          <button class="tile" data-action="mode" data-mode="rp">
+            <span class="tile-ico tile-rp"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="16" cy="16" r="10"/><path d="M16 6v4M16 22v4M6 16h4M22 16h4"/><circle cx="16" cy="16" r="3"/></svg></span>
+            <span class="tile-body"><b>Roleplay</b><small>Viva a Baía · trabalhos e rotina</small></span>
+            <span class="tile-go">›</span>
+          </button>
+          <button class="tile" data-open="gallery">
+            <span class="tile-ico tile-gal"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="5" y="7" width="22" height="18" rx="2"/><path d="M5 20l6-6 5 5 4-4 7 7"/><circle cx="21" cy="12" r="2"/></svg></span>
+            <span class="tile-body"><b>Galeria</b><small>Arte original da Baía</small></span>
+            <span class="tile-go">›</span>
+          </button>
+          <button class="tile" data-open="settings">
+            <span class="tile-ico tile-set"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="16" cy="16" r="4"/><path d="M16 5v4M16 23v4M5 16h4M23 16h4M8.2 8.2l2.8 2.8M21 21l2.8 2.8M23.8 8.2L21 11M11 21l-2.8 2.8"/></svg></span>
+            <span class="tile-body"><b>Definições</b><small>Gráficos, HUD, idioma</small></span>
+            <span class="tile-go">›</span>
+          </button>
+          <button class="tile" data-open="credits">
+            <span class="tile-ico tile-cred"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="16" cy="11" r="5"/><path d="M6 27c1-6 5-9 10-9s9 3 10 9"/></svg></span>
+            <span class="tile-body"><b>Créditos</b><small>Projeto original</small></span>
+            <span class="tile-go">›</span>
+          </button>
+        </nav>
+      </main>
+
+      <footer class="shell-foot">
+        <span>Matteo 5 · Sistema de entretenimento fictício</span>
+        <span class="foot-sep">•</span>
+        <span>Pressione <kbd>Enter</kbd> para jogar</span>
+        <span class="foot-right">Baía Dourada, litoral brasileiro · <b>Modo desempenho pronto</b></span>
+      </footer>
+    </div>
+
+    <!-- ============ GAME ============ -->
+    <div id="gameRoot" class="game-root hidden" aria-hidden="true">
+      <canvas id="gameCanvas"></canvas>
+      <div id="hudLayer" class="hud-layer"></div>
+      <div id="uiLayer" class="ui-layer"></div>
+      <div id="menuLayer" class="menu-layer"></div>
+      <div id="loadingLayer" class="loading-layer hidden">
+        <div class="load-art" aria-hidden="true">
+          <div class="load-sun"></div>
+          <div class="load-skyline"></div>
+          <div class="load-sea"></div>
+        </div>
+        <div class="load-content">
+          <div class="load-brand"><span>MATTEO<b>5</b></span><em>CARREGANDO MÍDIA</em></div>
+          <div class="load-logo"><span>GTA</span><b>6</b><i>BR</i></div>
+          <div class="load-bar"><i id="loadBar"></i></div>
+          <div class="load-row"><span id="loadStatus">Preparando a Baía Dourada…</span><b id="loadPct">0%</b></div>
+          <p class="load-tip" id="loadTip">Dica: use <kbd>Tab</kbd> para alternar entre Luiza e Carlos.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ GLOBAL OVERLAYS ============ -->
+    <div id="bootOverlay" class="boot-overlay">
+      <div class="boot-mark">
+        <svg viewBox="0 0 60 60"><defs><linearGradient id="bootG" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ffb35c"/><stop offset="1" stop-color="#ff5f8f"/></linearGradient></defs><path d="M30 4l23 13v26L30 56 7 43V17z" fill="none" stroke="url(#bootG)" stroke-width="2"/><path d="M18 40V21l12 11 12-11v19" fill="none" stroke="#fff" stroke-width="3.4" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="boot-name">MATTEO<span>5</span></div>
+      <div class="boot-bar"><i></i></div>
+      <div class="boot-status">Iniciando sistema de entretenimento</div>
+    </div>
+
+    <div id="installModal" class="modal-layer hidden" role="dialog" aria-modal="true" aria-labelledby="installTitle">
+      <div class="modal install-modal">
+        <div class="modal-head">
+          <div>
+            <span class="eyebrow">MATTEO 5 · LOJA</span>
+            <h2 id="installTitle">GTA 6 BR — Baía Dourada</h2>
+          </div>
+          <button class="modal-x" data-close="installModal" aria-label="Fechar">✕</button>
+        </div>
+        <div class="install-hero">
+          <div class="install-thumb" aria-hidden="true">
+            <div class="mini-sun"></div>
+            <div class="mini-skyline"></div>
+            <div class="mini-water"></div>
+            <span>GTA<span>6</span>BR</span>
+          </div>
+          <div class="install-info">
+            <div class="install-size-row"><b>8,4 GB</b><span>Edição Baía Dourada · v1.0.4</span></div>
+            <p>Mundo aberto litorâneo, 5 capítulos da história de Luiza e Carlos, modo RP, água viva e perseguições de seis estrelas.</p>
+            <div class="install-tags"><span>PT / EN</span><span>1 jogador</span><span>Controle + toque</span><span>60 fps alvo</span></div>
+          </div>
+        </div>
+        <div class="install-progress-wrap">
+          <div class="install-status-row"><span id="installStatus">Pronto para baixar</span><span id="installPct">0%</span></div>
+          <div class="install-bar"><i id="installBar"></i></div>
+          <div class="install-sub"><span id="installSpeed">8,4 GB restantes</span><span id="installEta">—</span></div>
+        </div>
+        <div class="install-actions">
+          <button class="btn btn-ghost" id="installCancel" data-action="install-cancel">Cancelar</button>
+          <button class="btn btn-primary" id="installStart" data-action="install-start">
+            <span class="btn-label"><b>Baixar agora</b><small>Instalação fictícia acelerada</small></span>
+          </button>
+        </div>
+        <p class="fineprint">Conteúdo de ficção criado para este projeto. “GTA 6 BR”, “Matteo 5” e “Baía Dourada” não são afiliados a nenhuma publicadora real. Nenhum arquivo de jogo comercial é baixado ou utilizado.</p>
+      </div>
+    </div>
+
+    <div id="settingsModal" class="modal-layer hidden" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+      <div class="modal settings-modal">
+        <div class="modal-head">
+          <div>
+            <span class="eyebrow">MATTEO 5 · SISTEMA</span>
+            <h2 id="settingsTitle">Definições</h2>
+          </div>
+          <button class="modal-x" data-close="settingsModal" aria-label="Fechar">✕</button>
+        </div>
+        <div class="settings-layout">
+          <aside class="settings-nav" id="settingsNav">
+            <button class="active" data-tab="graphics">Gráficos &amp; desempenho</button>
+            <button data-tab="controls">Controles</button>
+            <button data-tab="interface">Interface &amp; HUD</button>
+            <button data-tab="audio">Áudio</button>
+            <button data-tab="system">Sistema &amp; dados</button>
+          </aside>
+          <div class="settings-body" id="settingsBody"></div>
+        </div>
+        <div class="settings-foot">
+          <div class="settings-fps"><span id="settingsFpsDot" class="fps-dot"></span><span id="settingsFpsText">Detecção de desempenho ativa</span></div>
+          <div class="settings-actions">
+            <button class="btn btn-ghost btn-sm" data-action="settings-reset">Restaurar padrões</button>
+            <button class="btn btn-primary btn-sm" data-close="settingsModal"><span class="btn-label"><b>Concluir</b></span></button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="howModal" class="modal-layer hidden" role="dialog" aria-modal="true" aria-labelledby="howTitle">
+      <div class="modal how-modal">
+        <div class="modal-head">
+          <div><span class="eyebrow">GUIA RÁPIDO</span><h2 id="howTitle">Como jogar</h2></div>
+          <button class="modal-x" data-close="howModal" aria-label="Fechar">✕</button>
+        </div>
+        <div class="how-grid">
+          <div class="how-card">
+            <h3>A pé</h3>
+            <div class="keyrow"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd><span>mover</span></div>
+            <div class="keyrow"><kbd>Shift</kbd><span>correr</span><kbd>Space</kbd><span>pular</span></div>
+            <div class="keyrow"><kbd>E</kbd><span>entrar / sair do veículo</span></div>
+            <div class="keyrow"><kbd>F</kbd><span>conversar · golpe</span><kbd>T</kbd><span>trocar personagem</span></div>
+          </div>
+          <div class="how-card">
+            <h3>Ação</h3>
+            <div class="keyrow"><kbd>Botão direito</kbd><span>mirar</span><kbd>Botão esquerdo</kbd><span>atirar</span></div>
+            <div class="keyrow"><kbd>R</kbd><span>recarregar</span><kbd>Tab</kbd><span>trocar personagem</span></div>
+            <div class="keyrow"><kbd>M</kbd><span>mapa cheio</span><kbd>P</kbd><span>telefone RP</span></div>
+            <div class="keyrow"><kbd>Esc</kbd><span>pausa</span><kbd>H</kbd><span>esconder HUD</span></div>
+          </div>
+          <div class="how-card">
+            <h3>Celular / tablet</h3>
+            <p>Ative os controles virtuais nas definições (ou use o modo automático). Analógico esquerdo move, arraste à direita para olhar. Botões PS: <b class="ps tri">△</b> interagir, <b class="ps cir">○</b> atirar, <b class="ps cro">×</b> pular, <b class="ps squ">□</b> veículo. Toque no minimapa para expandir.</p>
+          </div>
+          <div class="how-card how-flow">
+            <h3>Do download ao jogo</h3>
+            <ol><li>Baixe a mídia fictícia (8,4 GB simulados).</li><li>Abra o jogo e escolha <b>Modo História</b> ou <b>Roleplay</b>.</li><li>As definições salvam sozinhas neste navegador.</li></ol>
+          </div>
+        </div>
+        <div class="modal-foot"><span>Dica: jogue com fones para ouvir a maré, o rádio e as sirenes.</span><button class="btn btn-primary btn-sm" data-close="howModal"><span class="btn-label"><b>Entendi</b></span></button></div>
+      </div>
+    </div>
+
+    <div id="galleryModal" class="modal-layer hidden" role="dialog" aria-modal="true" aria-labelledby="galleryTitle">
+      <div class="modal gallery-modal">
+        <div class="modal-head">
+          <div><span class="eyebrow">ARTE ORIGINAL</span><h2 id="galleryTitle">Galeria da Baía</h2></div>
+          <button class="modal-x" data-close="galleryModal" aria-label="Fechar">✕</button>
+        </div>
+        <div class="gallery-grid">
+          <figure class="art-card art-1"><div class="art-scene"><span class="a-sun"></span><span class="a-skyline"></span><span class="a-water"></span><span class="a-palm p1"></span><span class="a-palm p2"></span></div><figcaption><b>Fim de tarde na Orla</b><span>Estudo de cor · Baía Dourada</span></figcaption></figure>
+          <figure class="art-card art-2"><div class="art-scene"><span class="a-moon"></span><span class="a-hill"></span><span class="a-houses"></span><span class="a-wire"></span></div><figcaption><b>Morro do Vigia</b><span>Distrito alto · casas de lona</span></figcaption></figure>
+          <figure class="art-card art-3"><div class="art-scene"><span class="a-neon"></span><span class="a-road"></span><span class="a-sign">BAÍA</span></div><figcaption><b>Centro depois da chuva</b><span>Identidade noturna</span></figcaption></figure>
+        </div>
+        <p class="fineprint">Todas as peças acima são ilustrações vetoriais originais criadas para o projeto. Nenhuma captura de tela ou arquivo de jogo existente foi usado.</p>
+      </div>
+    </div>
+
+    <div id="creditsModal" class="modal-layer hidden" role="dialog" aria-modal="true" aria-labelledby="creditsTitle">
+      <div class="modal credits-modal">
+        <div class="modal-head">
+          <div><span class="eyebrow">PROJETO ORIGINAL</span><h2 id="creditsTitle">Créditos</h2></div>
+          <button class="modal-x" data-close="creditsModal" aria-label="Fechar">✕</button>
+        </div>
+        <div class="credits-hero">
+          <div class="game-logo small"><div class="logo-row"><span class="logo-gta">GTA</span><span class="logo-six">6</span><span class="logo-br">BR</span></div><div class="logo-rule"><span></span><b>BAÍA DOURADA</b><span></span></div></div>
+          <p>Um jogo de ação em mundo aberto para navegador, apresentado dentro do emulador fictício <b>Matteo 5</b>.</p>
+        </div>
+        <div class="credits-cols">
+          <div><h3>Direção &amp; mundo</h3><p>Baía Dourada, Orla Nova, Centro Velho, Porto Seco, Morro do Vigia e Ilha da Sereia.</p><h3>Elenco</h3><p>Luiza Andrade<br/>Carlos “Cadu” Mendes<br/>Elenco de vozes fictício</p></div>
+          <div><h3>Identidade visual</h3><p>Tipografia Chakra Petch e Manrope (SIL OFL). Paleta original de pôr do sol, cerâmica e neon.</p><h3>Tecnologia</h3><p>Three.js · WebGL2 · shaders de oceano originais · Web Audio procedural · interface em HTML/CSS.</p></div>
+        </div>
+        <div class="credits-note">
+          <p><b>Aviso de originalidade.</b> “Matteo 5”, “GTA 6 BR”, “Baía Dourada”, personagens, roteiro, arte e áudio foram criados para esta demonstração. O projeto não é afiliado à Rockstar Games, Sony ou qualquer publicadora. Não contém capturas, modelos, músicas ou outros arquivos de jogos comerciais. Semelhanças de gênero são intencionais e não implicam associação.</p>
+          <div class="credit-badges"><span>Three.js</span><span>WebGL 2</span><span>Web Audio</span><span>Feito para navegador</span></div>
+        </div>
+        <div class="modal-foot"><span>© 2026 Estúdio Matteo · Obra de ficção.</span><button class="btn btn-primary btn-sm" data-close="creditsModal"><span class="btn-label"><b>Fechar</b></span></button></div>
+      </div>
+    </div>
+
+    <div id="toastLayer" class="toast-layer" aria-live="polite"></div>
+  </div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
