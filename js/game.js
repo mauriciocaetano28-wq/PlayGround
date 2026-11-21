@@ -539,7 +539,12 @@ export class Game {
     this.effects = [];
     this.markers = [];
     this.keys = {};
-    this.input = { x: 0, y: 0, joyX: 0, joyY: 0, sprint: false, aim: false, shoot: false, lookDX: 0, lookDY: 0 };
+    this.input = {
+      x: 0, y: 0, joyX: 0, joyY: 0,
+      sprint: false, aim: false, shoot: false,
+      brake: false, throttle: false, handbrake: false, boost: false,
+      lookDX: 0, lookDY: 0
+    };
     this.mouse = { down: false, right: false, lastX: 0, lastY: 0 };
     this.touch = { lookId: null, joyId: null, lastX: 0, lastY: 0 };
     this.clockMinutes = 18 * 60 + 42;
@@ -693,7 +698,13 @@ export class Game {
     this.showHUD();
     this._rebuildStaticMarkers();
     this._snapCamera();
-    this.notify('SANTO MATTEO', 'Use WASD para andar, E para interagir e M para o mapa.', 'good');
+    this.notify(
+      'SANTO MATTEO',
+      this._touchEnabled()
+        ? 'Use o direcional virtual para andar, ○ para interagir e o botão de mapa para navegar.'
+        : 'Use WASD para andar, E para interagir e M para o mapa.',
+      'good'
+    );
     if (!this._helpShown) { this._helpShown = true; setTimeout(() => this._showTutorial(), 900); }
     this._autosave();
   }
@@ -877,8 +888,14 @@ export class Game {
       boat: { max: 30, accel: 12, handling: 1.3, mass: 1 }
     };
     const st = typeStats[o.type] || typeStats.sedan;
+    const modelNames = {
+      sedan: 'SEDAN MATTEO', hatch: 'HATCH ORLA', sports: 'VECTOR GT',
+      suv: 'TROLLER 4X4', pickup: 'CARRETA LITORAL', taxi: 'TAXI SOL',
+      police: 'VIATURA', boat: 'MARÉ 01'
+    };
+    const genericName = !o.name || o.name === 'VEÍCULO';
     const v = {
-      mesh, type: o.type || 'sedan', name: o.name || 'VEÍCULO', color: o.color,
+      mesh, type: o.type || 'sedan', name: genericName ? (modelNames[o.type] || 'VEÍCULO') : o.name, color: o.color,
       pos: new THREE.Vector3(o.x, isBoat ? WATER_LEVEL + 0.02 : 0, o.z),
       angle: o.angle || 0, speed: 0, health: 100, maxHealth: 100,
       maxSpeed: st.max, accel: st.accel, handling: st.handling, mass: st.mass,
@@ -1101,6 +1118,22 @@ export class Game {
 
   _showTutorial() {
     if (this.mode === 'attract') return;
+    const grid = document.querySelector('#tutorial .tut-grid');
+    if (grid) {
+      if (this._touchEnabled()) {
+        grid.innerHTML = `
+          <div><kbd>◀</kbd><b>Mover</b><small>Joystick virtual</small></div>
+          <div><kbd>○</kbd><b>Interagir</b><small>Veículos e pessoas</small></div>
+          <div><kbd>R2</kbd><b>Mirar &amp; atirar</b><small>Segure para atirar</small></div>
+          <div><kbd>▣</kbd><b>Mapa</b><small>Missões e distritos</small></div>`;
+      } else {
+        grid.innerHTML = `
+          <div><kbd>WASD</kbd><b>Mover</b><small>Shift para correr</small></div>
+          <div><kbd>E</kbd><b>Interagir</b><small>Entrar em veículos, falar</small></div>
+          <div><kbd>BOTÃO DIR.</kbd><b>Mirar &amp; atirar</b><small>Clique para disparar</small></div>
+          <div><kbd>M</kbd><b>Mapa completo</b><small>Missões e distritos</small></div>`;
+      }
+    }
     $('tutorial').classList.remove('hidden');
   }
 
@@ -1172,7 +1205,11 @@ export class Game {
     }, { passive: false });
 
     window.addEventListener('keyup', (e) => { this.keys[e.code] = false; });
-    window.addEventListener('blur', () => { this.keys = {}; this.input.joyX = 0; this.input.joyY = 0; });
+    window.addEventListener('blur', () => {
+      this.keys = {};
+      this.input.joyX = 0; this.input.joyY = 0;
+      this.input.brake = false; this.input.throttle = false; this.input.handbrake = false; this.input.boost = false;
+    });
 
     const canvas = this.canvas;
     canvas.addEventListener('contextmenu', (e) => e.preventDefault());
@@ -1302,8 +1339,14 @@ export class Game {
         try { btn.setPointerCapture(e.pointerId); } catch (_) {}
         btn.classList.add('pressed');
         if (this.paused || this.dialogueActive) return;
-        if (action === 'aim') { this.input.aim = true; this._haptic(8); return; }
+        const p = this.player;
+        const driving = !!(p && p.inVehicle);
+        if (action === 'aim') {
+          if (driving) { this.input.brake = true; this._haptic(8); return; }
+          this.input.aim = true; this._haptic(8); return;
+        }
         if (action === 'shoot') {
+          if (driving) { this.input.throttle = true; this._haptic(10); return; }
           this.input.aim = true;
           this._shoot();
           this._haptic(14);
@@ -1314,23 +1357,60 @@ export class Game {
           }, rate);
           return;
         }
-        if (action === 'sprint') { this.input.sprint = true; this._haptic(6); return; }
+        if (action === 'sprint') {
+          if (driving) { this.input.boost = true; this._haptic(10); return; }
+          this.input.sprint = true; this._haptic(6); return;
+        }
         if (action === 'interact') { this._interact(); this._haptic(8); }
-        if (action === 'melee') { this._melee(); this._haptic(12); }
-        if (action === 'jump') { this._jump(); this._haptic(8); }
+        if (action === 'melee') {
+          if (driving) { this.audio.play('horn'); this._haptic(10); return; }
+          this._melee(); this._haptic(12);
+        }
+        if (action === 'jump') {
+          if (driving) { this.input.handbrake = true; this._haptic(8); return; }
+          this._jump(); this._haptic(8);
+        }
         if (action === 'switch') { this.openSwitch(); this._haptic(8); }
       });
       const release = () => {
         btn.classList.remove('pressed');
-        if (action === 'aim') this.input.aim = false;
-        if (action === 'shoot') { stopFire(); this.input.aim = false; }
-        if (action === 'sprint') this.input.sprint = false;
+        if (action === 'aim') { this.input.aim = false; this.input.brake = false; }
+        if (action === 'shoot') { stopFire(); this.input.aim = false; this.input.throttle = false; }
+        if (action === 'sprint') { this.input.sprint = false; this.input.boost = false; }
+        if (action === 'jump') this.input.handbrake = false;
       };
       btn.addEventListener('pointerup', release);
       btn.addEventListener('pointercancel', release);
       btn.addEventListener('lostpointercapture', release);
     });
+    // Mobile HUD quick actions.
+    const mhReload = $('mh-reload');
+    if (mhReload) mhReload.addEventListener('pointerdown', (e) => {
+      e.preventDefault(); e.stopPropagation();
+      if (this.paused || this.dialogueActive) return;
+      this._reload(); this._haptic(8);
+    });
+    const mhHorn = $('mh-horn');
+    if (mhHorn) mhHorn.addEventListener('pointerdown', (e) => {
+      e.preventDefault(); e.stopPropagation();
+      if (this.paused || this.dialogueActive) return;
+      this.audio.play('horn'); this._haptic(10);
+    });
+
+    this._updateTouchLabels();
     this._touchHint = $('touch-look-hint');
+  }
+
+  _updateTouchLabels() {
+    const driving = !!(this.player && this.player.inVehicle);
+    const tc = $('touch-controls');
+    if (tc) tc.classList.toggle('vehicle-mode', driving);
+    document.querySelectorAll('[data-touch]').forEach((btn) => {
+      const small = btn.querySelector('small');
+      if (!small) return;
+      const label = driving ? btn.dataset.labelVehicle : btn.dataset.label;
+      if (label) small.textContent = label;
+    });
   }
 
   _haptic(ms = 10) {
@@ -1701,6 +1781,8 @@ export class Game {
     const txt = $('interact-text');
     if (!prompt || !txt) return;
     if (this.dialogueActive || this.paused || p.dead) { prompt.classList.add('hidden'); return; }
+    const key = prompt.querySelector('.key');
+    if (key) key.textContent = this._touchEnabled() ? '○' : 'E';
     let text = '';
     if (p.inVehicle) text = p.inVehicle.isBoat ? 'Sair do barco' : 'Sair do veículo';
     else {
@@ -1710,7 +1792,7 @@ export class Game {
       const nearNpc = this._nearestNpc(3.4);
       if (nearMission) text = 'Iniciar ' + nearMission.title;
       else if (nearRP) text = 'Ver trabalhos de Roleplay';
-      else if (nearVeh) text = 'Entrar no ' + (nearVeh.isBoat ? 'barco' : nearVeh.name.toLowerCase());
+      else if (nearVeh) text = 'Entrar no ' + (nearVeh.isBoat ? 'barco' : nearVeh.name);
       else if (nearNpc) text = 'Conversar';
       else if (dist2(p.pos, LANDMARKS.garage) < 6) text = 'Reparar veículo';
       else if (dist2(p.pos, LANDMARKS.safehouse) < 6) text = 'Salvar na Casa da Orla';
@@ -1803,6 +1885,12 @@ export class Game {
     p.inVehicle = v;
     v.occupiedBy = 'player';
     v.driver = 'player';
+    this.input.brake = false;
+    this.input.throttle = false;
+    this.input.handbrake = false;
+    this.input.boost = false;
+    this.input.aim = false;
+    this._updateTouchLabels();
     const ip = $('interact-prompt'); if (ip) ip.classList.add('hidden');
     p.model.group.visible = false;
     if (p.shadow) p.shadow.visible = false;
@@ -1821,6 +1909,12 @@ export class Game {
     v.driver = null; v.occupiedBy = null;
     v.speed = 0;
     p.inVehicle = null;
+    this.input.brake = false;
+    this.input.throttle = false;
+    this.input.handbrake = false;
+    this.input.boost = false;
+    this.input.aim = false;
+    this._updateTouchLabels();
     const side = new THREE.Vector3(Math.cos(v.angle), 0, -Math.sin(v.angle)).multiplyScalar(2.4);
     let x = v.pos.x + side.x, z = v.pos.z + side.z;
     if (this.world.isWater(x, z) && !v.isBoat) { x = v.pos.x - side.x; z = v.pos.z - side.z; }
@@ -2124,14 +2218,17 @@ export class Game {
 
   _drivePlayerVehicle(v, dt) {
     const axes = this._moveAxes();
-    const throttle = axes.y;
+    // Virtual pads expose dedicated accelerator/brake buttons; the left stick
+    // still works as a full analogue throttle.
+    const throttle = clamp(axes.y + (this.input.throttle ? 1 : 0), -1, 1);
     const steer = axes.x;
-    const brake = this.keys.Space;
-    const max = v.maxSpeed;
+    const brake = this.keys.Space || this.input.brake || this.input.handbrake;
+    const boost = this.input.boost ? 1.42 : 1;
+    const max = v.maxSpeed * (this.input.boost ? 1.12 : 1);
     const accel = v.accel;
 
     if (this.dialogueActive || this.cutscene) { v.speed *= 0.96; return; }
-    if (throttle > 0) v.speed += accel * throttle * dt;
+    if (throttle > 0) v.speed += accel * throttle * boost * dt;
     else if (throttle < 0) {
       if (v.speed > 0.5) v.speed += accel * 1.6 * throttle * dt;
       else v.speed += accel * 0.55 * throttle * dt;
@@ -2935,6 +3032,7 @@ export class Game {
     const lines = DIALOGUES[key];
     if (!lines || !lines.length) { if (onDone) onDone(); return; }
     this.dialogueActive = true;
+    document.body.classList.add('dialogue-open');
     this._dialogue = { lines, index: 0, onDone };
     this._renderDialogueLine();
     $('dialogue').classList.remove('hidden');
@@ -2983,6 +3081,7 @@ export class Game {
   _closeDialogue() {
     const d = this._dialogue;
     this.dialogueActive = false;
+    document.body.classList.remove('dialogue-open');
     this._dialogue = null;
     $('dialogue').classList.add('hidden');
     this._last = performance.now();
@@ -3038,9 +3137,41 @@ export class Game {
     }
   }
 
+  _updateMobileHUD(p) {
+    if (!p) return;
+    const ctx = $('mh-context');
+    if (!ctx) return;
+    const veh = p.inVehicle;
+    ctx.classList.toggle('vehicle', !!veh);
+
+    const ma = $('mh-ammo'); if (ma) ma.textContent = p.weapon.mag;
+    const mr = $('mh-reserve'); if (mr) mr.textContent = p.weapon.reserve;
+
+    if (veh) {
+      const kmh = Math.round(Math.abs(veh.speed) * 3.6);
+      const sv = $('mh-speed-val'); if (sv) sv.textContent = kmh;
+      const arc = $('mh-speed-arc');
+      if (arc) arc.style.strokeDashoffset = String(207 - clamp(kmh / 220, 0, 1) * 207);
+      const vn = $('mh-vehicle-name'); if (vn) vn.textContent = veh.name;
+      const gear = $('mh-gear');
+      if (gear) gear.textContent = veh.speed < -0.5 ? 'R' : veh.speed < 0.5 ? 'N' : 'D';
+    } else {
+      const wn = $('mh-weapon-name'); if (wn) wn.textContent = 'PISTOLA MATTEO .40';
+    }
+
+    const driving = !!veh;
+    if (driving !== this._mobileDriving) {
+      this._mobileDriving = driving;
+      this._updateTouchLabels();
+    }
+    document.body.classList.toggle('low-health', p.health <= 30 && !p.dead);
+    document.body.classList.toggle('high-wanted', (this.wanted || 0) >= 3);
+  }
+
   _updateHUD(dt) {
     const p = this.player;
     if (!p) return;
+    this._updateMobileHUD(p);
     const bar = (id, v) => { const el = $(id); if (el) el.style.width = clamp(v, 0, 100) + '%'; };
     bar('bar-health', p.health);
     bar('bar-armor', p.armor);
@@ -3095,6 +3226,8 @@ export class Game {
 
     const strip = $('compass-strip');
     if (strip) strip.style.transform = `translateX(calc(-50% + ${(-this._camYaw / (Math.PI * 2)) * 720}px))`;
+    const mhStrip = $('mh-compass-strip');
+    if (mhStrip) mhStrip.style.transform = `translateX(calc(-50% + ${(-this._camYaw / (Math.PI * 2)) * 360}px))`;
 
     this._updateObjectiveHUD();
     this._updateWantedHUD();
@@ -3532,6 +3665,7 @@ export class Game {
     this.mapOpen = false;
     this.paused = false;
     this.resultOpen = false;
+    document.body.classList.remove('dialogue-open');
   }
 
   saveGame() {

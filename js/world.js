@@ -7,7 +7,7 @@ import * as THREE from 'three';
 
 export const WORLD_BOUNDS = { minX: -980, maxX: 1550, minZ: -980, maxZ: 980 };
 export const WATER_LEVEL = -0.35;
-export const SHORE_X = 700;
+export const SHORE_X = 650;
 
 export const ROADS_X = [-840, -700, -560, -420, -280, -140, 0, 140, 280, 420, 560];
 export const ROADS_Z = [-840, -700, -560, -420, -280, -140, 0, 140, 280, 420, 560, 700];
@@ -177,10 +177,10 @@ export class World {
     this.billboards = [];
     this.docks = [
       // Píer do Sol: passarela estreita + praça na ponta.
-      { x1: 700, x2: 858, z1: 136, z2: 146, h: 0.62 },
+      { x1: 634, x2: 858, z1: 136, z2: 146, h: 0.62 },
       { x1: 858, x2: 882, z1: 120, z2: 168, h: 0.62 },
       // Marina Maré: dock principal + dedos de atracação.
-      { x1: 700, x2: 798, z1: 4, z2: 12, h: 0.55 },
+      { x1: 634, x2: 798, z1: 4, z2: 12, h: 0.55 },
       { x1: 734, x2: 740, z1: -28, z2: 44, h: 0.55 },
       { x1: 764, x2: 770, z1: -28, z2: 44, h: 0.55 },
       { x1: 794, x2: 798, z1: -28, z2: 44, h: 0.55 }
@@ -286,8 +286,8 @@ export class World {
         void main(){
           vec3 d = normalize(vDir);
           float h = clamp(d.y, -0.08, 1.0);
-          vec3 col = mix(uHorizon, uTop, smoothstep(0.0, 0.62, h));
-          col = mix(col, uGlow, smoothstep(0.16, -0.03, abs(h)) * 0.34);
+          vec3 col = mix(uHorizon, uTop, smoothstep(0.0, 0.38, h));
+          col = mix(col, uGlow, smoothstep(0.14, -0.03, abs(h)) * 0.24);
           float sd = max(dot(d, normalize(uSunDir)), 0.0);
           col += uSunColor * pow(sd, 520.0) * 2.2;
           col += uSunColor * pow(sd, 9.0) * 0.16;
@@ -448,10 +448,12 @@ export class World {
           // Schlick Fresnel, water F0 ~0.02.
           float fres = 0.02 + 0.98 * pow(1.0 - ndv, 5.0);
 
-          // Sky reflection tinted by the time-of-day gradient.
+          // Sky reflection tinted by the time-of-day gradient.  Grazing angles
+          // reflect the warm horizon band; blending a little of the upper sky
+          // in keeps the sea reading blue instead of dissolving into the haze.
           vec3 R = reflect(-viewDir, N);
-          float skyMix = smoothstep(-0.12, 0.75, R.y);
-          vec3 skyRef = mix(uSkyHorizon, uSkyTop, skyMix);
+          float skyMix = smoothstep(0.28, -0.04, R.y);
+          vec3 skyRef = mix(uSkyTop, uSkyHorizon, skyMix * 0.62);
           vec3 sunDir = normalize(uSunDir);
           float sunR = max(dot(R, sunDir), 0.0);
           skyRef += uSunColor * pow(sunR, 120.0) * 1.1;
@@ -469,34 +471,39 @@ export class World {
           float ndh = max(dot(N, H), 0.0);
           float spec = pow(ndh, 620.0);
           float glint = pow(ndh, 46.0);
-          body += uSunColor * spec * 2.6;
-          body += uSunColor * glint * 0.18;
+          body += uSunColor * spec * 2.4;
+          body += uSunColor * glint * 0.10;
           float sparkle = pow(ndh, 130.0) * smoothstep(0.55, 0.95, noise(q * 2.6 + uTime * 0.9));
-          body += uSunColor * sparkle * 0.55;
+          body += uSunColor * sparkle * 0.32;
 
-          vec3 col = mix(body, skyRef, fres * 0.74);
+          vec3 col = mix(body, skyRef, fres * 0.54);
 
-          // Shore foam: thin lacy lines rolling up the sand.
-          float shoreBand = 1.0 - smoothstep(0.0, 30.0, shoreDist);
+          // Shore foam: lacy lines rolling up the wet sand.
+          float shoreBand = 1.0 - smoothstep(0.0, 42.0, shoreDist);
           float drift = fbm(q * 0.48 + vec2(uTime * 0.5, -uTime * 0.2));
           float lines = sin(shoreDist * 0.85 - uTime * 2.3 + drift * 4.2) * 0.5 + 0.5;
-          float lace = smoothstep(0.62, 0.96, lines)
-                     * smoothstep(0.30, 0.78, fbm(q * 1.35 - vec2(uTime * 0.3, uTime * 0.22)));
-          float wash = (1.0 - smoothstep(0.0, 5.0, shoreDist)) * 0.5;
-          float foamShore = shoreBand * (lace * 0.8 + wash);
+          float lace = smoothstep(0.55, 0.93, lines)
+                     * smoothstep(0.28, 0.76, fbm(q * 1.35 - vec2(uTime * 0.3, uTime * 0.22)));
+          float wash = (1.0 - smoothstep(0.0, 8.0, shoreDist)) * 0.55;
+          float foamShore = shoreBand * (lace * 0.9 + wash);
           // Whitecaps only on the tallest crests, kept small and broken up.
           float crestFoam = smoothstep(0.72, 1.0, vWave * 0.5 + 0.5)
                           * smoothstep(0.58, 0.92, fbm(q * 0.62 + vec2(uTime * 0.7, uTime * 0.3)))
                           * 0.14;
           float foam = clamp(foamShore + crestFoam, 0.0, 1.0);
-          col = mix(col, uFoam, foam * 0.8);
+          col = mix(col, uFoam, foam * 0.85);
 
           // Moonlit cool shift at night.
           col = mix(col, col * vec3(0.58, 0.72, 1.0), uNight * 0.38);
 
-          // Aerial perspective into the sunset haze.
+          // Aerial perspective.  The far Atlantic keeps a cool blue body and
+          // only picks up a touch of warm haze, so the horizon stays a crisp
+          // ocean line instead of blending into the sky.
           float dist = length(uCamPos - vWorld);
-          col = mix(col, uFog, smoothstep(760.0, 2750.0, dist));
+          vec3 farSea = mix(uDeep, uSkyTop, 0.38);
+          float haze = smoothstep(650.0, 3400.0, dist);
+          col = mix(col, farSea, haze * 0.62);
+          col = mix(col, uFog, smoothstep(2400.0, 5200.0, dist) * 0.28);
 
           gl_FragColor = vec4(col, 1.0);
           #include <tonemapping_fragment>
@@ -506,39 +513,42 @@ export class World {
     this.water = new THREE.Mesh(geo, mat);
     // A borda oeste fica sob a areia molhada: as cristas lambem a praia
     // em vez de formar uma parede d'água na linha da maré.
-    this.water.position.set(1930, -0.5, 0);
+    this.water.position.set(1890, -0.5, 0);
     this.water.frustumCulled = false;
     this.scene.add(this.water);
   }
 
   _buildGround() {
     // Land base
-    const baseGeo = new THREE.PlaneGeometry(1720, 2100, 1, 1);
+    const baseGeo = new THREE.PlaneGeometry(1659, 2100, 1, 1);
     baseGeo.rotateX(-Math.PI / 2);
     const baseMat = new THREE.MeshStandardMaterial({ color: 0x6c7c5c, roughness: 1 });
     const base = new THREE.Mesh(baseGeo, baseMat);
-    base.position.set(-165, -0.02, 0);
+    base.position.set(-195.5, -0.02, 0);
     base.receiveShadow = true;
     this.scene.add(base);
 
     // Sand
-    const sandTex = this.textures.sand.clone(); sandTex.repeat.set(14, 160); sandTex.needsUpdate = true;
+    const sandTex = this.textures.sand.clone(); sandTex.repeat.set(5, 160); sandTex.needsUpdate = true;
     const sand = new THREE.Mesh(
-      new THREE.PlaneGeometry(120, 2050),
+      new THREE.PlaneGeometry(44, 2050),
       new THREE.MeshStandardMaterial({ map: sandTex, color: 0xffffff, roughness: 1 })
     );
     sand.rotation.x = -Math.PI / 2;
-    sand.position.set(640, 0.01, 0);
+    sand.position.set(612, 0.01, 0);
     sand.receiveShadow = true;
     this.scene.add(sand);
 
-    // Wet sand
+    // Wet sand ramps down into the water so waves can wash over the edge
+    // instead of ending on a hard step.
+    const wetGeo = new THREE.PlaneGeometry(16, 2050);
+    wetGeo.rotateX(-Math.PI / 2);
+    wetGeo.rotateZ(-0.0325);
     const wet = new THREE.Mesh(
-      new THREE.PlaneGeometry(22, 2050),
+      wetGeo,
       new THREE.MeshStandardMaterial({ color: 0xb69a6d, roughness: 0.55, metalness: 0.08 })
     );
-    wet.rotation.x = -Math.PI / 2;
-    wet.position.set(690, 0.02, 0);
+    wet.position.set(642, -0.24, 0);
     this.scene.add(wet);
 
     // Promenade stone
@@ -1244,7 +1254,7 @@ World.prototype._buildVegetation = function () {
   const canopyGeo = new THREE.ConeGeometry(1.75, 0.55, 9, 1, true);
   const umbrellas = [];
   for (let k = 0; k < 54; k++) {
-    const x = randRange(this.rand, 606, 672), z = randRange(this.rand, -940, 940);
+    const x = randRange(this.rand, 606, 632), z = randRange(this.rand, -940, 940);
     umbrellas.push({ x, z, color: pick(this.rand, umbCols), rot: this.rand() * Math.PI });
   }
   const poles = new THREE.InstancedMesh(poleGeo, poleMat, umbrellas.length);
@@ -1277,7 +1287,7 @@ World.prototype._buildVegetation = function () {
     const mat = new THREE.MeshStandardMaterial({ color: col, roughness: 0.95, side: THREE.DoubleSide });
     const mesh = new THREE.InstancedMesh(towelGeo, mat, count);
     for (let i = 0; i < count; i++) {
-      const x = randRange(this.rand, 612, 664), z = randRange(this.rand, -900, 900);
+      const x = randRange(this.rand, 612, 632), z = randRange(this.rand, -900, 900);
       q.setFromEuler(new THREE.Euler(0, this.rand() * Math.PI, 0));
       m.compose(new THREE.Vector3(x, 0.055, z), q, new THREE.Vector3(1, 1, 1));
       mesh.setMatrixAt(i, m);
@@ -1540,10 +1550,10 @@ World.prototype._buildLandmarks = function () {
   };
 
   // Píer do Sol: passarela + praça na ponta.
-  buildDock(700, 858, 136, 146, 0.62, ['z1', 'z2'], true);
+  buildDock(634, 858, 136, 146, 0.62, ['z1', 'z2'], true);
   buildDock(858, 882, 120, 168, 0.62, ['x2', 'z1', 'z2']);
   // Marina Maré: dock principal + dedos de atracação.
-  buildDock(700, 798, 4, 12, 0.55, ['z1', 'z2'], true);
+  buildDock(634, 798, 4, 12, 0.55, ['z1', 'z2'], true);
   for (const [fx1, fx2] of [[734, 740], [764, 770], [794, 798]]) {
     buildDock(fx1, fx2, -28, 4, 0.55, ['x1', 'x2']);
     buildDock(fx1, fx2, 12, 44, 0.55, ['x1', 'x2']);
@@ -1553,12 +1563,12 @@ World.prototype._buildLandmarks = function () {
   {
     const tex = makeTextTexture([{ text: 'PÍER DO SOL', size: 80 }, { text: 'SUNSET · DRINKS · MAR', size: 26, color: '#ffd9a1' }], { w: 640, h: 220, bg: '#0d2b34', accent: '#ffc46b' });
     const sign = new THREE.Mesh(new THREE.PlaneGeometry(9, 3.1), new THREE.MeshStandardMaterial({ map: tex, emissive: 0xffffff, emissiveMap: tex, emissiveIntensity: 0.35 }));
-    sign.position.set(702, 5.5, 141); sign.rotation.y = -Math.PI / 2; this.scene.add(sign);
+    sign.position.set(636, 5.5, 141); sign.rotation.y = -Math.PI / 2; this.scene.add(sign);
     const back = new THREE.Mesh(new THREE.BoxGeometry(0.3, 3.5, 9.4), darkMetal);
-    back.position.set(702.2, 5.5, 141); this.scene.add(back);
+    back.position.set(636.2, 5.5, 141); this.scene.add(back);
     for (const off of [-4.5, 4.5]) {
       const p = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.2, 6.4, 6), darkMetal);
-      p.position.set(702, 3.2, 141 + off); this.scene.add(p);
+      p.position.set(636, 3.2, 141 + off); this.scene.add(p);
     }
   }
 
@@ -1659,9 +1669,9 @@ World.prototype._buildLandmarks = function () {
     beamGroup.add(beam);
     g.add(beamGroup);
     this.lighthouseBeam = beamGroup;
-    g.position.set(652, 0, -520);
+    g.position.set(644, this.groundHeight(644, -520), -520);
     this.scene.add(g);
-    this._addCollider(652, -520, 10, 10, 24, 'prop');
+    this._addCollider(644, -520, 10, 10, 24, 'prop');
   }
 
   // --- Monument ---
@@ -1742,13 +1752,13 @@ World.prototype._buildLandmarks = function () {
     roof.position.y = 6.4; roof.rotation.y = Math.PI / 4; g.add(roof);
     const glass = new THREE.Mesh(new THREE.BoxGeometry(3.4, 1.0, 4.25), new THREE.MeshStandardMaterial({ color: 0x22333a, roughness: 0.2 }));
     glass.position.y = 4.8; g.add(glass);
-    g.position.set(x, 0, z);
+    g.position.set(x, this.groundHeight(x, z), z);
     this.scene.add(g);
     this._addCollider(x, z, 4.4, 4.4, 6.5, 'prop');
   }
 
   // --- Volleyball nets ---
-  for (const [x, z] of [[648, 30], [648, -160]]) {
+  for (const [x, z] of [[628, 30], [628, -160]]) {
     const g = new THREE.Group();
     for (const off of [-5, 5]) {
       const p = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.12, 3.2, 5), darkMetal);
@@ -1918,34 +1928,34 @@ World.prototype._buildMap = function () {
   g.lineWidth = 2;
   for (let i = 0; i < 14; i++) {
     g.beginPath();
-    for (let x = mx(700); x <= W; x += 22) {
+    for (let x = mx(SHORE_X); x <= W; x += 22) {
       const y = 300 + i * 130 + Math.sin(x * 0.02 + i) * 16;
-      if (x === mx(700)) g.moveTo(x, y); else g.lineTo(x, y);
+      if (x === mx(SHORE_X)) g.moveTo(x, y); else g.lineTo(x, y);
     }
     g.stroke();
   }
 
   // Land
   g.fillStyle = '#1b2a26';
-  g.fillRect(0, 0, mx(700), H);
+  g.fillRect(0, 0, mx(SHORE_X), H);
   // Beach
   g.fillStyle = '#8d7a55';
-  g.fillRect(mx(570), 0, mx(700) - mx(570), H);
+  g.fillRect(mx(570), 0, mx(SHORE_X) - mx(570), H);
   g.fillStyle = '#b39a68';
-  g.fillRect(mx(596), 0, mx(700) - mx(596), H);
+  g.fillRect(mx(596), 0, mx(SHORE_X) - mx(596), H);
   // Beach hatching
   g.save();
-  g.beginPath(); g.rect(mx(596), 0, mx(700) - mx(596), H); g.clip();
+  g.beginPath(); g.rect(mx(596), 0, mx(SHORE_X) - mx(596), H); g.clip();
   g.strokeStyle = 'rgba(92,70,40,.22)'; g.lineWidth = 1.5;
   for (let y = -W; y < H + W; y += 11) {
-    g.beginPath(); g.moveTo(mx(596), y); g.lineTo(mx(700), y + (mx(700) - mx(596))); g.stroke();
+    g.beginPath(); g.moveTo(mx(596), y); g.lineTo(mx(SHORE_X), y + (mx(SHORE_X) - mx(596))); g.stroke();
   }
   g.restore();
   // Coastline glow
   g.strokeStyle = 'rgba(125,251,227,.5)'; g.lineWidth = 6;
-  g.beginPath(); g.moveTo(mx(700), 0); g.lineTo(mx(700), H); g.stroke();
+  g.beginPath(); g.moveTo(mx(SHORE_X), 0); g.lineTo(mx(SHORE_X), H); g.stroke();
   g.strokeStyle = 'rgba(255,255,255,.35)'; g.lineWidth = 1.5;
-  g.beginPath(); g.moveTo(mx(700), 0); g.lineTo(mx(700), H); g.stroke();
+  g.beginPath(); g.moveTo(mx(SHORE_X), 0); g.lineTo(mx(SHORE_X), H); g.stroke();
 
   // District tints
   const tint = (x1, z1, x2, z2, color) => {
@@ -2170,6 +2180,8 @@ World.prototype.groundHeight = function (x, z) {
     if (x > d.x1 && x < d.x2 && z > d.z1 && z < d.z2) return d.h;
   }
   if (x > SHORE_X) return WATER_LEVEL;
+  // Wet-sand ramp from the dry beach down to the waterline.
+  if (x > 634) return 0.02 - (x - 634) * (0.52 / 16);
   return 0;
 };
 

@@ -214,6 +214,7 @@
 
   <!-- ============ HUD ============ -->
   <div id="hud" class="hidden">
+    <div class="mh-damage" id="mh-damage"></div>
     <div class="hud-top-left">
       <div class="wanted-row" id="wanted-row">
         <div class="wanted-stars" id="wanted-stars"></div>
@@ -295,14 +296,53 @@
       <div class="sub-en" id="sub-en"></div>
     </div>
 
-    <div class="mobile-status" id="mobile-status">
-      <div class="ms-char" id="ms-char"><svg><use href="#portrait-luiza"/></svg></div>
-      <div class="ms-core">
-        <div class="ms-top"><b id="ms-name">LUIZA</b><span class="ms-cash">R$ <b id="ms-money">2.450</b></span><span class="ms-ammo"><b id="ms-ammo">12</b>/<em id="ms-ammo-reserve">48</em></span></div>
-        <div class="ms-bars">
-          <i class="ms-health" id="ms-health" style="width:100%"></i>
-          <i class="ms-armor" id="ms-armor" style="width:40%"></i>
-          <i class="ms-stamina" id="ms-stamina" style="width:100%"></i>
+    <!-- Mobile-only HUD: compass, player card, weapon/vehicle telemetry -->
+    <div class="mobile-hud" id="mobile-hud">
+      <div class="mh-compass" id="mh-compass" aria-hidden="true">
+        <div class="mh-compass-strip" id="mh-compass-strip">
+          <span>NO</span><i></i><span>NE</span><i></i><span>L</span><i></i><span>SE</span><i></i><span>S</span><i></i><span>SO</span><i></i><span>O</span><i></i><span>NO</span><i></i><span>NE</span>
+        </div>
+        <b class="mh-compass-needle"></b>
+      </div>
+
+      <div class="mh-left">
+        <div class="mobile-status" id="mobile-status">
+          <div class="ms-char" id="ms-char"><svg><use href="#portrait-luiza"/></svg></div>
+          <div class="ms-core">
+            <div class="ms-top"><b id="ms-name">LUIZA</b><span class="ms-cash">R$ <b id="ms-money">2.450</b></span><span class="ms-ammo"><b id="ms-ammo">12</b>/<em id="ms-ammo-reserve">48</em></span></div>
+            <div class="ms-bars">
+              <i class="ms-health" id="ms-health" style="width:100%"></i>
+              <i class="ms-armor" id="ms-armor" style="width:40%"></i>
+              <i class="ms-stamina" id="ms-stamina" style="width:100%"></i>
+            </div>
+          </div>
+        </div>
+
+        <div class="mh-context" id="mh-context">
+          <div class="mh-weapon" id="mh-weapon">
+            <div class="mh-ico">▰</div>
+            <div class="mh-meta">
+              <small>ARMA EQUIPADA</small>
+              <b id="mh-weapon-name">PISTOLA MATTEO .40</b>
+              <span><i id="mh-ammo">12</i> / <em id="mh-reserve">48</em></span>
+            </div>
+            <button class="mh-btn" id="mh-reload" title="Recarregar" aria-label="Recarregar">↻</button>
+          </div>
+          <div class="mh-vehicle" id="mh-vehicle">
+            <div class="mh-speed">
+              <svg viewBox="0 0 80 80" aria-hidden="true">
+                <circle cx="40" cy="40" r="33" class="mh-ring-bg"/>
+                <circle cx="40" cy="40" r="33" class="mh-ring-fg" id="mh-speed-arc"/>
+              </svg>
+              <b id="mh-speed-val">0</b><small>KM/H</small>
+            </div>
+            <div class="mh-meta">
+              <small>VEÍCULO ATUAL</small>
+              <b id="mh-vehicle-name">VECTOR GT</b>
+              <span class="mh-gear" id="mh-gear">D</span>
+            </div>
+            <button class="mh-btn" id="mh-horn" title="Buzina" aria-label="Buzina">♪</button>
+          </div>
         </div>
       </div>
     </div>
@@ -316,13 +356,13 @@
       </div>
       <div class="joystick" id="joystick"><div class="stick-base"></div><div class="stick-knob" id="stick-knob"></div><span class="stick-label">MOVER</span></div>
       <div class="touch-actions" id="touch-actions">
-        <button class="tbtn glyph-tri ps-tri" data-touch="switch"><svg><use href="#glyph-triangle"/></svg><small>PERSONAGEM</small></button>
-        <button class="tbtn glyph-cir ps-cir" data-touch="interact"><svg><use href="#glyph-circle"/></svg><small>INTERAGIR</small></button>
-        <button class="tbtn glyph-sq ps-sq" data-touch="melee"><svg><use href="#glyph-square"/></svg><small>ATACAR</small></button>
-        <button class="tbtn glyph-cr ps-cr" data-touch="jump"><svg><use href="#glyph-cross"/></svg><small>PULAR</small></button>
-        <button class="tbtn shoulder l2" data-touch="aim"><span>L2</span><small>MIRAR</small></button>
-        <button class="tbtn shoulder r2" data-touch="shoot"><span>R2</span><small>ATIRAR</small></button>
-        <button class="tbtn shoulder r1" data-touch="sprint"><span>R1</span><small>CORRER</small></button>
+        <button class="tbtn glyph-tri ps-tri" data-touch="switch" data-label="PERSONAGEM" data-label-vehicle="PERSONAGEM"><svg><use href="#glyph-triangle"/></svg><small>PERSONAGEM</small></button>
+        <button class="tbtn glyph-cir ps-cir" data-touch="interact" data-label="INTERAGIR" data-label-vehicle="SAIR"><svg><use href="#glyph-circle"/></svg><small>INTERAGIR</small></button>
+        <button class="tbtn glyph-sq ps-sq" data-touch="melee" data-label="ATACAR" data-label-vehicle="BUZINA"><svg><use href="#glyph-square"/></svg><small>ATACAR</small></button>
+        <button class="tbtn glyph-cr ps-cr" data-touch="jump" data-label="PULAR" data-label-vehicle="FREIO MÃO"><svg><use href="#glyph-cross"/></svg><small>PULAR</small></button>
+        <button class="tbtn shoulder l2" data-touch="aim" data-label="MIRAR" data-label-vehicle="FREIO"><span>L2</span><small>MIRAR</small></button>
+        <button class="tbtn shoulder r2" data-touch="shoot" data-label="ATIRAR" data-label-vehicle="ACELERAR"><span>R2</span><small>ATIRAR</small></button>
+        <button class="tbtn shoulder r1" data-touch="sprint" data-label="CORRER" data-label-vehicle="TURBO"><span>R1</span><small>CORRER</small></button>
       </div>
     </div>
   </div>
