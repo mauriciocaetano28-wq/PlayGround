@@ -335,27 +335,27 @@ button,input,select{font:inherit;color:inherit}
       $('#ctrlSens').value=state.sens;
       $('#langNPC').value=state.lang;
     },
-    setGfx(v){state.gfx=v;this.saveSettings();this.game&&this.game.applyGfx();this.toast('Gráficos: '+v);}
-    setFullscreen(c){state.fullscreen=c;this.saveSettings();}
-    setControls(v){state.controls=v;this.saveSettings();this.applyControlsVisibility();this.toast('Controles: '+v);}
-    setSens(v){state.sens=parseFloat(v);this.saveSettings();}
-    setLang(v){state.lang=v;this.saveSettings();this.toast('Idioma: '+v);}
+    setGfx(v){state.gfx=v;this.saveSettings();this.game&&this.game.applyGfx();this.toast('Gráficos: '+v);},
+    setFullscreen(c){state.fullscreen=c;this.saveSettings();},
+    setControls(v){state.controls=v;this.saveSettings();this.applyControlsVisibility();this.toast('Controles: '+v);},
+    setSens(v){state.sens=parseFloat(v);this.saveSettings();},
+    setLang(v){state.lang=v;this.saveSettings();this.toast('Idioma: '+v);},
 
-    openSettings(){state.screen='settings';$('#overlaySettings').classList.add('active');}
-    closeSettings(){state.screen='launcher';$('#overlaySettings').classList.remove('active');}
+    openSettings(){state.screen='settings';$('#overlaySettings').classList.add('active');},
+    closeSettings(){state.screen='launcher';$('#overlaySettings').classList.remove('active');},
     bindSettings(){
       $('#btnSettings').onclick=()=>this.openSettings();
-    }
+    },
 
     bindLauncher(){
       $('#btnInstall').onclick=()=>this.installGame();
-    }
+    },
     bindInstall(){
       $('#btnCancelInstall').onclick=()=>{this.cancelInstall();};
       $('#btnPlayAfterInstall').onclick=()=>{this.finishInstall();};
-    }
+    },
 
-    installGame(){state.screen='installing';$('#overlayInstall').classList.add('active');this.runInstall();}
+    installGame(){state.screen='installing';$('#overlayInstall').classList.add('active');this.runInstall();},
     runInstall(){
       let p=0;const fill=$('#installFill');const pct=$('#installPct');const note=$('#installNote');const cancel=$('#btnCancelInstall');const play=$('#btnPlayAfterInstall');
       const msgs=['Baixando mapa da cidade...','Gerando ruas e prédios...','Carregando água realista...','Criando NPCs e trânsito...','Ajustando sistema policial...','Finalizando instalação...'];
@@ -369,12 +369,12 @@ button,input,select{font:inherit;color:inherit}
         if(p>=100){clearInterval(iv);play.style.display='inline-block';note.textContent='Instalação concluída.';state.installed=true;this.toast('GTA 6 BR instalado');}
       },140);
       this._installIv=iv;
-    }
-    cancelInstall(){clearInterval(this._installIv);$('#overlayInstall').classList.remove('active');state.screen='launcher';this.toast('Instalação cancelada');}
-    finishInstall(){$('#overlayInstall').classList.remove('active');state.screen='playing';this.enterGame('rp');}
+    },
+    cancelInstall(){clearInterval(this._installIv);$('#overlayInstall').classList.remove('active');state.screen='launcher';this.toast('Instalação cancelada');},
+    finishInstall(){$('#overlayInstall').classList.remove('active');state.screen='playing';this.enterGame('rp');},
 
-    startStory(){if(!state.installed){this.installGame();return;}this.enterGame('story');}
-    startRP(){if(!state.installed){this.installGame();return;}this.enterGame('rp');}
+    startStory(){if(!state.installed){this.installGame();return;}this.enterGame('story');},
+    startRP(){if(!state.installed){this.installGame();return;}this.enterGame('rp');},
 
     enterGame(mode){
       state.gameMode=mode;state.screen='playing';
@@ -384,26 +384,26 @@ button,input,select{font:inherit;color:inherit}
       if(!this.game){this.game=new Game();}
       this.game.init(mode);
       this.game.loop();
-    }
+    },
 
     quitToLauncher(){
       if(this.game){this.game.dispose();this.game=null;}
       state.screen='launcher';$('#game').style.display='none';$('#hud').classList.remove('active');
       $('#mapFull').classList.remove('active');$('#overlayPause').classList.remove('active');
       this.toast('De volta à central Matteo 5');
-    }
+    },
 
-    pause(){state.screen='paused';$('#overlayPause').classList.add('active');if(this.game)this.game.controls.unlock();}
-    resume(){state.screen='playing';$('#overlayPause').classList.remove('active');if(this.game)this.game.controls.lock();}
-    toggleFullMap(){const m=$('#mapFull');const active=m.classList.toggle('active');if(active){if(this.game)this.game.controls.unlock();}else{if(this.game)this.game.controls.lock();}}
+    pause(){state.screen='paused';$('#overlayPause').classList.add('active');if(this.game)this.game.controls.unlock();},
+    resume(){state.screen='playing';$('#overlayPause').classList.remove('active');if(this.game)this.game.controls.lock();},
+    toggleFullMap(){const m=$('#mapFull');const active=m.classList.toggle('active');if(active){if(this.game)this.game.controls.unlock();}else{if(this.game)this.game.controls.lock();}},
 
     applyControlsVisibility(){
       const v=$('#virtControls');
       const show = state.screen==='playing' && (state.controls==='virtual' || (state.controls==='auto' && /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)));
       v.classList.toggle('active',show);
-    }
+    },
 
-    touchAction(act){if(!this.game)return;this.game.onTouch(act);}
+    touchAction(act){if(!this.game)return;this.game.onTouch(act);},
 
     onKey(down,pressed){
       if(state.screen==='launcher'){if(down.key==='Escape'){}return;}
@@ -419,14 +419,14 @@ button,input,select{font:inherit;color:inherit}
         if(down.code==='Digit1'){state.char='luiza';this.game.switchChar();this.toast('Personagem: Luiza');}
         if(down.code==='Digit2'){state.char='carlos';this.game.switchChar();this.toast('Personagem: Carlos');}
       }
-    }
+    },
 
     resize(){
       if(this.game)this.game.resize();
-    }
+    },
 
-    setMission(title,desc,step){state.mission={title,desc,step,complete:false};this.updateMissionUI();}
-    completeMission(){if(state.mission)state.mission.complete=true;this.updateMissionUI();this.toast('Missão concluída!');}
+    setMission(title,desc,step){state.mission={title,desc,step,complete:false};this.updateMissionUI();},
+    completeMission(){if(state.mission)state.mission.complete=true;this.updateMissionUI();this.toast('Missão concluída!');},
     updateMissionUI(){
       // Mission text shown in HUD status area
       const el=$('#hudStatus');
@@ -438,11 +438,11 @@ button,input,select{font:inherit;color:inherit}
       }else{
         el.textContent='GTA 6 BR · Cidade do Sol';
       }
-    }
+    },
 
-    want(level){state.wanted=Math.min(6,Math.max(0,level));this.game&&this.game.updateWantedUI();}
-    addWanted(n){this.want(state.wanted+n);}
-    reduceWanted(){if(state.wanted>0){state.wanted--;this.game&&this.game.updateWantedUI();}}
+    want(level){state.wanted=Math.min(6,Math.max(0,level));this.game&&this.game.updateWantedUI();},
+    addWanted(n){this.want(state.wanted+n);},
+    reduceWanted(){if(state.wanted>0){state.wanted--;this.game&&this.game.updateWantedUI();}},
 
     speak(npc,textEn,textPt){
       const d=$('#dialogBubble');const n=$('#dialogName');const t=$('#dialogText');
@@ -451,12 +451,12 @@ button,input,select{font:inherit;color:inherit}
       t.textContent=usePt?(textPt||textEn):textEn;
       d.classList.add('show');
       setTimeout(()=>d.classList.remove('show'),3400);
-    }
+    },
 
     toast(msg,ms=2200){
       const el=$('#toast');el.textContent=msg;el.classList.add('show');
       setTimeout(()=>el.classList.remove('show'),ms);
-    }
+    },
 
     loop(){
       if(state.screen!=='playing'){requestAnimationFrame(()=>this.loop());return;}
