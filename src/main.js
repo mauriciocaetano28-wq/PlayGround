@@ -89,6 +89,7 @@ createSettingsUI($('#settingsBody'));
 let renderer, scene, camera, clock, player, vehicle, inCar = false;
 let missionTarget, missionComplete = false, paused = false, mapOpen = false;
 let yaw = 0, pitch = 0.42, keys = {}, particles;
+const touchInput = { x: 0, y: 0, lookX: 0, lookY: 0 };
 const NPCs = [], stars = [];
 
 function startGame() {

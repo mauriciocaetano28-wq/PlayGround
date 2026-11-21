@@ -17,6 +17,7 @@ export const DEFAULT_SETTINGS = {
   vibration: true,
   aimAssist: true,
   mobileControls: 'auto',
+  controlStyle: 'ps5',
   controlScale: 1,
   controlOpacity: 1,
   leftHanded: false,
@@ -55,6 +56,8 @@ export function loadSettings() {
   if (!['off', 'low', 'high'].includes(s.shadows)) s.shadows = 'high';
   if (!['low', 'high'].includes(s.water)) s.water = 'high';
   if (s.language !== 'en') s.language = 'pt';
+  if (!['ps5', 'xbox'].includes(s.controlStyle)) s.controlStyle = 'ps5';
+  if (!['auto', 'always', 'never'].includes(s.mobileControls)) s.mobileControls = 'auto';
   return s;
 }
 

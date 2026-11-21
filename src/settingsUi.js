@@ -90,7 +90,8 @@ export function createSettingsUI(container, options = {}) {
         <div class="settings-group">
           <h3>${tr('controls')}</h3>
           ${row(tr('vibration'), settings.language === 'en' ? 'Haptic feedback where supported' : 'Retorno háptico quando disponível', toggle('vibration'))}
-          ${row(tr('mobileT'), `<span class="ps cir">○</span> ${settings.language === 'en' ? 'PS-style touch controls' : 'Controles de toque estilo PS'}`, segmented('mobileControls', [['auto', tr('auto')], ['always', tr('always')], ['never', tr('never')]], settings.mobileControls))}
+          ${row(tr('mobileT'), settings.language === 'en' ? 'Show virtual controls on touch devices' : 'Mostrar controles virtuais em dispositivos touch', segmented('mobileControls', [['auto', tr('auto')], ['always', tr('always')], ['never', tr('never')]], settings.mobileControls))}
+          ${row(settings.language === 'en' ? 'Control style' : 'Estilo do controle', settings.language === 'en' ? 'PS5 or Xbox button layout' : 'Disposição dos botões PS5 ou Xbox', segmented('controlStyle', [['ps5', 'PS5'], ['xbox', 'Xbox']], settings.controlStyle))}
           ${row(tr('controlSize'), '', range('controlScale', 0.75, 1.35, 0.05, fmtPct), settings.mobileControls === 'never' && !touch)}
           ${row(tr('controlOpacity'), '', range('controlOpacity', 0.35, 1, 0.05, fmtPct), settings.mobileControls === 'never' && !touch)}
           ${row(tr('leftHanded'), settings.language === 'en' ? 'Mirrors sticks and face buttons' : 'Espelha analógicos e botões', toggle('leftHanded'))}
@@ -203,7 +204,7 @@ export function createSettingsUI(container, options = {}) {
       const key = setBtn.dataset.set;
       const raw = setBtn.dataset.value;
       let value = raw;
-      if (['shadows', 'water', 'crowd', 'quality', 'language', 'mobileControls', 'minimapShape'].includes(key)) value = raw;
+      if (['shadows', 'water', 'crowd', 'quality', 'language', 'mobileControls', 'controlStyle', 'minimapShape'].includes(key)) value = raw;
       else if (raw === 'true' || raw === 'false') value = raw === 'true';
       else if (!isNaN(Number(raw))) value = Number(raw);
       if (key === 'quality') {
