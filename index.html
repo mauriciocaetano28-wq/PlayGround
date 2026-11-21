@@ -293,6 +293,7 @@ button,input,select{font:inherit;color:inherit}
     <div class="actions">
       <button class="btn primary" id="btnResume">Continuar</button>
       <button class="btn secondary" id="btnPauseSettings">Configurações</button>
+      <button class="btn secondary" id="btnRestart" style="display:none">Reiniciar história</button>
       <button class="btn secondary" id="btnQuit">Sair para a central</button>
     </div>
   </div>
@@ -318,6 +319,25 @@ const S = {
 };
 const $ = s=>document.querySelector(s);
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+
+// tiny WebAudio sound effects
+const audio={
+  ctx:null,
+  init(){if(this.ctx)return;try{this.ctx=new (window.AudioContext||window.webkitAudioContext)();}catch(e){}},
+  tone(f,dur,type,vol,slideTo){
+    if(!this.ctx)return;
+    const t=this.ctx.currentTime,o=this.ctx.createOscillator(),g=this.ctx.createGain();
+    o.type=type||'sine';o.frequency.setValueAtTime(f,t);
+    if(slideTo)o.frequency.exponentialRampToValueAtTime(slideTo,t+dur);
+    g.gain.setValueAtTime(vol||0.04,t);g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+    o.connect(g);g.connect(this.ctx.destination);o.start(t);o.stop(t+dur);
+  },
+  siren(){this.tone(880,0.16,'square',0.03);setTimeout(()=>this.tone(640,0.16,'square',0.03),160);},
+  chime(){[523,659,784,1047].forEach((f,i)=>setTimeout(()=>this.tone(f,0.28,'sine',0.05),i*110));},
+  thud(){this.tone(170,0.14,'sawtooth',0.05,70);},
+  hit(){this.tone(120,0.1,'square',0.05,60);},
+  jump(){this.tone(320,0.12,'sine',0.03,620);}
+};
 
 // ================= APP =================
 const app = {
@@ -369,6 +389,12 @@ const app = {
     $('#btnResume').onclick=()=>this.resume();
     $('#btnPauseSettings').onclick=()=>{this.openSettings();};
     $('#btnQuit').onclick=()=>this.quit();
+    $('#btnRestart').onclick=()=>{
+      try{localStorage.removeItem('m5_story');}catch(e){}
+      if(this.game){this.game.missionIdx=-1;this.game.missionDone=false;this.game.reset('story');}
+      this.resume();
+      this.toast('História reiniciada');
+    };
     // virtual buttons
     document.querySelectorAll('#virt .act').forEach(b=>{
       const act=b.dataset.act;
@@ -397,6 +423,7 @@ const app = {
   closeSettings(){$('#overlaySettings').classList.remove('active');if(S.screen==='paused')this.resume();},
 
   play(mode){
+    audio.init();
     if(!S.installed){this.startInstall(mode);return;}
     this.enterGame(mode);
   },
@@ -430,6 +457,7 @@ const app = {
   afterInstall(){$('#overlayInstall').classList.remove('active');this.enterGame(S.pendingMode||'rp');},
 
   enterGame(mode){
+    audio.init();
     S.mode=mode;S.screen='playing';
     $('#launcher').classList.add('hidden');
     $('#game').style.display='block';
@@ -450,7 +478,7 @@ const app = {
     $('#crosshair').style.display = (S.screen==='playing'&&!show)?'block':'none';
     $('#charBox').style.left = show?(window.innerWidth<700?'110px':'130px'):'14px';
   },
-  pauseGame(){S.screen='paused';$('#pause').classList.add('active');if(this.game)this.game.unlock();},
+  pauseGame(){S.screen='paused';$('#pause').classList.add('active');$('#btnRestart').style.display=S.mode==='story'?'inline-block':'none';if(this.game)this.game.unlock();},
   resume(){S.screen='playing';$('#pause').classList.remove('active');$('#overlaySettings').classList.remove('active');if(this.game)this.game.lock();},
   quit(){
     if(this.game){this.game.dispose();this.game=null;}
@@ -475,16 +503,23 @@ const app = {
     for(let i=0;i<6;i++){const d=document.createElement('div');d.className='star';box.appendChild(d);}
   },
   setWanted(n){
+    const prev=S.wanted;
     S.wanted=clamp(n,0,6);
     const stars=$('#stars').children;
     for(let i=0;i<6;i++)stars[i].classList.toggle('on',i<S.wanted);
     $('#wantedLvl').textContent='PROCURADO: '+S.wanted;
+    if(S.wanted>prev)audio.siren();
     if(S.wanted>0)this.toast('Procurado: '+S.wanted+' estrela'+(S.wanted>1?'s':''),1200);
   },
   setMission(m){
     if(!m){$('#missionBox').style.display='none';return;}
     $('#missionBox').style.display='block';
+    S.missionBase=m.desc;
     $('#mTitle').textContent=m.title;$('#mDesc').textContent=m.desc;
+  },
+  setMissionDist(d){
+    const el=$('#mDesc');
+    if(el&&S.missionBase!==undefined)el.textContent=S.missionBase+' · '+d+'m';
   },
   setMoney(v){S.money=v;$('#money').textContent=v;},
   setCharName(n){$('#charName').textContent=n;},
@@ -569,22 +604,33 @@ Game.prototype.start=function(mode){
 
 Game.prototype.reset=function(mode){
   this.mode=mode;
+  this.player=this.luiza;this.luiza.visible=true;this.carlos.visible=false;
+  app.setCharName('Luiza');
   this.player.position.set(30,0,0);
   this.player.rotation.y=-Math.PI/2;
   this.camYaw=Math.PI/2;this.camPitch=0.16;
   S.camYaw=Math.PI/2;S.camPitch=0.16;
   this.speedY=0;this.vy=0;
   this.inCar=false;this.car=null;
-  S.wanted=0;app.setWanted(0);app.setMoney(500);
+  S.wanted=0;app.setWanted(0);
   this.police.forEach(p=>this.scene.remove(p.mesh));this.police=[];
   this.clearMarker();
-  this.missionIdx=-1;this.missionDone=false;
-  this.switchChar('luiza');
-  if(mode==='story')this.startMission(0);
-  else{app.setMission({title:'Modo RP',desc:'Explore a Cidade do Sol livremente.'});}
+  this.missionIdx=-1;this.missionDone=false;this._distT=0;
+  if(mode==='story'){
+    let idx=0,money=500;
+    try{const p=JSON.parse(localStorage.getItem('m5_story')||'{}');
+      if(typeof p.idx==='number'&&p.idx>=0&&p.idx<MISSIONS.length){idx=p.idx;money=p.money||500;}
+    }catch(e){}
+    app.setMoney(money);
+    this.startMission(idx);
+    app.toast(idx>0?('Continuando da missão '+(idx+1)):'Bem-vindo à Cidade do Sol!');
+  }else{
+    app.setMoney(500);
+    app.setMission({title:'Modo RP',desc:'Explore a Cidade do Sol livremente.'});
+    app.toast('Bem-vindo à Cidade do Sol!');
+  }
   this.applySettings();
   this.camera.position.set(37,4,0);
-  app.toast('Bem-vindo à Cidade do Sol!');
 };
 
 // ---- world ----
@@ -700,12 +746,13 @@ Game.prototype.buildGround=function(){
 
 Game.prototype.buildCity=function(){
   this.buildings=[];
+  this.colliders=[];
   const winMat=new THREE.MeshBasicMaterial({color:0xffe6a0});
   const colors=[0x4a6a7a,0x5a7a62,0x7a5a72,0x8a6a52,0x4a6a72,0x6a5a4a];
   for(let bx=0;bx<6;bx++){
-    for(let bz=0;bz<7;bz++){
+    for(let bz=0;bz<6;bz++){
       if(bx>=5)continue;
-      const cx=-255+bx*50, cz=-180+bz*60;
+      const cx=-255+bx*50, cz=-150+bz*60;
       if(Math.random()<0.15)continue;
       const n=1+Math.floor(Math.random()*2);
       for(let k=0;k<n;k++){
@@ -722,6 +769,7 @@ Game.prototype.buildCity=function(){
           win.position.set(cx+ox-w/2+2+c2*4,3+r*4,cz+oz+d/2+0.02);this.scene.add(win);
         }
         this.buildings.push(b);
+        this.colliders.push({minX:cx+ox-w/2,maxX:cx+ox+w/2,minZ:cz+oz-d/2,maxZ:cz+oz+d/2});
       }
     }
   }
@@ -809,10 +857,13 @@ function makeCar(color){
 Game.prototype.buildVehicles=function(){
   this.cars=[];
   const colors=[0xd23b3b,0x3b6bd2,0xdedede,0x2a2a2a,0xd2a33b,0x3bd27a,0x8a3bd2];
+  const roadX=[-280,-230,-180,-130,-80,-30];
+  const roadZ=[-180,-120,-60,0,60,120,180];
   for(let i=0;i<16;i++){
     const car=makeCar(colors[(Math.random()*colors.length)|0]);
-    car.position.set(-250+Math.random()*280,0,(Math.random()-0.5)*360);
-    car.rotation.y=Math.random()*Math.PI*2;
+    const rx=roadX[i%6], rz=roadZ[(i*2)%7];
+    car.position.set(rx+(Math.random()-0.5)*4,0,rz+(Math.random()-0.5)*22);
+    car.rotation.y=(Math.random()<0.5?0:Math.PI/2);
     car.userData={speed:0};
     this.scene.add(car);this.cars.push(car);
   }
@@ -826,7 +877,11 @@ Game.prototype.buildNPCs=function(){
   const en=['Hello!','Good morning!','How are you?','Everything will be fine.','Be careful out there.','Hot today, huh?','Beautiful city!'];
   for(let i=0;i<24;i++){
     const npc=makeHumanoid(0xd9a878+((Math.random()*0x222222)|0),0x888888+((Math.random()*0x444444)|0),0x333344,0x221111);
-    npc.position.set(-260+Math.random()*300,0,(Math.random()-0.5)*360);
+    const roadX=[-280,-230,-180,-130,-80,-30];
+    const roadZ=[-180,-120,-60,0,60,120,180];
+    const rx=roadX[i%6]+(Math.random()<0.5?7:-7);
+    const rz=roadZ[(i*3)%7]+(Math.random()-0.5)*30;
+    npc.position.set(rx,0,rz);
     npc.userData={pt,en,names,timer:Math.random()*3,walk:Math.random()*Math.PI*2,speed:0.6+Math.random()*0.8,home:npc.position.clone()};
     npc.scale.setScalar(0.95+Math.random()*0.15);
     this.scene.add(npc);this.npcs.push(npc);
@@ -881,14 +936,15 @@ Game.prototype.unlock=function(){if(document.pointerLockElement)document.exitPoi
 // ---- actions ----
 Game.prototype.action=function(act){
   if(act==='jump'){
-    if(!this.inCar&&this.vy===0){this.vy=5.5;}
+    if(!this.inCar&&this.vy===0){this.vy=5.5;audio.jump();}
   }else if(act==='enter'){
     if(this.inCar){this.exitCar();return;}
     let near=null,best=5;
-    this.cars.forEach(c=>{const d=this.player.position.distanceTo(c.position);if(d<best){best=d;near=c;}});
+    this.cars.forEach(c=>{const d=this.activePos().distanceTo(c.position);if(d<best){best=d;near=c;}});
     if(near)this.enterCar(near);else app.toast('Nenhum carro próximo');
   }else if(act==='action'){
     // punch -> raises wanted
+    audio.hit();
     app.setWanted(S.wanted+1);
     app.toast('Você causou confusão!');
     this.spawnPoliceIfNeeded();
@@ -897,6 +953,7 @@ Game.prototype.action=function(act){
 Game.prototype.enterCar=function(car){
   this.inCar=true;this.car=car;this.player.visible=false;
   car.userData.speed=0;
+  audio.thud();
   app.toast('No carro — W acelera, S freia, A/D vira');
 };
 Game.prototype.exitCar=function(){
@@ -911,16 +968,37 @@ Game.prototype.spawnPoliceIfNeeded=function(){
 
 // ---- missions ----
 const MISSIONS=[
-  {title:'1. Primeiro Encontro',desc:'Luiza vai até a praça encontrar Carlos.',target:new THREE.Vector3(-70,0,-40),type:'reach'},
+  {title:'1. Primeiro Encontro',desc:'Luiza vai até a praça encontrar Carlos.',target:new THREE.Vector3(-80,0,0),type:'reach'},
   {title:'2. Roubo de Carro',desc:'Entre em qualquer veículo.',target:null,type:'car'},
   {title:'3. Fuga da Polícia',desc:'Perca a perseguição (procurado = 0).',target:null,type:'lose'},
-  {title:'4. Mirante do Casal',desc:'Leve o carro até o mirante.',target:new THREE.Vector3(-40,0,150),type:'reach'},
-  {title:'5. A Última Noite',desc:'Chegue ao ponto final com Carlos.',target:new THREE.Vector3(10,0,180),type:'reach'}
+  {title:'4. Mirante do Casal',desc:'Leve o carro até o mirante.',target:new THREE.Vector3(-130,0,120),type:'reach'},
+  {title:'5. A Última Noite',desc:'Chegue ao ponto final com Carlos.',target:new THREE.Vector3(-30,0,180),type:'reach'}
 ];
+Game.prototype.activePos=function(){return (this.inCar&&this.car)?this.car.position:this.player.position;};
+Game.prototype.hitsBuilding=function(x,z,r){
+  const cs=this.colliders;if(!cs)return false;
+  for(let i=0;i<cs.length;i++){const c=cs[i];
+    if(x>c.minX-r&&x<c.maxX+r&&z>c.minZ-r&&z<c.maxZ+r)return true;
+  }
+  return false;
+};
+Game.prototype.saveStory=function(idx,money){
+  try{localStorage.setItem('m5_story',JSON.stringify({idx:idx,money:money}));}catch(e){}
+};
 Game.prototype.startMission=function(i){
-  if(i>=MISSIONS.length){app.setMission({title:'História concluída',desc:'Luiza e Carlos venceram na Cidade do Sol.'});this.missionDone=true;app.setMoney(S.money+2000);app.toast('Parabéns! História concluída.');return;}
+  if(i>=MISSIONS.length){
+    app.setMission({title:'História concluída',desc:'Luiza e Carlos venceram na Cidade do Sol.'});
+    this.missionDone=true;this.missionIdx=i;this.clearMarker();
+    app.setMoney(S.money+2000);
+    this.saveStory(MISSIONS.length,500);
+    audio.chime();
+    app.toast('Parabéns! História concluída.');
+    return;
+  }
   this.missionIdx=i;const m=MISSIONS[i];
+  this.saveStory(i,S.money);
   app.setMission({title:m.title,desc:m.desc});
+  this.clearMarker();
   if(m.type==='reach'){this.placeMarker(m.target);}
   if(m.type==='lose'){app.setWanted(Math.max(2,S.wanted));this.spawnPoliceIfNeeded();}
 };
@@ -961,10 +1039,12 @@ Game.prototype.update=function(dt){
     u.speed*=(1-0.9*dt);
     const steer=(ix)*dt*u.speed*0.08;
     car.rotation.y+=steer;
-    car.position.x+=Math.sin(car.rotation.y)*u.speed*dt;
-    car.position.z+=Math.cos(car.rotation.y)*u.speed*dt;
-    car.position.x=clamp(car.position.x,-320,180);
-    car.position.z=clamp(car.position.z,-200,200);
+    const nx=car.position.x+Math.sin(car.rotation.y)*u.speed*dt;
+    const nz=car.position.z+Math.cos(car.rotation.y)*u.speed*dt;
+    if(!this.hitsBuilding(nx,nz,1.5)){car.position.x=nx;car.position.z=nz;}
+    else{u.speed*=-0.15;}
+    car.position.x=clamp(car.position.x,-315,100);
+    car.position.z=clamp(car.position.z,-198,198);
     // camera behind car
     const camPos=car.position.clone().add(new THREE.Vector3(Math.sin(car.rotation.y)*-8,5,Math.cos(car.rotation.y)*-8));
     this.camera.position.lerp(camPos,0.12);
@@ -976,11 +1056,14 @@ Game.prototype.update=function(dt){
     move.addScaledVector(fwd,-iz).addScaledVector(right,ix);
     if(move.lengthSq()>0.001){
       move.normalize().multiplyScalar((run?8:4.2)*dt);
-      this.player.position.add(move);
+      const px=this.player.position.x,pz=this.player.position.z;
+      const nx=px+move.x,nz=pz+move.z;
+      if(!this.hitsBuilding(nx,pz,0.5))this.player.position.x=nx;
+      if(!this.hitsBuilding(this.player.position.x,nz,0.5))this.player.position.z=nz;
+      this.player.position.x=clamp(this.player.position.x,-315,100);
+      this.player.position.z=clamp(this.player.position.z,-198,198);
       const dir=Math.atan2(move.x,move.z);
       this.player.rotation.y=dir;
-      this.player.position.x=clamp(this.player.position.x,-320,180);
-      this.player.position.z=clamp(this.player.position.z,-200,200);
     }
     // jump
     this.vy-=14*dt;this.player.position.y+=this.vy*dt;
@@ -1005,7 +1088,7 @@ Game.prototype.update=function(dt){
     u.timer-=dt;
     if(u.timer<=0){
       u.timer=4+Math.random()*4;
-      if(n.position.distanceTo(this.player.position)<8){
+      if(n.position.distanceTo(this.activePos())<8){
         const nameIdx=(Math.random()*u.names[0].length)|0;
         app.speak(u.names[0][nameIdx],u.pt[(Math.random()*u.pt.length)|0],u.en[(Math.random()*u.en.length)|0]);
       }
@@ -1016,7 +1099,7 @@ Game.prototype.update=function(dt){
   this.police.forEach(p=>{
     if(S.wanted===0)return;
     const car=p.mesh;
-    const dir=new THREE.Vector3().subVectors(this.player.position,car.position);
+    const dir=new THREE.Vector3().subVectors(this.activePos(),car.position);
     dir.y=0;const dist=dir.length();
     dir.normalize();
     const sp=(8+S.wanted*1.6);
@@ -1039,16 +1122,20 @@ Game.prototype.update=function(dt){
   // mission logic
   if(S.mode==='story'&&this.missionIdx>=0&&!this.missionDone){
     const m=MISSIONS[this.missionIdx];
+    const ap=this.activePos();
     let done=false;
     if(m.type==='reach'&&m.target){
-      const d=this.player.position.distanceTo(m.target);
+      const d=ap.distanceTo(m.target);
       if(d<5){done=true;}
       if(this.marker)this.marker.rotation.y+=dt;
+      this._distT=(this._distT||0)+dt;
+      if(this._distT>0.25){this._distT=0;app.setMissionDist(Math.round(d));}
     }else if(m.type==='car'&&this.inCar){done=true;}
     else if(m.type==='lose'&&S.wanted===0){done=true;}
     if(done){
       this.clearMarker();
       app.setMoney(S.money+250);
+      audio.chime();
       app.toast('Missão concluída! +R$250');
       this.startMission(this.missionIdx+1);
     }
@@ -1083,7 +1170,8 @@ Game.prototype.drawMinimap=function(){
   c.clearRect(0,0,w,h);
   c.fillStyle='rgba(6,26,22,0.85)';c.fillRect(0,0,w,h);
   const scale=0.55,cx=w/2,cy=h/2;
-  const px=this.player.position.x, pz=this.player.position.z;
+  const ap=this.activePos();const px=ap.x, pz=ap.z;
+  const ry=(this.inCar&&this.car)?this.car.rotation.y:this.player.rotation.y;
   // roads hint
   c.strokeStyle='rgba(120,160,150,0.25)';c.lineWidth=2;
   for(let i=0;i<7;i++){const z=-180+i*60;c.beginPath();c.moveTo(cx+( -280-px)*scale,cy+(z-pz)*scale);c.lineTo(cx+(180-px)*scale,cy+(z-pz)*scale);c.stroke();}
@@ -1095,10 +1183,10 @@ Game.prototype.drawMinimap=function(){
   // police
   this.police.forEach(p=>{c.fillStyle='#ff3b3b';c.beginPath();c.arc(cx+(p.mesh.position.x-px)*scale,cy+(p.mesh.position.z-pz)*scale,4,0,Math.PI*2);c.fill();});
   // npcs
-  c.fillStyle='#ffd700';this.npcs.forEach(n=>{if(n.position.distanceTo(this.player.position)<70){c.beginPath();c.arc(cx+(n.position.x-px)*scale,cy+(n.position.z-pz)*scale,2,0,Math.PI*2);c.fill();}});
+  c.fillStyle='#ffd700';this.npcs.forEach(n=>{if(n.position.distanceTo(this.activePos())<70){c.beginPath();c.arc(cx+(n.position.x-px)*scale,cy+(n.position.z-pz)*scale,2,0,Math.PI*2);c.fill();}});
   // player arrow
   const ax=cx,ay=cy;
-  c.save();c.translate(ax,ay);c.rotate(-this.player.rotation.y);
+  c.save();c.translate(ax,ay);c.rotate(-ry);
   c.fillStyle='#9bffca';c.beginPath();c.moveTo(0,-8);c.lineTo(6,7);c.lineTo(0,4);c.lineTo(-6,7);c.closePath();c.fill();
   c.restore();
   c.strokeStyle='rgba(155,255,202,0.5)';c.lineWidth=2;c.strokeRect(2,2,w-4,h-4);
@@ -1110,7 +1198,8 @@ Game.prototype.drawFullMap=function(){
   const w=cv.width,h=cv.height;
   c.fillStyle='#07100f';c.fillRect(0,0,w,h);
   const scale=Math.min(w/560,h/460),cx=w/2,cy=h/2;
-  const px=this.player.position.x,pz=this.player.position.z;
+  const ap=this.activePos();const px=ap.x,pz=ap.z;
+  const ry=(this.inCar&&this.car)?this.car.rotation.y:this.player.rotation.y;
   // water
   c.fillStyle='#0b3a3a';c.fillRect(cx+(80-px)*scale,0,w,h);
   // land
@@ -1128,16 +1217,16 @@ Game.prototype.drawFullMap=function(){
   // npcs
   c.fillStyle='#ffd700';this.npcs.forEach(n=>{c.beginPath();c.arc(cx+(n.position.x-px)*scale,cy+(n.position.z-pz)*scale,3,0,Math.PI*2);c.fill();});
   // player
-  c.save();c.translate(cx,cy);c.rotate(-this.player.rotation.y);c.fillStyle='#9bffca';c.beginPath();c.moveTo(0,-12);c.lineTo(9,10);c.lineTo(0,6);c.lineTo(-9,10);c.closePath();c.fill();c.restore();
+  c.save();c.translate(cx,cy);c.rotate(-ry);c.fillStyle='#9bffca';c.beginPath();c.moveTo(0,-12);c.lineTo(9,10);c.lineTo(0,6);c.lineTo(-9,10);c.closePath();c.fill();c.restore();
   c.fillStyle='#fff';c.font='bold 20px sans-serif';c.fillText('CIDADE DO SOL',24,40);
   c.fillStyle='#9bffca';c.font='13px sans-serif';c.fillText('● você   ● polícia   ● NPC   ● objetivo',24,64);
   c.fillStyle='#2a6a5a';c.font='13px sans-serif';c.fillText('OCEANO',w-150,84);
 };
 
 Game.prototype.dispose=function(){
-  if(this.renderer){this.renderer.dispose();}
   this.ready=false;this.locked=false;
   if(document.pointerLockElement)document.exitPointerLock();
+  if(this.renderer){this.renderer.dispose();this.renderer=null;}
 };
 
 app.init();
