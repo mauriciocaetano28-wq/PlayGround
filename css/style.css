@@ -497,6 +497,11 @@ body.touch-mode .wanted-stars svg{width:13px;height:13px}
 .overlay-head h2{font-family:var(--font-display);font-size:32px;letter-spacing:.04em;font-weight:700;line-height:1;margin-top:3px}
 .map-head-actions{display:flex;align-items:center;gap:6px}
 .map-zoom-level{font-family:var(--font-display);font-size:14px;font-weight:700;letter-spacing:.06em;color:var(--gold);min-width:38px;text-align:right;opacity:.9}
+.map-wp{font-size:8px;letter-spacing:.12em;font-weight:800;color:var(--teal);background:rgba(46,230,200,.1);border:1px solid rgba(46,230,200,.32);padding:0 10px;height:34px;display:inline-flex;align-items:center;border-radius:8px;white-space:nowrap}
+.map-wp[hidden]{display:none}
+.pill.wp-clear{color:#bffbf1;border-color:rgba(46,230,200,.42);font-size:8px;letter-spacing:.1em;padding:0 10px}
+.pill.wp-clear.hidden{display:none}
+.map-touch{display:none}
 .map-body{flex:1;display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:18px;min-height:0}
 .map-canvas-wrap{position:relative;background:#08202a;border:1px solid rgba(255,255,255,.14);border-radius:8px;overflow:hidden;display:flex;align-items:center;justify-content:center;min-height:0}
 #fullmap{max-width:100%;max-height:100%;width:auto;height:auto;aspect-ratio:1;transition:transform .15s;cursor:grab}
@@ -525,6 +530,16 @@ body.touch-mode .wanted-stars svg{width:13px;height:13px}
 .map-mission-row b{color:#eaf2f2;font-weight:700;flex:1}
 .map-mission-row span{font-size:6px;letter-spacing:.1em;color:var(--gold);font-weight:800}
 .map-foot{font-size:8px;color:#71888c;margin-top:auto;padding:8px 0}
+body.touch-mode .map-head-actions .pill{height:42px;min-width:42px;font-size:15px}
+body.touch-mode .map-head-actions .icon-btn{width:42px;height:42px}
+body.touch-mode .map-wp{height:42px;font-size:9px}
+body.touch-mode .map-touch{display:flex;align-items:center;justify-content:space-between;gap:8px;flex:none;padding-bottom:calc(4px + env(safe-area-inset-bottom))}
+.map-touch button{min-height:46px;padding:0 14px;border-radius:10px;border:1px solid rgba(255,255,255,.22);background:rgba(8,26,33,.9);color:#eaf2f2;font-family:var(--font-ui);font-size:10px;font-weight:800;letter-spacing:.1em;backdrop-filter:blur(8px);box-shadow:0 6px 18px rgba(0,0,0,.35)}
+.map-touch button:active{background:rgba(255,196,107,.9);color:#1c1108;transform:scale(.96)}
+.map-touch-zoom{display:flex;gap:8px}
+.map-touch-zoom button{min-width:52px;font-size:18px}
+#map-touch-clear{color:#bffbf1;border-color:rgba(46,230,200,.4)}
+@media (max-width:760px){body.touch-mode .map-wp{display:none}}
 
 /* ============================================================
    DIALOGUE

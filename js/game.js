@@ -529,6 +529,7 @@ export class Game {
     this.dialogueActive = false;
     this.mapOpen = false;
     this.resultOpen = false;
+    this.waypoint = this.save.waypoint || null;
     this.mission = null;
     this.rpJob = null;
     this.completed = new Set(this.save.completed || []);
@@ -701,6 +702,7 @@ export class Game {
     this.setWanted(0, true);
     this.clockMinutes = saveState?.clock ?? 18 * 60 + 42;
     this.playtime = saveState?.playtime || (fresh ? 0 : this.playtime) || 0;
+    this.waypoint = saveState?.waypoint || (fresh ? null : this.save.waypoint) || null;
     if (saveState?.x != null) {
       this.player.pos.set(saveState.x, 0, saveState.z);
       this.player.yaw = saveState.yaw ?? Math.PI / 2;
@@ -738,6 +740,7 @@ export class Game {
     this.player.money = saveState?.money ?? this.save.money ?? 2450;
     this.player.health = 100; this.player.armor = 40;
     this.rp = saveState?.rp || this.save.rp || { rep: 0, done: 0 };
+    this.waypoint = saveState?.waypoint || this.save.waypoint || null;
     this.setWanted(0, true);
     if (saveState?.x != null) {
       this.player.pos.set(saveState.x, 0, saveState.z);
@@ -1188,6 +1191,7 @@ export class Game {
       armor: p ? p.armor : 40, completed: [...this.completed],
       rp: this.rp || this.save.rp || { rep: 0, done: 0 },
       clock: this.clockMinutes, playtime: this.playtime,
+      waypoint: this.waypoint || null,
       updated: Date.now()
     };
   }
@@ -1503,11 +1507,13 @@ export class Game {
       mapWrap.addEventListener('pointerdown', (e) => {
         if (!this.mapOpen) return;
         this.touch.mapId = e.pointerId; this.touch.mapX = e.clientX; this.touch.mapY = e.clientY;
+        this.touch.mapMoved = 0;
         try { mapWrap.setPointerCapture(e.pointerId); } catch (_) {}
       });
       mapWrap.addEventListener('pointermove', (e) => {
         if (this.touch.mapId !== e.pointerId || !this.mapOpen) return;
         const dx = e.clientX - this.touch.mapX, dy = e.clientY - this.touch.mapY;
+        this.touch.mapMoved = (this.touch.mapMoved || 0) + Math.abs(dx) + Math.abs(dy);
         this.touch.mapX = e.clientX; this.touch.mapY = e.clientY;
         const scale = 2000 / (this.mapView.zoom * 1200);
         this.mapView.x -= dx * scale;
@@ -1516,7 +1522,11 @@ export class Game {
         this.mapView.z = clamp(this.mapView.z, -1000, 1000);
         this.drawFullMap();
       });
-      mapWrap.addEventListener('pointerup', (e) => { if (this.touch.mapId === e.pointerId) this.touch.mapId = null; });
+      mapWrap.addEventListener('pointerup', (e) => {
+        if (this.touch.mapId !== e.pointerId) return;
+        this.touch.mapId = null;
+        if ((this.touch.mapMoved || 0) < 7) this._setWaypointFromScreen(e.clientX, e.clientY);
+      });
       mapWrap.addEventListener('pointercancel', () => { this.touch.mapId = null; });
       mapWrap.addEventListener('wheel', (e) => {
         if (!this.mapOpen) return;
@@ -1524,6 +1534,17 @@ export class Game {
         this._zoomMap(e.deltaY < 0 ? 1.12 : 0.89);
       }, { passive: false });
     }
+
+    const wpClear = $('map-wp-clear');
+    if (wpClear) wpClear.addEventListener('click', () => this._clearWaypoint());
+    const mapTouchClear = $('map-touch-clear');
+    if (mapTouchClear) mapTouchClear.addEventListener('click', () => this._clearWaypoint());
+    const mapTouchIn = $('map-touch-in');
+    if (mapTouchIn) mapTouchIn.addEventListener('click', () => this._zoomMap(1.25));
+    const mapTouchOut = $('map-touch-out');
+    if (mapTouchOut) mapTouchOut.addEventListener('click', () => this._zoomMap(0.8));
+    const mapTouchClose = $('map-touch-close');
+    if (mapTouchClose) mapTouchClose.addEventListener('click', () => this.closeMap());
 
     document.querySelectorAll('.switch-card').forEach((card) => {
       card.addEventListener('click', () => {
@@ -3553,6 +3574,23 @@ export class Game {
       star(this._objectivePos.x, this._objectivePos.z, '#ffc46b', 7);
     }
 
+    // Custom waypoint: dashed route and cyan diamond, clamped to the rim.
+    if (this.waypoint) {
+      const target = toScreen(this.waypoint.x, this.waypoint.z);
+      const edge = clampToRing(target, 10);
+      ctx.save();
+      ctx.setLineDash([6, 6]);
+      ctx.lineDashOffset = -t * 18;
+      ctx.strokeStyle = 'rgba(46,230,200,.9)';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath(); ctx.moveTo(half, half); ctx.lineTo(edge.x, edge.y); ctx.stroke();
+      ctx.restore();
+      const pulse = 4 + Math.sin(t * 3.4) * 1.4;
+      ctx.beginPath(); ctx.arc(edge.x, edge.y, pulse + 6, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(46,230,200,.45)'; ctx.lineWidth = 2; ctx.stroke();
+      diamond(this.waypoint.x, this.waypoint.z, '#2ee6c8', 6);
+    }
+
     for (const m of this.markers) {
       if (m.userData.kind === 'mission') star(m.position.x, m.position.z, '#ffd27a', 6);
       if (m.userData.kind === 'rp') diamond(m.position.x, m.position.z, '#2ee6c8', 5);
@@ -3622,6 +3660,44 @@ export class Game {
     this.drawFullMap();
   }
 
+  _setWaypointFromScreen(clientX, clientY) {
+    const cv = $('fullmap');
+    if (!cv || !this.mapView) return;
+    const rect = cv.getBoundingClientRect();
+    if (!rect.width || !rect.height) return;
+    const u = clamp((clientX - rect.left) / rect.width, 0, 1);
+    const v = clamp((clientY - rect.top) / rect.height, 0, 1);
+    const W = cv.width, H = cv.height;
+    const z = this.mapView.zoom;
+    const px = (this.mapView.x + 1000) / 2000 * W;
+    const pz = (this.mapView.z + 1000) / 2000 * H;
+    const mx = (u * W - W / 2) / z + px;
+    const my = (v * H - H / 2) / z + pz;
+    const wx = mx / W * 2000 - 1000;
+    const wz = my / H * 2000 - 1000;
+    this.waypoint = {
+      x: clamp(wx, -980, 1520),
+      z: clamp(wz, -980, 980)
+    };
+    this.drawFullMap();
+    this._autosave();
+    this.audio.play('ui');
+    this.notify('PONTO MARCADO', 'Rota criada até o ponto no mapa. Toque em LIMPAR para remover.', 'good');
+  }
+
+  _clearWaypoint() {
+    if (!this.waypoint) return;
+    this.waypoint = null;
+    this.drawFullMap();
+    this._autosave();
+    this.audio.play('ui-back');
+  }
+
+  _waypointDistance() {
+    if (!this.waypoint || !this.player) return 0;
+    return Math.hypot(this.waypoint.x - this.player.pos.x, this.waypoint.z - this.player.pos.z);
+  }
+
   drawFullMap() {
     const cv = $('fullmap');
     const p = this.player;
@@ -3661,6 +3737,31 @@ export class Game {
       ctx.restore();
     }
 
+    // Custom waypoint route and marker.
+    if (this.waypoint) {
+      const b = worldToMap(this.waypoint.x, this.waypoint.z);
+      if (p) {
+        const a = worldToMap(p.pos.x, p.pos.z);
+        ctx.save();
+        ctx.setLineDash([14, 10]);
+        ctx.lineDashOffset = -performance.now() / 42;
+        ctx.strokeStyle = 'rgba(46,230,200,.92)';
+        ctx.lineWidth = 6;
+        ctx.lineCap = 'round';
+        ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+        ctx.restore();
+      }
+      const pulse = 11 + Math.sin(performance.now() / 260) * 3;
+      ctx.beginPath(); ctx.arc(b.x, b.y, pulse + 8, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(46,230,200,.5)'; ctx.lineWidth = 3; ctx.stroke();
+      ctx.save();
+      ctx.translate(b.x, b.y); ctx.rotate(Math.PI / 4);
+      ctx.fillStyle = '#2ee6c8';
+      ctx.fillRect(-10, -10, 20, 20);
+      ctx.strokeStyle = '#062026'; ctx.lineWidth = 3; ctx.strokeRect(-10, -10, 20, 20);
+      ctx.restore();
+    }
+
     for (const m of this.markers) {
       if (m.userData.kind === 'mission') dot(m.position.x, m.position.z, '#ffd27a', 9);
       if (m.userData.kind === 'rp') dot(m.position.x, m.position.z, '#2ee6c8', 7);
@@ -3687,6 +3788,13 @@ export class Game {
     }
     const zl = $('map-zoom-level');
     if (zl) zl.textContent = z.toFixed(1) + '×';
+    const wp = $('map-wp');
+    const wpClear = $('map-wp-clear');
+    if (wp) {
+      wp.hidden = !this.waypoint;
+      if (this.waypoint) wp.textContent = 'PONTO • ' + Math.round(this._waypointDistance()) + ' m';
+    }
+    if (wpClear) wpClear.classList.toggle('hidden', !this.waypoint);
     this._updateMapMissions();
   }
 

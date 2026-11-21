@@ -394,6 +394,8 @@
     <header class="overlay-head">
       <div><small>MATTEO 5 // SISTEMA DE NAVEGAÇÃO</small><h2>MAPA DE SANTO MATTEO</h2></div>
       <div class="map-head-actions">
+        <span class="map-wp" id="map-wp" hidden>PONTO • 0 m</span>
+        <button class="pill wp-clear hidden" id="map-wp-clear" title="Limpar ponto marcado">⌖ LIMPAR</button>
         <span class="map-zoom-level" id="map-zoom-level">1.0×</span>
         <button class="pill" id="map-zoom-out">−</button><button class="pill" id="map-zoom-in">+</button>
         <button class="icon-btn close-overlay" data-close="map-overlay"><svg><use href="#icon-close"/></svg></button>
@@ -426,8 +428,13 @@
           <button data-district="parque">Parque Aurora</button>
         </div>
         <div class="map-missions" id="map-missions"></div>
-        <div class="map-foot">Arraste para explorar • Role para zoom • <kbd>M</kbd> fechar</div>
+        <div class="map-foot">Toque ou clique no mapa para marcar um ponto • Arraste para explorar • Role para zoom • <kbd>M</kbd> fechar</div>
       </aside>
+    </div>
+    <div class="map-touch" id="map-touch">
+      <button id="map-touch-clear">⌖ LIMPAR PONTO</button>
+      <div class="map-touch-zoom"><button id="map-touch-out">−</button><button id="map-touch-in">+</button></div>
+      <button id="map-touch-close">✕ FECHAR MAPA</button>
     </div>
   </section>
 
