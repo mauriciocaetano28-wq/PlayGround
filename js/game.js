@@ -50,17 +50,16 @@ const DIALOGUES = {
     { who: 'CARLOS', pt: 'Relaxa, tia. A mercadoria chegou. O resto é conversa.', en: "Relax, auntie. The cargo's here. The rest is talk." }
   ],
   m3_1: [
-    { who: 'LUIZA', pt: 'Barco pronto, Marina?', en: 'Boat ready, Marina?' },
-    { who: 'MARINA', pt: 'Motor cheio. Cinco boias, uma volta, e você me deve um drinque.', en: 'Tank full. Five buoys, one lap, and you owe me a drink.' },
-    { who: 'LUIZA', pt: 'Se eu ganhar, o drinque é seu.', en: "If I win, the drink's on me." }
+    { who: 'LUIZA', pt: 'O pedido tá pronto?', en: 'Is the order ready?' },
+    { who: 'ENTREGADOR', pt: 'Tá. Três clientes estão esperando. Não deixe esfriar.', en: 'It is. Three customers are waiting. Do not let it get cold.' },
+    { who: 'LUIZA', pt: 'Três entregas em vinte segundos?', en: 'Three deliveries in twenty seconds?' }
   ],
   m3_2: [
-    { who: 'MARINA', pt: 'Cinco boias. Sem atalho, Luiza. Eu estou vendo.', en: 'Five buoys. No shortcuts, Luiza. I am watching.' }
+    { who: 'LUIZA', pt: 'Primeira entrega. Mantém o ritmo.', en: 'First delivery. Keep the pace.' }
   ],
   m3_3: [
-    { who: 'MARINA', pt: 'Você cortou a última boia. Isso não vale.', en: 'You cut the last buoy. That does not count.' },
-    { who: 'LUIZA', pt: 'Vale se ninguém viu.', en: 'It counts if nobody saw.' },
-    { who: 'MARINA', pt: 'Pagamento na mesa. E da próxima vez, sem atalho.', en: 'Payment is on the table. And next time, no shortcuts.' }
+    { who: 'CLIENTE', pt: 'Chegou quentinho. Finalmente!', en: 'It arrived hot. Finally!' },
+    { who: 'LUIZA', pt: 'Entrega concluída. O iFood de Santo Matteo agradece.', en: 'Delivery complete. Santo Matteo thanks you.' }
   ],
   m4_1: [
     { who: 'CARLOS', pt: 'Cassino Aurora. Bonito por fora, podre por dentro.', en: 'Cassino Aurora. Pretty outside, rotten inside.' },
@@ -136,15 +135,16 @@ const MISSIONS = [
     ]
   },
   {
-    id: 'm3', num: 3, title: 'Maré Alta', char: 'luiza', reward: 6000,
-    location: 'MARINA MARÉ', time: '16:25', start: LANDMARKS.marina,
-    sub: 'Cinco boias, um barco e um drinque em jogo.',
-    timeLimit: 260,
+    id: 'm3', num: 3, title: 'Entrega iFood', char: 'luiza', reward: 3200,
+    location: 'QUIOSQUE DA ORLA', time: '12:40', start: LANDMARKS.kiosk,
+    sub: 'Pegue o pedido e faça três entregas pela cidade.',
+    timeLimit: 220,
+    repReward: 18,
     steps: [
-      { type: 'goto', pos: LANDMARKS.marina, r: 8, desc: 'Encontre Marina na Marina Maré', descEn: 'Meet Marina at Marina Maré', dialogOnArrive: 'm3_1', spawnBoat: true },
-      { type: 'enterBoat', desc: 'Entre no barco da Marina', descEn: 'Get in Marina\'s boat', dialog: 'm3_2' },
-      { type: 'buoys', points: [{ x: 900, z: 120 }, { x: 1040, z: -80 }, { x: 1180, z: 140 }, { x: 1000, z: 320 }, { x: 850, z: 210 }], r: 14, desc: 'Contorne as cinco boias', descEn: 'Round all five buoys' },
-      { type: 'goto', pos: { x: 812, z: 10 }, r: 16, desc: 'Volte para a Marina Maré', descEn: 'Return to Marina Maré', dialogOnArrive: 'm3_3', boat: true }
+      { type: 'goto', pos: LANDMARKS.kiosk, r: 8, desc: 'Pegue o pedido no Quiosque da Orla', descEn: 'Pick up the order at the Shore Kiosk', dialogOnArrive: 'm3_1' },
+      { type: 'goto', pos: LANDMARKS.pier, r: 8, desc: 'Entregue o pedido no Píer do Sol', descEn: 'Deliver the order at Sun Pier', dialogOnArrive: 'm3_2' },
+      { type: 'goto', pos: LANDMARKS.casino, r: 8, desc: 'Entregue o pedido no Cassino Aurora', descEn: 'Deliver the order at Cassino Aurora' },
+      { type: 'goto', pos: LANDMARKS.park, r: 8, desc: 'Entregue o último pedido no Parque Aurora', descEn: 'Deliver the last order at Aurora Park', dialogOnArrive: 'm3_3' }
     ]
   },
   {
