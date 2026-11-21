@@ -310,6 +310,7 @@ body.high-contrast{--panel:rgba(3,8,11,.92)}
 .speedo-meta{display:flex;flex-direction:column;gap:2px;min-width:76px}
 .speedo-meta b{font-family:var(--font-display);font-size:13px;letter-spacing:.05em}
 .speedo-meta span{font-size:7px;font-weight:800;color:var(--gold);letter-spacing:.12em}
+.boost-meter{width:76px;height:3px;margin-top:3px;background:rgba(255,255,255,.12);border-radius:4px;overflow:hidden}.boost-meter i{display:block;height:100%;background:linear-gradient(90deg,#25b9d3,#8cf3ff);box-shadow:0 0 7px rgba(82,220,255,.7);transition:width .12s linear}.boost-label{font-size:6px;color:#aebfc1;letter-spacing:.08em}.boost-label b{color:#78dff1;margin-left:2px}
 .hud-time{display:flex;align-items:baseline;gap:6px;font-size:7px;color:#a3b5b7;font-weight:800;letter-spacing:.1em;text-shadow:0 1px 4px #000}
 .hud-time span{font-family:var(--font-display);font-size:14px;color:#e8f0f0}
 .hud-time small{font-size:5.5px;letter-spacing:.16em;color:#788e92}
@@ -398,6 +399,7 @@ body.touch-mode .mobile-status{display:flex;align-items:center;gap:7px;padding:5
 .mh-speed b{font-family:var(--font-display);font-size:13px;line-height:1;z-index:1}
 .mh-speed small{position:absolute;bottom:5px;font-size:4px;letter-spacing:.08em;color:#8ea2a6;z-index:1}
 .mh-gear{display:inline-flex;align-items:center;justify-content:center;min-width:16px;height:12px;padding:0 3px;border-radius:3px;background:rgba(255,196,107,.16);color:var(--gold)!important;font-size:8px!important;font-weight:800;letter-spacing:.08em}
+.mh-boost{width:54px;height:4px;position:relative;margin-top:2px;background:rgba(255,255,255,.12);border-radius:4px;overflow:hidden}.mh-boost i{display:block;height:100%;background:linear-gradient(90deg,#25b9d3,#8cf3ff);transition:width .12s linear}.mh-boost b{position:absolute;right:-22px;top:-3px;font-size:7px!important;color:#78dff1!important}
 .mh-damage{position:absolute;inset:0;pointer-events:none;opacity:0;z-index:0;background:radial-gradient(ellipse at center,transparent 42%,rgba(190,20,35,.42) 100%);transition:opacity .35s}
 body.touch-mode.low-health .mh-damage{opacity:1;animation:lowHealthPulse 1.3s ease-in-out infinite}
 @keyframes lowHealthPulse{0%,100%{opacity:.28}50%{opacity:.62}}

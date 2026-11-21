@@ -418,6 +418,11 @@ class CharacterModel {
         this.parts.armR.rotation.x = -1.62;
         this.parts.armL.rotation.x = -1.3;
         this.parts.gun.visible = true;
+      } else if (state === 'melee') {
+        this.parts.armR.rotation.x = -1.18;
+        this.parts.armR.rotation.z = -0.38;
+        this.parts.armL.rotation.x = -0.28;
+        this.parts.gun.visible = false;
       } else {
         this.parts.armR.rotation.x = swing * 0.75;
         this.parts.armL.rotation.z = 0;
@@ -837,7 +842,7 @@ export class Game {
       vel: new THREE.Vector3(),
       yaw: saveState?.yaw ?? Math.PI / 2,
       vy: 0, onGround: true,
-      health: 100, armor: 40, stamina: 100,
+      health: 100, armor: 40, stamina: 100, boostReserve: 100,
       money: saveState?.money ?? 2450,
       weapon: { mag: 12, reserve: 48, magSize: 12, fireRate: 0.26, damage: 34, reloadTime: 1.25 },
       reloading: 0, fireCooldown: 0,
@@ -2028,7 +2033,7 @@ export class Game {
     p.model.group.position.set(p.pos.x, p.pos.y, p.pos.z);
     p.model.group.rotation.y = p.yaw;
     if (p.shadow) p.shadow.position.set(p.pos.x, Math.max(0.02, gh + 0.02), p.pos.z);
-    const animState = p.meleeTime > 0 ? 'shoot' : p.aim ? 'aim' : 'idle';
+    const animState = p.meleeTime > 0 ? 'melee' : p.aim ? 'aim' : 'idle';
     p.model.update(dt, moving || dodging ? speed : 0, animState);
     if (p.aim && p.model.parts.armR) p.model.parts.armR.rotation.x = -1.5;
 
@@ -2491,14 +2496,18 @@ export class Game {
   }
 
   _drivePlayerVehicle(v, dt) {
+    const p = this.player;
     const axes = this._moveAxes();
     // Virtual pads expose dedicated accelerator/brake buttons; the left stick
     // still works as a full analogue throttle.
     const throttle = clamp(axes.y + (this.input.throttle ? 1 : 0), -1, 1);
     const steer = axes.x;
     const brake = this.keys.Space || this.input.brake || this.input.handbrake;
-    const boost = this.input.boost ? 1.42 : 1;
-    const max = v.maxSpeed * (this.input.boost ? 1.12 : 1);
+    const boosting = !!this.input.boost && throttle > 0 && (p?.boostReserve || 0) > 0 && !brake;
+    if (boosting) p.boostReserve = Math.max(0, p.boostReserve - dt * 18);
+    else if (p) p.boostReserve = Math.min(100, p.boostReserve + dt * (p.inVehicle ? 5 : 8));
+    const boost = boosting ? 1.42 : 1;
+    const max = v.maxSpeed * (boosting ? 1.12 : 1);
     const accel = v.accel;
 
     if (this.dialogueActive || this.cutscene) { v.speed *= 0.96; return; }
@@ -3502,10 +3511,14 @@ export class Game {
     bar('bar-health', p.health);
     bar('bar-armor', p.armor);
     bar('bar-stamina', p.stamina);
+    bar('boost-bar', p.boostReserve);
+    bar('mh-boost-bar', p.boostReserve);
     const vh = $('val-health'); if (vh) vh.textContent = Math.round(p.health);
     const va = $('val-armor'); if (va) va.textContent = Math.round(p.armor);
     const am = $('ammo-mag'); if (am) am.textContent = p.weapon.mag;
     const ar = $('ammo-reserve'); if (ar) ar.textContent = p.weapon.reserve;
+    const boostVal = $('boost-val'); if (boostVal) boostVal.textContent = Math.round(p.boostReserve);
+    const mhBoostVal = $('mh-boost-val'); if (mhBoostVal) mhBoostVal.textContent = Math.round(p.boostReserve);
     const msH = $('ms-health'); if (msH) msH.style.width = clamp(p.health, 0, 100) + '%';
     const msA = $('ms-armor'); if (msA) msA.style.width = clamp(p.armor, 0, 100) + '%';
     const msS = $('ms-stamina'); if (msS) msS.style.width = clamp(p.stamina, 0, 100) + '%';
