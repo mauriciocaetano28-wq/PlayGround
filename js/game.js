@@ -603,6 +603,8 @@ export class Game {
     this._qualityAuto = false;
     this._lowFpsTime = 0;
     this._highFpsTime = 0;
+    this._shadowUpdateAcc = 0;
+    this._shadowUpdateVisible = true;
 
     this.renderer = new THREE.WebGLRenderer({
       canvas: this.canvas,
@@ -1112,10 +1114,12 @@ export class Game {
   }
 
   _applyRenderScale() {
-    const cap = this._touchEnabled() ? 1.5 : 2;
+    const touch = this._touchEnabled();
+    const cap = touch ? 1.0 : 1.5;
     const dpr = Math.min(window.devicePixelRatio || 1, cap);
-    const scale = clamp((this.settings.resScale ?? 100) / 100, 0.5, 1);
-    this.renderer.setPixelRatio(dpr * scale);
+    const scale = clamp((this.settings.resScale ?? 100) / 100, 0.45, 1);
+    const safeScale = touch ? Math.min(scale, 0.62) : scale;
+    this.renderer.setPixelRatio(dpr * safeScale);
   }
 
   _touchEnabled() {
@@ -1631,6 +1635,12 @@ export class Game {
       this.world.update(dt, this.camera, this.player ? this.player.pos : null);
       this._updateEffects(dt);
     }
+
+    this._shadowUpdateAcc += dt;
+    if (this.fps > 0 && this.fps < 30 && this._shadowUpdateAcc >= 0.25) {
+      this._shadowUpdateAcc = 0;
+      if (this.world && this.world.sunLight) this.world.sunLight.shadow.needsUpdate = true;
+    }
     this.renderer.render(this.scene, this.camera);
   }
 
@@ -1641,16 +1651,25 @@ export class Game {
       return;
     }
     if (this.settings.autoQuality === false) return;
-    const lowThreshold = this._touchEnabled() ? 42 : 38;
+    const touch = this._touchEnabled();
+    const lowThreshold = touch ? 35 : 32;
     if (this.fps < lowThreshold) {
       this._lowFpsTime += dt;
       this._highFpsTime = 0;
-      if (this._lowFpsTime > 2.5 && (this.settings.resScale ?? 100) > 60) {
+      if (this._lowFpsTime > 1.0 && (this.settings.resScale ?? 100) > 40) {
         this._lowFpsTime = 0;
-        this.settings.resScale = Math.max(60, (this.settings.resScale ?? 100) - (this._touchEnabled() ? 10 : 5));
+        this.settings.resScale = Math.max(40, (this.settings.resScale ?? 100) - (touch ? 12 : 8));
         this._applyRenderScale();
         const o = $('out-res'); if (o) o.textContent = this.settings.resScale + '%';
         const r = $('set-res'); if (r) r.value = this.settings.resScale;
+        if (this.fps < 24) {
+          if (this.world && this.world.setWaterQuality) this.world.setWaterQuality('low');
+        }
+      }
+      if (this.fps < 18) {
+        this.renderer.shadowMap.enabled = false;
+        if (this.world && this.world.sunLight) this.world.sunLight.castShadow = false;
+        if (this.world && this.world.setWaterQuality) this.world.setWaterQuality('low');
       }
     } else if (this.fps > 57) {
       this._lowFpsTime = 0;
@@ -2483,7 +2502,21 @@ export class Game {
 
   _updateTraffic(dt) {
     const p = this.player;
+    const low = this.fps > 0 && this.fps < 30;
+    let checked = 0;
+    const limit = low ? 6 : this.traffic.length;
     for (const v of this.traffic) {
+      if (low) {
+        const d2 = p ? dist2(p.pos, v.pos) : 0;
+        if (d2 > 550) {
+          v.mesh.visible = false;
+          continue;
+        }
+        v.mesh.visible = true;
+        if (++checked > limit) continue;
+      } else {
+        v.mesh.visible = true;
+      }
       if (v.destroyed || v.driver !== 'ai' || !v.traffic) continue;
       const tr = v.traffic;
       if (tr.axis === 'x') {
@@ -2517,7 +2550,21 @@ export class Game {
      ============================================================ */
   _updateNPCs(dt) {
     const p = this.player;
+    const low = this.fps > 0 && this.fps < 30;
+    let checked = 0;
+    const limit = low ? 10 : this.npcs.length;
     for (const n of this.npcs) {
+      if (low) {
+        const d2 = p ? dist2(p.pos, n.pos) : 0;
+        if (d2 > 650) {
+          n.model.group.visible = false;
+          continue;
+        }
+        n.model.group.visible = true;
+        if (++checked > limit) continue;
+      } else {
+        n.model.group.visible = true;
+      }
       if (n.dead) continue;
       n.flee = Math.max(0, n.flee - dt);
       n.talkCooldown = Math.max(0, n.talkCooldown - dt);
