@@ -273,23 +273,46 @@
     <div id="notifications" class="notifications"></div>
     <div id="hud-toast" class="hud-toast"></div>
 
-    <div id="mobile-controls" class="mobile-controls">
-      <div id="stick-zone" class="stick-zone"><div class="stick-base"><div class="stick-ring"></div><div class="stick-knob" id="stick-knob"></div></div><span>MOVER</span></div>
+    <div id="mobile-controls" class="mobile-controls" aria-label="Controles PS5 virtuais">
+      <!-- Analógico esquerdo + L3 -->
+      <div id="stick-zone" class="stick-zone">
+        <button id="touch-l3" class="touch-l3" type="button" aria-label="L3: correr ou buzina"><b>L3</b><small>CORRER</small></button>
+        <div class="stick-base"><div class="stick-ring"></div><div class="stick-knob" id="stick-knob"></div></div>
+        <span class="stick-caption">MOVER</span>
+      </div>
+
+      <!-- Direcional: celular, arma, rádio e mapa -->
+      <div id="touch-dpad" class="touch-dpad" aria-label="Direcional">
+        <button class="dpad-bit up" data-action="phone" type="button" aria-label="Abrir celular"><span>▲</span><small>CEL</small></button>
+        <button class="dpad-bit left" data-action="weapon" type="button" aria-label="Trocar arma"><span>◀</span><small>ARMA</small></button>
+        <button class="dpad-bit right" data-action="radio" type="button" aria-label="Próxima rádio"><span>▶</span><small>RÁDIO</small></button>
+        <button class="dpad-bit down" data-action="map" type="button" aria-label="Abrir mapa"><span>▼</span><small>MAPA</small></button>
+        <i class="dpad-hub" aria-hidden="true"></i>
+      </div>
+
       <div id="look-zone" class="look-zone" aria-label="Área de câmera"></div>
-      <div class="mobile-actions">
-        <button class="ps-btn cross" data-action="interact" type="button"><span>✕</span><small>INTERAGIR</small></button>
-        <button class="ps-btn circle" data-action="fire" type="button"><span>◯</span><small>ATIRAR</small></button>
-        <button class="ps-btn square" data-action="jump" type="button"><span>□</span><small>SALTAR</small></button>
+
+      <!-- Gatilhos, bumpers, R3 e botões de face -->
+      <div class="mobile-actions" aria-label="Botões de ação">
+        <button class="ps-trigger l2" id="touch-l2" data-action="aim" type="button" aria-label="L2: mirar ou frear"><b>L2</b><small>MIRA</small></button>
+        <button class="ps-trigger r2" id="touch-r2" data-action="fire" data-hold="true" type="button" aria-label="R2: atirar ou acelerar"><b>R2</b><small>ATIRAR</small></button>
+        <button class="ps-shoulder l1" data-action="weapon" type="button" aria-label="L1: trocar arma"><b>L1</b><small>ARMA</small></button>
+        <button class="ps-shoulder r1" data-action="reload" type="button" aria-label="R1: recarregar ou rádio"><b>R1</b><small>RECARGA</small></button>
+        <button class="touch-r3" data-action="camera" type="button" aria-label="R3: centralizar câmera"><b>R3</b><small>CÂMERA</small></button>
         <button class="ps-btn triangle" data-action="vehicle" type="button"><span>△</span><small>VEÍCULO</small></button>
-        <button class="ps-btn small-btn" data-action="switch" type="button"><span>⇄</span><small>TROCAR</small></button>
-        <button class="ps-btn small-btn" data-action="reload" type="button"><span>↻</span><small>RECARGA</small></button>
+        <button class="ps-btn circle" data-action="fire" type="button"><span>◯</span><small>ATIRAR</small></button>
+        <button class="ps-btn cross" data-action="interact" type="button"><span>✕</span><small>INTERAGIR</small></button>
+        <button class="ps-btn square" data-action="jump" type="button"><span>□</span><small>SALTAR</small></button>
       </div>
-      <div class="mobile-top-actions">
-        <button id="mobile-map" type="button">▧</button>
-        <button id="mobile-phone" type="button">▤</button>
-        <button id="mobile-pause" type="button">Ⅱ</button>
+
+      <!-- Barra de sistema PS5 -->
+      <div class="mobile-top-actions" aria-label="Sistema">
+        <button id="mobile-create" type="button"><span>◉</span><small>CREATE</small></button>
+        <button id="mobile-map" type="button"><span>▧</span><small>TOUCHPAD</small></button>
+        <button id="mobile-phone" type="button"><span>▤</span><small>CELULAR</small></button>
+        <button id="mobile-switch" type="button"><span>⇄</span><small>TROCAR</small></button>
+        <button id="mobile-pause" type="button"><span>Ⅱ</span><small>OPTIONS</small></button>
       </div>
-      <div class="mobile-aim" id="mobile-aim">◉<span>MIRA</span></div>
     </div>
 
     <button id="switch-character" class="switch-character" type="button"><span class="avatar-small" id="switch-avatar">C</span><div><b id="switch-name">CARLOS</b><small>TROCAR · P</small></div></button>

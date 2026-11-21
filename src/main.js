@@ -420,6 +420,10 @@ class Game {
     this.keys = new Set();
     this.mouseDown = false;
     this.touchMove = { x: 0, y: 0 };
+    this.touchSprint = false;
+    this.touchBrake = false;
+    this.touchFireHeld = false;
+    this.radioEnabled = true;
     this.jumpRequested = false;
     this.isTouch = (window.matchMedia && matchMedia('(pointer: coarse)').matches) || (navigator.maxTouchPoints > 0 && innerWidth < 1100);
     this.player = {
@@ -789,18 +793,67 @@ class Game {
     this.bindTouch();
   }
 
+  haptic(ms = 10) {
+    if (this.settings?.haptics && navigator.vibrate) navigator.vibrate(ms);
+  }
+
+  setAiming(on) {
+    this.aiming = !!on;
+    const crosshair = document.querySelector('#crosshair');
+    if (crosshair) crosshair.classList.toggle('aiming', this.aiming);
+  }
+
+  centerCamera() {
+    const base = this.inVehicle && this.activeVehicle ? this.activeVehicle.heading : this.player.heading;
+    this.camYaw = base + Math.PI;
+    this.camPitch = this.inVehicle ? .14 : .16;
+    this.snapCamera();
+    this.haptic(8);
+  }
+
+  toggleSprint() {
+    this.touchSprint = !this.touchSprint;
+    document.querySelector('#touch-l3')?.classList.toggle('on', this.touchSprint);
+    this.haptic(this.touchSprint ? 16 : 8);
+    const pt = this.ui?.language !== 'en';
+    this.ui?.hudToast?.(this.touchSprint ? (pt ? 'CORRENDO' : 'SPRINT ON') : (pt ? 'CAMINHADA' : 'SPRINT OFF'));
+  }
+
+  updateTouchContext() {
+    const pt = this.ui?.language !== 'en';
+    const v = this.inVehicle;
+    const set = (sel, text) => {
+      const el = document.querySelector(sel);
+      const small = el?.querySelector('small');
+      if (small) small.textContent = text;
+    };
+    set('#touch-l2', v ? (pt ? 'FREIO' : 'BRAKE') : (pt ? 'MIRA' : 'AIM'));
+    set('#touch-r2', v ? (pt ? 'ACELERAR' : 'THROTTLE') : (pt ? 'ATIRAR' : 'FIRE'));
+    set('#touch-l3', v ? (pt ? 'BUZINA' : 'HORN') : (pt ? 'CORRER' : 'SPRINT'));
+    set('.ps-shoulder.l1', pt ? 'ARMA' : 'WEAPON');
+    set('.ps-shoulder.r1', v ? (pt ? 'RÁDIO' : 'RADIO') : (pt ? 'RECARGA' : 'RELOAD'));
+    set('.touch-r3', pt ? 'CÂMERA' : 'CAMERA');
+    set('.ps-btn.triangle', v ? (pt ? 'SAIR' : 'EXIT') : (pt ? 'VEÍCULO' : 'VEHICLE'));
+    set('.ps-btn.square', v ? (pt ? 'FREIO MÃO' : 'HANDBRAKE') : (pt ? 'SALTAR' : 'JUMP'));
+    set('.ps-btn.circle', v ? (pt ? 'BUZINA' : 'HORN') : (pt ? 'ATIRAR' : 'FIRE'));
+    set('.ps-btn.cross', v ? (pt ? 'SAIR' : 'EXIT') : (pt ? 'INTERAGIR' : 'INTERACT'));
+  }
+
   bindTouch() {
     const stick = document.querySelector('#stick-zone');
+    const stickPad = stick?.querySelector('.stick-base');
     const knob = document.querySelector('#stick-knob');
     const look = document.querySelector('#look-zone');
-    if (stick) {
+
+    if (stick && stickPad) {
       let id = null, base = null;
       const start = (e) => {
-        if (id !== null) return;
+        if (id !== null || e.target.closest?.('.touch-l3')) return;
         id = e.pointerId;
-        const r = stick.getBoundingClientRect();
-        base = { x: r.left + r.width / 2, y: r.top + r.height / 2, size: r.width * .42 };
+        const r = stickPad.getBoundingClientRect();
+        base = { x: r.left + r.width / 2, y: r.top + r.height / 2, size: Math.min(r.width, r.height) * .42 };
         stick.setPointerCapture?.(e.pointerId);
+        this.audio.init();
         move(e);
       };
       const move = (e) => {
@@ -811,25 +864,28 @@ class Game {
         if (len > 1) { dx /= len; dy /= len; }
         this.touchMove.x = dx;
         this.touchMove.y = -dy;
-        if (knob) knob.style.transform = `translate(${dx * 26}px, ${dy * 26}px)`;
+        if (knob) knob.style.transform = `translate(calc(-50% + ${dx * 26}px), calc(-50% + ${dy * 26}px))`;
       };
       const end = (e) => {
         if (e.pointerId !== id) return;
         id = null; base = null;
         this.touchMove.x = 0; this.touchMove.y = 0;
-        if (knob) knob.style.transform = 'translate(0,0)';
+        if (knob) knob.style.transform = 'translate(-50%, -50%)';
       };
       stick.addEventListener('pointerdown', start);
       stick.addEventListener('pointermove', move);
       stick.addEventListener('pointerup', end);
       stick.addEventListener('pointercancel', end);
+      stick.addEventListener('lostpointercapture', end);
     }
+
     if (look) {
       let id = null, last = null;
       look.addEventListener('pointerdown', (e) => {
         id = e.pointerId; last = { x: e.clientX, y: e.clientY };
         look.setPointerCapture?.(e.pointerId);
         this.audio.init();
+        this.audio.resume?.();
       });
       look.addEventListener('pointermove', (e) => {
         if (e.pointerId !== id || !last || this.state !== 'playing') return;
@@ -841,28 +897,127 @@ class Game {
       const end = () => { id = null; last = null; };
       look.addEventListener('pointerup', end);
       look.addEventListener('pointercancel', end);
+      look.addEventListener('lostpointercapture', end);
     }
-    document.querySelectorAll('.ps-btn[data-action]').forEach(btn => {
+
+    document.querySelectorAll('[data-action]').forEach(btn => {
+      if (!btn.closest('.mobile-controls')) return;
+      const action = btn.dataset.action;
+      const hold = btn.dataset.hold === 'true';
+      const release = () => {
+        btn.classList.remove('held');
+        if (action === 'fire') this.touchFireHeld = false;
+        if (action === 'aim') this.touchBrake = false;
+      };
       btn.addEventListener('pointerdown', (e) => {
         e.preventDefault();
+        e.stopPropagation();
         this.audio.init();
+        this.audio.resume?.();
         if (this.state !== 'playing') return;
-        switch (btn.dataset.action) {
-          case 'interact': this.interact(); break;
-          case 'fire': this.fire(); break;
-          case 'jump': this.jumpRequested = true; break;
-          case 'vehicle': this.toggleVehicle(); break;
-          case 'switch': this.switchCharacter(); break;
-          case 'reload': this.reload(); break;
+        btn.setPointerCapture?.(e.pointerId);
+        btn.classList.add('held');
+        this.haptic(8);
+        switch (action) {
+          case 'interact':
+            this.interact();
+            break;
+          case 'fire':
+            if (this.inVehicle) this.audio.horn?.();
+            else if (hold) { this.touchFireHeld = true; this.fire(); }
+            else this.fire();
+            break;
+          case 'jump':
+            this.jumpRequested = true;
+            break;
+          case 'vehicle':
+            this.toggleVehicle();
+            break;
+          case 'switch':
+            this.switchCharacter();
+            break;
+          case 'reload':
+            if (this.inVehicle) this.nextRadio();
+            else this.reload();
+            break;
+          case 'weapon':
+            this.switchWeapon();
+            break;
+          case 'aim':
+            if (this.inVehicle) this.touchBrake = true;
+            else this.setAiming(!this.aiming);
+            break;
+          case 'camera':
+            this.centerCamera();
+            break;
+          case 'phone':
+            this.ui.openPhone();
+            break;
+          case 'map':
+            this.ui.openMap();
+            break;
+          case 'radio':
+            this.nextRadio();
+            break;
         }
       });
+      btn.addEventListener('pointerup', release);
+      btn.addEventListener('pointercancel', release);
+      btn.addEventListener('lostpointercapture', release);
     });
-    const aim = document.querySelector('#mobile-aim');
-    if (aim) aim.addEventListener('pointerdown', (e) => {
+
+    const l3 = document.querySelector('#touch-l3');
+    if (l3) l3.addEventListener('pointerdown', (e) => {
       e.preventDefault();
-      this.aiming = !this.aiming;
-      aim.classList.toggle('on', this.aiming);
+      e.stopPropagation();
+      this.audio.init();
+      if (this.state !== 'playing') return;
+      this.haptic(12);
+      if (this.inVehicle) this.audio.horn?.();
+      else this.toggleSprint();
     });
+  }
+
+  toggleRadio() {
+    if (this.state !== 'playing') return;
+    this.radioEnabled = !this.radioEnabled;
+    if (this.audio) this.audio.radioEnabled = this.radioEnabled;
+    const pt = this.ui?.language !== 'en';
+    if (this.radioEnabled) {
+      this.audio?.playRadio();
+      const station = this.audio?.stations?.[this.audio.radioStation] || '';
+      this.ui?.hudToast?.(`RÁDIO · ${station}`);
+    } else {
+      this.ui?.hudToast?.(pt ? 'RÁDIO DESLIGADO' : 'RADIO OFF');
+    }
+  }
+
+  nextRadio() {
+    if (this.state !== 'playing') return;
+    this.radioEnabled = true;
+    if (this.audio) this.audio.radioEnabled = true;
+    const station = this.audio?.nextStation?.() || '';
+    const label = document.querySelector('#radio-station');
+    if (label && station) label.textContent = station;
+    this.ui?.hudToast?.(`RÁDIO · ${station}`);
+    this.haptic(8);
+  }
+
+  captureScreenshot() {
+    try {
+      this.renderer.render(this.scene, this.camera);
+      const url = this.canvas.toDataURL('image/png');
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `costa-dourada-${new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-')}.png`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      this.haptic(14);
+      this.ui?.hudToast?.(this.ui.language === 'pt' ? 'CAPTURA SALVA' : 'SCREENSHOT SAVED');
+    } catch {
+      this.ui?.toast?.(this.ui.language === 'pt' ? 'Captura indisponível neste navegador.' : 'Screenshot unavailable in this browser.', 'warn');
+    }
   }
 
   onKeyDown(e) {
