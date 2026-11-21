@@ -749,7 +749,9 @@ class Game {
     window.addEventListener('blur', () => {
       this.keys.clear();
       this.mouseDown = false;
-      this.aiming = false;
+      this.touchFireHeld = false;
+      this.touchBrake = false;
+      this.setAiming(false);
     });
     document.addEventListener('pointerlockchange', () => {
       this.locked = document.pointerLockElement === canvas;
@@ -761,7 +763,7 @@ class Game {
     canvas.addEventListener('mousedown', (e) => {
       if (e.button === 2) {
         e.preventDefault();
-        if (this.state === 'playing') this.aiming = true;
+        if (this.state === 'playing') this.setAiming(true);
         return;
       }
       if (e.button !== 0) return;
@@ -774,7 +776,7 @@ class Game {
     });
     window.addEventListener('mouseup', (e) => {
       if (e.button === 0) this.mouseDown = false;
-      if (e.button === 2) this.aiming = false;
+      if (e.button === 2) this.setAiming(false);
     });
     window.addEventListener('mousemove', (e) => {
       if (this.state !== 'playing') return;
@@ -801,6 +803,8 @@ class Game {
     this.aiming = !!on;
     const crosshair = document.querySelector('#crosshair');
     if (crosshair) crosshair.classList.toggle('aiming', this.aiming);
+    const aimBtn = document.querySelector('#touch-l2');
+    if (aimBtn) aimBtn.classList.toggle('on', this.aiming && !this.inVehicle);
   }
 
   centerCamera() {
@@ -814,6 +818,7 @@ class Game {
   toggleSprint() {
     this.touchSprint = !this.touchSprint;
     document.querySelector('#touch-l3')?.classList.toggle('on', this.touchSprint);
+    document.querySelector('#stick-zone')?.classList.toggle('sprint', this.touchSprint);
     this.haptic(this.touchSprint ? 16 : 8);
     const pt = this.ui?.language !== 'en';
     this.ui?.hudToast?.(this.touchSprint ? (pt ? 'CORRENDO' : 'SPRINT ON') : (pt ? 'CAMINHADA' : 'SPRINT OFF'));
@@ -832,7 +837,7 @@ class Game {
     set('#touch-l3', v ? (pt ? 'BUZINA' : 'HORN') : (pt ? 'CORRER' : 'SPRINT'));
     set('.ps-shoulder.l1', pt ? 'ARMA' : 'WEAPON');
     set('.ps-shoulder.r1', v ? (pt ? 'RÁDIO' : 'RADIO') : (pt ? 'RECARGA' : 'RELOAD'));
-    set('.touch-r3', pt ? 'CÂMERA' : 'CAMERA');
+    set('.touch-r3', 'CAM');
     set('.ps-btn.triangle', v ? (pt ? 'SAIR' : 'EXIT') : (pt ? 'VEÍCULO' : 'VEHICLE'));
     set('.ps-btn.square', v ? (pt ? 'FREIO MÃO' : 'HANDBRAKE') : (pt ? 'SALTAR' : 'JUMP'));
     set('.ps-btn.circle', v ? (pt ? 'BUZINA' : 'HORN') : (pt ? 'ATIRAR' : 'FIRE'));
@@ -852,7 +857,7 @@ class Game {
         id = e.pointerId;
         const r = stickPad.getBoundingClientRect();
         base = { x: r.left + r.width / 2, y: r.top + r.height / 2, size: Math.min(r.width, r.height) * .42 };
-        stick.setPointerCapture?.(e.pointerId);
+        try { stick.setPointerCapture?.(e.pointerId); } catch { /* synthetic pointer */ }
         this.audio.init();
         move(e);
       };
@@ -883,7 +888,7 @@ class Game {
       let id = null, last = null;
       look.addEventListener('pointerdown', (e) => {
         id = e.pointerId; last = { x: e.clientX, y: e.clientY };
-        look.setPointerCapture?.(e.pointerId);
+        try { look.setPointerCapture?.(e.pointerId); } catch { /* synthetic pointer */ }
         this.audio.init();
         this.audio.resume?.();
       });
@@ -904,10 +909,26 @@ class Game {
       if (!btn.closest('.mobile-controls')) return;
       const action = btn.dataset.action;
       const hold = btn.dataset.hold === 'true';
-      const release = () => {
+      let pressed = false, longTimer = null, longFired = false;
+      const stopHold = () => {
         btn.classList.remove('held');
         if (action === 'fire') this.touchFireHeld = false;
         if (action === 'aim') this.touchBrake = false;
+        if (longTimer) { clearTimeout(longTimer); longTimer = null; }
+      };
+      const release = () => {
+        if (!pressed) return;
+        pressed = false;
+        const wasLong = longFired;
+        longFired = false;
+        stopHold();
+        if (action === 'radio' && !wasLong) this.nextRadio();
+      };
+      const cancel = () => {
+        if (!pressed) return;
+        pressed = false;
+        longFired = false;
+        stopHold();
       };
       btn.addEventListener('pointerdown', (e) => {
         e.preventDefault();
@@ -915,7 +936,8 @@ class Game {
         this.audio.init();
         this.audio.resume?.();
         if (this.state !== 'playing') return;
-        btn.setPointerCapture?.(e.pointerId);
+        pressed = true;
+        try { btn.setPointerCapture?.(e.pointerId); } catch { /* synthetic pointer */ }
         btn.classList.add('held');
         this.haptic(8);
         switch (action) {
@@ -957,13 +979,18 @@ class Game {
             this.ui.openMap();
             break;
           case 'radio':
-            this.nextRadio();
+            longFired = false;
+            longTimer = setTimeout(() => {
+              longFired = true;
+              btn.classList.remove('held');
+              this.toggleRadio();
+            }, 550);
             break;
         }
       });
       btn.addEventListener('pointerup', release);
-      btn.addEventListener('pointercancel', release);
-      btn.addEventListener('lostpointercapture', release);
+      btn.addEventListener('pointercancel', cancel);
+      btn.addEventListener('lostpointercapture', cancel);
     });
 
     const l3 = document.querySelector('#touch-l3');
@@ -1058,7 +1085,9 @@ class Game {
   releaseInput() {
     this.keys.clear();
     this.mouseDown = false;
-    this.aiming = false;
+    this.touchFireHeld = false;
+    this.touchBrake = false;
+    this.setAiming(false);
     try { if (document.pointerLockElement) document.exitPointerLock(); } catch { /* noop */ }
   }
 
@@ -1273,7 +1302,6 @@ class Game {
     this.player.dead = true;
     this.player.health = 0;
     this.state = 'dead';
-    this.aiming = false;
     this.mouseDown = false;
     this.releaseInput();
     this.audio.error();
@@ -1303,7 +1331,8 @@ class Game {
         this.reloading = false;
       }
     }
-    if (this.mouseDown && this.player.weapon === 'smg' && !this.inVehicle) this.fire();
+    if ((this.mouseDown || this.touchFireHeld) && this.player.weapon === 'smg' && !this.inVehicle) this.fire();
+    if (this.touchFireHeld && this.player.weapon === 'pistol' && !this.inVehicle) this.fire();
     if (this.tracer) this.tracer.update(dt);
 
     if (this.inVehicle) this.updateVehicle(dt);
@@ -1330,8 +1359,9 @@ class Game {
     const mag = Math.hypot(ix, iz);
     if (mag > 1) { ix /= mag; iz /= mag; }
     const moving = mag > .08;
+    const stickPush = Math.hypot(this.touchMove.x, this.touchMove.y);
 
-    const sprinting = (this.keys.has('ShiftLeft') || this.keys.has('ShiftRight')) && p.stamina > 2 && moving;
+    const sprinting = (this.keys.has('ShiftLeft') || this.keys.has('ShiftRight') || this.touchSprint || stickPush > .96) && p.stamina > 2 && moving;
     const targetSpeed = moving ? (this.aiming ? 2.5 : sprinting ? 7.4 : 4.2) : 0;
     if (sprinting) p.stamina = clamp(p.stamina - dt * 16, 0, 100);
     else p.stamina = clamp(p.stamina + dt * 11, 0, 100);
@@ -1343,8 +1373,10 @@ class Game {
     const len = Math.hypot(mx, mz) || 1;
     this.moveSpeed = damp(this.moveSpeed || 0, targetSpeed, 10, dt);
 
+    if (moving || this.aiming) {
+      p.heading = this.aiming ? Math.atan2(fx, fz) : Math.atan2(mx / len, mz / len);
+    }
     if (moving) {
-      p.heading = Math.atan2(mx / len, mz / len);
       this.footstepTimer -= dt;
       if (this.footstepTimer <= 0 && p.onGround) {
         this.audio.footstep();
@@ -1388,7 +1420,7 @@ class Game {
     if (!v) { this.inVehicle = false; return; }
     const fwd = (this.keys.has('KeyW') || this.keys.has('ArrowUp') ? 1 : 0) - (this.keys.has('KeyS') || this.keys.has('ArrowDown') ? 1 : 0);
     const side = (this.keys.has('KeyD') || this.keys.has('ArrowRight') ? 1 : 0) - (this.keys.has('KeyA') || this.keys.has('ArrowLeft') ? 1 : 0);
-    const throttle = clamp(fwd + this.touchMove.y, -1, 1);
+    const throttle = clamp(fwd + this.touchMove.y + (this.touchFireHeld ? 1 : 0) - (this.touchBrake ? 1 : 0), -1, 1);
     const steer = clamp(side - this.touchMove.x, -1, 1);
     const handbrake = this.keys.has('Space') || this.jumpRequested;
 
@@ -1645,12 +1677,19 @@ class Game {
     v.lane = null;
     this.traffic = this.traffic.filter(t => t !== v);
     this.inVehicle = true;
+    this.touchSprint = false;
+    this.touchBrake = false;
+    this.touchFireHeld = false;
+    this.setAiming(false);
+    document.querySelector('#touch-l3')?.classList.remove('on');
+    document.querySelector('#stick-zone')?.classList.remove('sprint');
     this.player.position.copy(v.root.position);
     this.player.heading = v.heading;
     this.camYaw = v.heading + Math.PI;
     this.camPitch = .14;
     this.activeChar.root.visible = false;
     this.audio.engineOn(true);
+    this.updateTouchContext();
     this.ui.hudToast(this.ui.language === 'pt' ? 'VEÍCULO ADQUIRIDO' : 'VEHICLE ACQUIRED');
     this.ui.hidePrompt();
     this.audio.pickup();
@@ -1678,10 +1717,13 @@ class Game {
     v.speed = 0;
     this.inVehicle = false;
     this.activeVehicle = null;
+    this.touchBrake = false;
+    this.touchFireHeld = false;
     this.camYaw = this.player.heading + Math.PI;
     this.activeChar.root.visible = true;
     this.activeChar.root.position.copy(this.player.position);
     this.audio.engineOn(false);
+    this.updateTouchContext();
     this.snapCamera();
   }
 
@@ -1719,6 +1761,7 @@ class Game {
       this.activeVehicle = null;
       this.inVehicle = false;
       this.audio.engineOn(false);
+      this.updateTouchContext();
     }
     const y = this.world.getGroundHeight(x, z);
     this.player.position.set(x, y, z);
@@ -1874,7 +1917,7 @@ class Game {
   interact() {
     if (this.state !== 'playing') return;
     if (this.ui.dialogueActive) { this.ui.advanceDialogue(); return; }
-    if (this.inVehicle) return;
+    if (this.inVehicle) { this.exitVehicle(); return; }
     const npc = this.nearestNPC(3.4);
     if (npc) {
       const i = npc.chatter % LINES.chatterPT.length;

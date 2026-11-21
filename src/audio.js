@@ -11,6 +11,7 @@ export class AudioManager {
     this.engine = null;
     this.radioTimer = 0;
     this.radioStation = 0;
+    this.radioEnabled = true;
     this.stations = ['MARÉ 98.5', 'RÁDIO SOL', 'NEON FM'];
     this._stepTimer = 0;
   }
@@ -135,6 +136,7 @@ export class AudioManager {
   pickup() { this.tone(660, .12, 'sine', .06); setTimeout(() => this.tone(990, .16, 'sine', .05), 80); }
   cash() { [523, 659, 784].forEach((f, i) => setTimeout(() => this.tone(f, .15, 'triangle', .05), i * 70)); }
   click() { this.tone(320, .04, 'square', .025, 80); }
+  horn() { this.tone(392, .32, 'square', .055, 24); setTimeout(() => this.tone(494, .28, 'square', .045, -18), 40); }
   error() { this.tone(140, .2, 'sawtooth', .05, -40); }
   sirenStart() { if (!this._siren) { this._siren = setInterval(() => { this.tone(740, .22, 'sine', .025, 120); setTimeout(() => this.tone(540, .22, 'sine', .022, -80), 260); }, 850); } }
   sirenStop() { if (this._siren) { clearInterval(this._siren); this._siren = null; } }
@@ -172,7 +174,7 @@ export class AudioManager {
   nextStation() { this.radioStation = (this.radioStation + 1) % this.stations.length; this._chordIdx = 0; this.playRadio(); return this.stations[this.radioStation]; }
 
   update(dt) {
-    if (!this.ctx) return;
+    if (!this.ctx || !this.radioEnabled) return;
     this.radioTimer += dt;
     if (this.radioTimer > 5.8) { this.radioTimer = 0; this.playRadio(); }
   }

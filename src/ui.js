@@ -142,6 +142,7 @@ export class UI {
     this.buildMissionList();
     this.applyLanguage();
     if (this.game.applySettings) this.game.applySettings();
+    this.game.updateTouchContext?.();
     if (notify) this.toast(this.t('hudSaved'), 'ok');
   }
 
@@ -180,6 +181,8 @@ export class UI {
     $('#mobile-map').addEventListener('click', () => this.openMap());
     $('#mobile-phone').addEventListener('click', () => this.openPhone());
     $('#mobile-pause').addEventListener('click', () => this.openPause());
+    $('#mobile-create').addEventListener('click', () => this.game.captureScreenshot());
+    $('#mobile-switch').addEventListener('click', () => this.game.switchCharacter());
     $('#pause-button').addEventListener('click', () => this.openPause());
     $('#pause-close').addEventListener('click', () => this.closePause());
     $('#resume-btn').addEventListener('click', () => this.closePause());
@@ -545,6 +548,9 @@ export class UI {
     const el = this.$('#interaction-prompt');
     this.$('#interact-title').textContent = title;
     this.$('#interact-sub').textContent = sub || '';
+    const touch = this.game.isTouch || document.body.classList.contains('touch') || document.body.classList.contains('force-touch');
+    const key = this.$('#interaction-prompt .key');
+    if (key) key.textContent = touch ? '✕' : 'E';
     el.classList.add('on');
   }
   hidePrompt() { this.$('#interaction-prompt').classList.remove('on'); }
@@ -556,6 +562,7 @@ export class UI {
     this.dialogueQueue = lines.slice();
     this.dialogueDone = onDone;
     this.dialogueActive = true;
+    document.body.classList.add('in-dialogue');
     this.showNextDialogue();
   }
 
@@ -578,6 +585,7 @@ export class UI {
       this.dialogueActive = false;
       this.game.voice?.stop();
       this.$('#dialogue').classList.remove('on');
+      document.body.classList.remove('in-dialogue');
       const cb = this.dialogueDone; this.dialogueDone = null;
       cb?.();
       return;
@@ -590,7 +598,10 @@ export class UI {
     this.$('#dialogue-portrait').classList.toggle('carlos', line.portrait === 'carlos');
     this.$('#dialogue-text').textContent = this.language === 'pt' ? line.pt : line.en;
     this.$('#dialogue-lang').textContent = this.language === 'pt' ? 'PT-BR' : 'EN-US';
-    this.$('#dialogue-hint').innerHTML = `<kbd>E</kbd> ${this.language === 'pt' ? 'continuar' : 'continue'} <i>${this.dialogueQueue.length}</i>`;
+    const touch = this.game.isTouch || document.body.classList.contains('touch') || document.body.classList.contains('force-touch');
+    this.$('#dialogue-hint').innerHTML = touch
+      ? `<kbd>${this.language === 'pt' ? 'TOQUE' : 'TAP'}</kbd> ${this.language === 'pt' ? 'continuar' : 'continue'} <i>${this.dialogueQueue.length}</i>`
+      : `<kbd>E</kbd> ${this.language === 'pt' ? 'continuar' : 'continue'} <i>${this.dialogueQueue.length}</i>`;
     const voiceEl = this.$('#dialogue-voice');
     if (voiceEl) voiceEl.classList.toggle('off', !this.settings.voiceEnabled);
     this.setVoiceIndicator(false);
@@ -610,6 +621,7 @@ export class UI {
     this.dialogueDone = null;
     this.dialogueActive = false;
     this.$('#dialogue')?.classList.remove('on');
+    document.body.classList.remove('in-dialogue');
     this.setVoiceIndicator(false);
   }
 
@@ -784,7 +796,14 @@ export class UI {
       ['M', pt ? 'Mapa' : 'Map'],
       ['J', pt ? 'Celular / trabalhos' : 'Phone / jobs'],
       ['ESC', pt ? 'Pausar' : 'Pause'],
-      ['TOQUE', pt ? 'Joystick + botões PS5' : 'Joystick + PS5 buttons']
+      ['TOQUE · L3', pt ? 'Mover · correr (ou buzina)' : 'Move stick · sprint (or horn)'],
+      ['TOQUE · L2', pt ? 'Mirar (ou frear)' : 'Aim (or brake)'],
+      ['TOQUE · R2', pt ? 'Atirar segurando (ou acelerar)' : 'Hold to fire (or throttle)'],
+      ['TOQUE · L1 / R1', pt ? 'Trocar arma / recarregar (ou rádio)' : 'Switch weapon / reload (or radio)'],
+      ['TOQUE · △ ○ ✕ □', pt ? 'Veículo · atirar · interagir · saltar' : 'Vehicle · fire · interact · jump'],
+      ['TOQUE · R3', pt ? 'Centralizar câmera' : 'Center camera'],
+      ['TOQUE · D-PAD', pt ? 'Celular · arma · rádio · mapa' : 'Phone · weapon · radio · map'],
+      ['TOQUE · BARRA', pt ? 'Create · touchpad · celular · trocar · options' : 'Create · touchpad · phone · switch · options']
     ];
     box.innerHTML = rows.map(([key, label]) => `<div class="control-row"><b>${label}</b><span class="keys"><kbd>${key}</kbd></span></div>`).join('');
   }
