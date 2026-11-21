@@ -347,14 +347,14 @@ export class VoiceDirector {
       const formants = FORMANTS[vowel] || FORMANTS.a;
 
       const osc = ctx.createOscillator();
-      osc.type = 'sawtooth';
+      osc.type = 'triangle';
       osc.frequency.setValueAtTime(pitch, start);
       osc.frequency.linearRampToValueAtTime(pitch * (1 + (Math.random() - .5) * .06), end);
-      const vibrato = ctx.createOscillator();
-      vibrato.frequency.value = 4.8 + Math.random() * 1.8;
-      const vibratoGain = ctx.createGain();
-      vibratoGain.gain.value = gender === 'female' ? 2.8 : 2.1;
-      vibrato.connect(vibratoGain); vibratoGain.connect(osc.frequency);
+      const osc2 = ctx.createOscillator();
+      osc2.type = 'sine';
+      osc2.frequency.setValueAtTime(pitch * 2, start);
+      const osc2Gain = ctx.createGain();
+      osc2Gain.gain.value = .34;
 
       const env = ctx.createGain();
       const amp = .075 + Math.random() * .025;
@@ -362,13 +362,20 @@ export class VoiceDirector {
       env.gain.linearRampToValueAtTime(amp, start + .016);
       env.gain.linearRampToValueAtTime(amp * .72, start + duration * .62);
       env.gain.exponentialRampToValueAtTime(.0001, end);
+      osc2Gain.connect(env);
       osc.connect(env);
+
+      const vibrato = ctx.createOscillator();
+      vibrato.frequency.value = 4.8 + Math.random() * 1.8;
+      const vibratoGain = ctx.createGain();
+      vibratoGain.gain.value = gender === 'female' ? 2.8 : 2.1;
+      vibrato.connect(vibratoGain); vibratoGain.connect(osc.frequency);
 
       for (let i = 0; i < 2; i++) {
         const filter = ctx.createBiquadFilter();
         filter.type = 'bandpass';
         filter.frequency.value = formants[i] * formantScale;
-        filter.Q.value = i === 0 ? 5.5 : 8;
+        filter.Q.value = i === 0 ? 2.4 : 3.2;
         env.connect(filter); filter.connect(voiceChain);
         this._nodes.add(filter);
       }
@@ -387,9 +394,10 @@ export class VoiceDirector {
       }
 
       osc.start(start); osc.stop(end + .02);
+      osc2.start(start); osc2.stop(end + .02);
       vibrato.start(start); vibrato.stop(end + .02);
-      this._nodes.add(osc); this._nodes.add(vibrato); this._nodes.add(vibratoGain);
-      this._nodes.add(env);
+      this._nodes.add(osc); this._nodes.add(osc2); this._nodes.add(osc2Gain);
+      this._nodes.add(vibrato); this._nodes.add(vibratoGain); this._nodes.add(env);
       cursor += duration + .032 + Math.random() * .022;
       spoken++;
     }
