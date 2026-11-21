@@ -648,6 +648,13 @@ export class Game {
     this.camera.lookAt(760, 8, 120);
     this._attractT = 0;
     this.hideHUD();
+    if (this.renderer) {
+      this.renderer.shadowMap.enabled = false;
+      if (this.world && this.world.sunLight) this.world.sunLight.castShadow = false;
+      if (this._touchEnabled()) {
+        this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.25) * 0.85);
+      }
+    }
   }
 
   _updateAttract(dt) {
@@ -687,6 +694,11 @@ export class Game {
     this.audio.init();
     const fresh = !saveState;
     this.mode = 'story';
+    if (this.renderer) {
+      this.renderer.shadowMap.enabled = (this.settings.shadows !== false);
+      if (this.world && this.world.sunLight) this.world.sunLight.castShadow = (this.settings.shadows !== false);
+      this._applyRenderScale();
+    }
     this.paused = false;
     this.cutscene = false;
     this.dialogueActive = false;
@@ -732,6 +744,11 @@ export class Game {
   startRP(charId, saveState = null) {
     this.audio.init();
     this.mode = 'rp';
+    if (this.renderer) {
+      this.renderer.shadowMap.enabled = (this.settings.shadows !== false);
+      if (this.world && this.world.sunLight) this.world.sunLight.castShadow = (this.settings.shadows !== false);
+      this._applyRenderScale();
+    }
     this.paused = false;
     this.cutscene = false;
     this.completed = new Set(saveState?.completed || this.save.completed || []);
@@ -1116,7 +1133,7 @@ export class Game {
     const tc = $('touch-controls');
     const hud = $('hud');
     const hudVisible = hud && !hud.classList.contains('hidden');
-    const visible = on && (menu || hudVisible);
+    const visible = on && !menu && hudVisible;
     if (tc) {
       tc.classList.toggle('hidden', !visible);
       tc.style.setProperty('--touch-scale', ((this.settings.touchScale ?? 100) / 100).toString());
@@ -1143,8 +1160,9 @@ export class Game {
 
   hideHUD() {
     $('hud').classList.add('hidden');
-    if (this.mode === 'attract') this._syncTouchMode();
-    else $('touch-controls').classList.add('hidden');
+    const tc = $('touch-controls');
+    if (tc) tc.classList.add('hidden');
+    this._syncTouchMode();
   }
 
   notify(title, text, type = '') {
@@ -1617,14 +1635,20 @@ export class Game {
   }
 
   _autoQuality(dt) {
-    if (this.mode === 'attract') return;
+    if (this.mode === 'attract') {
+      this._lowFpsTime = 0;
+      this._highFpsTime = 0;
+      return;
+    }
     if (this.settings.autoQuality === false) return;
-    if (this.fps < 38) {
+    const lowThreshold = this._touchEnabled() ? 42 : 38;
+    if (this.fps < lowThreshold) {
       this._lowFpsTime += dt;
-      if (this._lowFpsTime > 4 && (this.settings.resScale ?? 100) > 60) {
+      this._highFpsTime = 0;
+      if (this._lowFpsTime > 2.5 && (this.settings.resScale ?? 100) > 60) {
         this._lowFpsTime = 0;
-        this.settings.resScale = Math.max(60, (this.settings.resScale ?? 100) - 10);
-        this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2) * this.settings.resScale / 100);
+        this.settings.resScale = Math.max(60, (this.settings.resScale ?? 100) - (this._touchEnabled() ? 10 : 5));
+        this._applyRenderScale();
         const o = $('out-res'); if (o) o.textContent = this.settings.resScale + '%';
         const r = $('set-res'); if (r) r.value = this.settings.resScale;
       }
