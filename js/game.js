@@ -287,14 +287,14 @@ class CharacterModel {
       return;
     }
 
-    // hips + torso
+    // hips + torso — proporções humanas e volume mais suave
     const hips = new THREE.Group(); hips.position.y = 0.94; this.group.add(hips);
-    const pelvis = new THREE.Mesh(new THREE.BoxGeometry(0.48, 0.26, 0.28), pantsMat);
-    pelvis.position.y = -0.05; hips.add(pelvis);
-    const torso = new THREE.Mesh(new THREE.BoxGeometry(0.54, 0.66, 0.3), shirtMat);
-    torso.position.y = 0.34; hips.add(torso);
-    const shoulders = new THREE.Mesh(new THREE.BoxGeometry(0.66, 0.16, 0.3), shirtMat);
-    shoulders.position.y = 0.63; hips.add(shoulders);
+    const pelvis = new THREE.Mesh(new THREE.CapsuleGeometry(0.24, 0.22, 4, 8), pantsMat);
+    pelvis.scale.set(1.08, 0.92, 0.72); pelvis.position.y = -0.05; pelvis.rotation.z = Math.PI / 2; hips.add(pelvis);
+    const torso = new THREE.Mesh(new THREE.CapsuleGeometry(0.27, 0.52, 5, 10), shirtMat);
+    torso.scale.set(1.02, 1, 0.72); torso.position.y = 0.34; hips.add(torso);
+    const shoulders = new THREE.Mesh(new THREE.CapsuleGeometry(0.12, 0.38, 4, 8), shirtMat);
+    shoulders.scale.set(1.42, 0.72, 0.86); shoulders.position.y = 0.63; shoulders.rotation.z = Math.PI / 2; hips.add(shoulders);
     this.parts.hips = hips; this.parts.torso = torso;
 
     // head
@@ -343,26 +343,30 @@ class CharacterModel {
       chain.position.set(0, 1.48, 0.15); chain.rotation.x = Math.PI / 2; this.group.add(chain);
     }
 
-    // arms with pivots
+    // arms with pivots and jointed, tapered limbs
     const mkArm = (x) => {
       const pivot = new THREE.Group(); pivot.position.set(x, 1.55, 0); this.group.add(pivot);
-      const upper = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.36, 0.16), skinMat);
+      const upper = new THREE.Mesh(new THREE.CapsuleGeometry(0.075, 0.25, 4, 7), skinMat);
       upper.position.y = -0.16; pivot.add(upper);
-      const sleeve = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.2, 0.18), shirtMat);
-      sleeve.position.y = 0.02; pivot.add(sleeve);
-      const fore = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.34, 0.14), skinMat);
+      const sleeve = new THREE.Mesh(new THREE.CapsuleGeometry(0.105, 0.12, 4, 8), shirtMat);
+      sleeve.position.y = 0.02; sleeve.scale.set(1, 1, 0.82); pivot.add(sleeve);
+      const fore = new THREE.Mesh(new THREE.CapsuleGeometry(0.06, 0.24, 4, 7), skinMat);
       fore.position.y = -0.48; pivot.add(fore);
+      const hand = new THREE.Mesh(new THREE.SphereGeometry(0.075, 8, 6), skinMat);
+      hand.scale.set(0.82, 1.05, 0.72); hand.position.set(0, -0.68, 0); pivot.add(hand);
       return pivot;
     };
     const armL = mkArm(-0.36), armR = mkArm(0.36);
     this.parts.armL = armL; this.parts.armR = armR;
-    // legs
+    // legs — tapered pants, ankle and sculpted sneaker silhouette
     const mkLeg = (x) => {
       const pivot = new THREE.Group(); pivot.position.set(x, 0.92, 0); this.group.add(pivot);
-      const leg = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.76, 0.22), pantsMat);
-      leg.position.y = -0.38; pivot.add(leg);
+      const leg = new THREE.Mesh(new THREE.CapsuleGeometry(0.1, 0.52, 4, 8), pantsMat);
+      leg.scale.set(1.12, 1, 0.78); leg.position.y = -0.38; pivot.add(leg);
+      const ankle = new THREE.Mesh(new THREE.CapsuleGeometry(0.07, 0.12, 4, 7), pantsMat);
+      ankle.position.y = -0.72; pivot.add(ankle);
       const shoe = new THREE.Mesh(new THREE.BoxGeometry(0.21, 0.13, 0.32), shoeMat);
-      shoe.position.set(0, -0.8, 0.05); pivot.add(shoe);
+      shoe.position.set(0, -0.82, 0.05); shoe.geometry = new THREE.SphereGeometry(0.16, 8, 6); shoe.scale.set(0.82, 0.42, 1.15); pivot.add(shoe);
       return pivot;
     };
     const legL = mkLeg(-0.14), legR = mkLeg(0.14);
@@ -475,15 +479,35 @@ function buildCarMesh(type, color, name) {
   if (type === 'taxi') { L = 4.4; W = 1.9; H = 0.62; }
   if (type === 'police') { L = 4.6; W = 1.95; H = 0.64; }
 
-  const body = new THREE.Mesh(new THREE.BoxGeometry(W, H, L), bodyMat);
-  body.position.y = 0.52 + H / 2; g.add(body);
-  const hood = new THREE.Mesh(new THREE.BoxGeometry(W * 0.94, 0.14, L * 0.3), bodyMat);
-  hood.position.set(0, 0.58 + H, L * 0.33); g.add(hood);
-  const cabin = new THREE.Mesh(new THREE.BoxGeometry(W * 0.82, 0.56, L * (type === 'pickup' ? 0.3 : 0.42)), glassMat);
+  const bodyShape = new THREE.Shape();
+  bodyShape.moveTo(-W * 0.5, -H * 0.45);
+  bodyShape.lineTo(-W * 0.54, -H * 0.10);
+  bodyShape.lineTo(-W * 0.49, H * 0.42);
+  bodyShape.lineTo(-W * 0.38, H * 0.58);
+  bodyShape.lineTo(W * 0.38, H * 0.58);
+  bodyShape.lineTo(W * 0.49, H * 0.42);
+  bodyShape.lineTo(W * 0.54, -H * 0.10);
+  bodyShape.lineTo(W * 0.5, -H * 0.45);
+  bodyShape.closePath();
+  const bodyGeo = new THREE.ExtrudeGeometry(bodyShape, { depth: L * 0.82, bevelEnabled: true, bevelSize: 0.055, bevelThickness: 0.055, bevelSegments: 2, curveSegments: 2 });
+  bodyGeo.rotateX(Math.PI / 2); bodyGeo.center();
+  const body = new THREE.Mesh(bodyGeo, bodyMat);
+  body.position.y = 0.52 + H * 0.48; g.add(body);
+  const hood = new THREE.Mesh(new THREE.BoxGeometry(W * 0.94, 0.14, L * 0.30), bodyMat);
+  hood.position.set(0, 0.58 + H, L * 0.33); hood.rotation.x = -0.025; g.add(hood);
+  const cabinL = L * (type === 'pickup' ? 0.3 : 0.42);
+  const cabin = new THREE.Mesh(new THREE.BoxGeometry(W * 0.82, 0.56, cabinL), glassMat);
   cabin.position.set(0, 0.58 + H + 0.27, type === 'pickup' ? L * 0.14 : -L * 0.02);
   g.add(cabin);
-  const roof = new THREE.Mesh(new THREE.BoxGeometry(W * 0.84, 0.09, L * (type === 'pickup' ? 0.31 : 0.4)), bodyMat);
+  const roof = new THREE.Mesh(new THREE.BoxGeometry(W * 0.84, 0.09, cabinL * 0.96), bodyMat);
   roof.position.set(0, 0.58 + H + 0.56, cabin.position.z); g.add(roof);
+  // pilastras e espelhos deixam a cabine e o vidro mais legíveis
+  for (const sx of [-1, 1]) {
+    const pillar = new THREE.Mesh(new THREE.BoxGeometry(0.055, 0.48, 0.07), darkMat);
+    pillar.position.set(sx * W * 0.41, 0.58 + H + 0.27, cabin.position.z); g.add(pillar);
+    const mirror = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.09, 0.12), darkMat);
+    mirror.position.set(sx * (W * 0.51), 0.58 + H + 0.38, cabin.position.z + cabinL * 0.32); g.add(mirror);
+  }
 
   if (type === 'pickup') {
     const bed = new THREE.Mesh(new THREE.BoxGeometry(W * 0.92, 0.25, L * 0.32), darkMat);
@@ -512,17 +536,21 @@ function buildCarMesh(type, color, name) {
     const tl = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.14, 0.08), tailMat);
     tl.position.set(x, 0.64 + H * 0.5, -L / 2 - 0.01); g.add(tl);
   }
-  // wheels
-  const wheelGeo = new THREE.CylinderGeometry(0.37, 0.37, 0.24, 10);
+  // wheels — perfil radial, wall do pneu e cubo detalhado
+  const wheelGeo = new THREE.CylinderGeometry(0.37, 0.37, 0.24, 18);
   wheelGeo.rotateZ(Math.PI / 2);
-  const wheelMat = mat(0x121619, 0.85, 0.1);
+  const wheelMat = mat(0x101417, 0.92, 0.04);
   for (const sx of [-1, 1]) for (const sz of [-1, 1]) {
     const wh = new THREE.Mesh(wheelGeo, wheelMat);
     wh.position.set(sx * (W / 2 - 0.06), 0.37, sz * (L * 0.32));
     g.add(wh); wheels.push(wh);
-    const hub = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.14, 0.26, 8), mat(0x9aa4a6, 0.3, 0.8));
-    hub.rotation.z = Math.PI / 2;
-    hub.position.copy(wh.position); g.add(hub);
+    const hub = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, 0.262, 12), mat(0x9ca8aa, 0.22, 0.82));
+    hub.rotation.z = Math.PI / 2; hub.position.copy(wh.position); g.add(hub);
+    for (let r = 0; r < 5; r++) {
+      const spoke = new THREE.Mesh(new THREE.BoxGeometry(0.018, 0.012, 0.13), mat(0xc8d0d1, 0.25, 0.85));
+      spoke.position.copy(hub.position); spoke.position.x += sx * 0.137;
+      spoke.rotation.x = r * Math.PI / 5; g.add(spoke);
+    }
   }
   // shadow
   const shadow = new THREE.Mesh(new THREE.PlaneGeometry(W + 0.8, L + 0.6), new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.28, depthWrite: false }));
