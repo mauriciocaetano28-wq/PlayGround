@@ -127,6 +127,19 @@ button,input,select{font:inherit;color:inherit}
 #pause .win h3{margin:0 0 8px;letter-spacing:.05em}
 #pause .actions{justify-content:center;margin-top:18px}
 
+/* victory */
+#victory{position:fixed;inset:0;z-index:75;display:none;align-items:center;justify-content:center;background:#04100dee;backdrop-filter:blur(8px)}
+#victory.active{display:flex}
+#victory .win{width:min(520px,92vw);border-radius:20px;border:1px solid var(--line);background:linear-gradient(145deg,#16261f,#0a1411);padding:34px;text-align:center;box-shadow:0 24px 70px #000a}
+#victory .vstar{font-size:46px;color:#ffd700;text-shadow:0 0 28px #ffd70088;line-height:1}
+#victory h3{margin:12px 0 6px;letter-spacing:.06em;font-size:22px}
+#victory p{color:#c3d1cb;font-size:14px;margin:0 0 18px}
+.vstats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px}
+.vstats>div{background:#0c1513;border:1px solid var(--line);border-radius:10px;padding:11px 8px}
+.vstats span{display:block;font-size:10px;letter-spacing:.12em;color:var(--muted);text-transform:uppercase;margin-bottom:4px}
+.vstats b{font-size:17px;color:var(--mint)}
+#victory .actions{justify-content:center}
+
 #toast{position:fixed;bottom:22px;right:22px;z-index:80;background:#0c1513;border:1px solid var(--line);color:#fff;padding:10px 16px;border-radius:10px;font-size:13px;box-shadow:0 10px 30px #0008;transform:translateY(120px);opacity:0;transition:all .3s;pointer-events:none;max-width:80vw}
 #toast.show{transform:translateY(0);opacity:1}
 
@@ -179,7 +192,7 @@ button,input,select{font:inherit;color:inherit}
       </article>
       <article class="card" data-mode="story">
         <div class="card-top"><div class="icon">⌘</div><span class="arrow">↗</span></div>
-        <div><small>Modo história</small><h3>Luiza &amp; Carlos</h3><p>5 missões · Casal protagonista</p></div>
+        <div><small id="storyProgress">Modo história</small><h3>Luiza &amp; Carlos</h3><p>5 missões · Casal protagonista</p></div>
       </article>
       <article class="card" data-mode="rp">
         <div class="card-top"><div class="icon">◎</div><span class="arrow">↗</span></div>
@@ -245,6 +258,18 @@ button,input,select{font:inherit;color:inherit}
         <option value="both">Ambos (aleatório)</option>
       </select></label>
     </div>
+    <div class="section">
+      <div class="section-title">Áudio e tela</div>
+      <label><span class="opt">Música ambiente</span><select id="musicOn">
+        <option value="on">Ligada</option>
+        <option value="off">Desligada</option>
+      </select></label>
+      <label><span class="opt">Efeitos sonoros</span><select id="sfxOn">
+        <option value="on">Ligados</option>
+        <option value="off">Desligados</option>
+      </select></label>
+      <label><span class="opt">Tela cheia</span><button class="btn secondary" id="btnFullscreen" type="button">Alternar</button></label>
+    </div>
     <div class="section" style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px">
       <button class="btn secondary" id="btnCloseSettings">Fechar</button>
     </div>
@@ -299,9 +324,29 @@ button,input,select{font:inherit;color:inherit}
   </div>
 </div>
 
+<div id="victory">
+  <div class="win">
+    <div class="vstar">★</div>
+    <h3>HISTÓRIA CONCLUÍDA</h3>
+    <p>Luiza e Carlos venceram na Cidade do Sol.</p>
+    <div class="vstats">
+      <div><span>Missões</span><b>5 / 5</b></div>
+      <div><span>Dinheiro</span><b id="vMoney">R$ 0</b></div>
+      <div><span>Bônus</span><b>+R$ 2000</b></div>
+    </div>
+    <div class="actions">
+      <button class="btn primary" id="btnVictoryRP">Continuar no modo RP</button>
+      <button class="btn secondary" id="btnVictoryQuit">Voltar à central</button>
+    </div>
+  </div>
+</div>
+
 <div id="toast"></div>
 
-<script src="https://unpkg.com/three@0.128.0/build/three.min.js"></script>
+<script src="three.min.js"></script>
+<script>
+if(!window.THREE){document.write('<script src="https://unpkg.com/three@0.128.0/build/three.min.js"><\/script>');}
+</script>
 <script>
 if(!window.THREE){document.write('<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"><\/script>');}
 </script>
@@ -314,18 +359,57 @@ if(!window.THREE){alert('Não foi possível carregar o motor 3D. Verifique a con
 const S = {
   screen:'launcher', mode:'rp', installed:false, char:'luiza',
   lang:'pt-BR', gfx:'medium', shadow:'on', view:'mid', controls:'auto', sens:2,
+  music:'on', sfx:'on',
   wanted:0, money:500, keys:{}, touch:{x:0,y:0,active:false}, camYaw:0, camPitch:0.28,
   time:0, wantedTimer:0, missionIdx:-1, missionDone:false, hintTimer:0
 };
 const $ = s=>document.querySelector(s);
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 
-// tiny WebAudio sound effects
+// tiny WebAudio sound effects + ambient music
 const audio={
-  ctx:null,
-  init(){if(this.ctx)return;try{this.ctx=new (window.AudioContext||window.webkitAudioContext)();}catch(e){}},
+  ctx:null, musicGain:null, musicNodes:[], musicOn:true, sfxOn:true,
+  init(){if(this.ctx)return;try{this.ctx=new (window.AudioContext||window.webkitAudioContext)();}catch(e){} if(this.ctx&&this.ctx.state==='suspended')this.ctx.resume();},
+  setSfx(on){this.sfxOn=on;},
+  setMusic(on){
+    this.musicOn=on;
+    if(on)this.startMusic();else this.stopMusic();
+  },
+  startMusic(){
+    if(!this.ctx||!this.musicOn||this.musicGain)return;
+    try{
+      const ctx=this.ctx;
+      const g=ctx.createGain();g.gain.value=0.0001;
+      const filter=ctx.createBiquadFilter();filter.type='lowpass';filter.frequency.value=420;filter.Q.value=0.7;
+      g.connect(filter);filter.connect(ctx.destination);
+      const freqs=[110,164.81,220,277.18];
+      const nodes=[];
+      freqs.forEach((f,i)=>{
+        const o=ctx.createOscillator();o.type=i%2?'sine':'triangle';o.frequency.value=f;
+        const og=ctx.createGain();og.gain.value=0.09/(i+1);
+        o.connect(og);og.connect(g);o.start();nodes.push(o,og);
+      });
+      const lfo=ctx.createOscillator();lfo.frequency.value=0.06;
+      const lg=ctx.createGain();lg.gain.value=140;
+      lfo.connect(lg);lg.connect(filter.frequency);lfo.start();nodes.push(lfo,lg);
+      g.gain.linearRampToValueAtTime(0.05,ctx.currentTime+3);
+      this.musicGain=g;this.musicNodes=nodes;
+    }catch(e){}
+  },
+  stopMusic(){
+    if(!this.musicGain)return;
+    try{
+      const ctx=this.ctx,g=this.musicGain;
+      g.gain.cancelScheduledValues(ctx.currentTime);
+      g.gain.linearRampToValueAtTime(0.0001,ctx.currentTime+0.5);
+      setTimeout(()=>{
+        this.musicNodes.forEach(n=>{try{if(n.stop)n.stop();if(n.disconnect)n.disconnect();}catch(e){}});
+        this.musicNodes=[];this.musicGain=null;
+      },600);
+    }catch(e){this.musicGain=null;this.musicNodes=[];}
+  },
   tone(f,dur,type,vol,slideTo){
-    if(!this.ctx)return;
+    if(!this.ctx||!this.sfxOn)return;
     const t=this.ctx.currentTime,o=this.ctx.createOscillator(),g=this.ctx.createGain();
     o.type=type||'sine';o.frequency.setValueAtTime(f,t);
     if(slideTo)o.frequency.exponentialRampToValueAtTime(slideTo,t+dur);
@@ -348,6 +432,7 @@ const app = {
     this.bindInstall();
     this.bindGameUI();
     this.applySettingsUI();
+    this.updateStoryBadge();
     this.buildStars();
     this.last=performance.now();
     this.loop();
@@ -357,13 +442,22 @@ const app = {
   load(){
     try{const s=JSON.parse(localStorage.getItem('m5')||'{}');
       S.lang=s.lang||'pt-BR';S.gfx=s.gfx||'medium';S.shadow=s.shadow||'on';S.view=s.view||'mid';S.controls=s.controls||'auto';S.sens=parseFloat(s.sens||2);
+      S.music=s.music||'on';S.sfx=s.sfx||'on';
       S.installed=!!s.installed;
     }catch(e){}
+    audio.musicOn=S.music==='on';audio.sfxOn=S.sfx==='on';
   },
-  save(){localStorage.setItem('m5',JSON.stringify({lang:S.lang,gfx:S.gfx,shadow:S.shadow,view:S.view,controls:S.controls,sens:S.sens,installed:S.installed}));},
+  save(){localStorage.setItem('m5',JSON.stringify({lang:S.lang,gfx:S.gfx,shadow:S.shadow,view:S.view,controls:S.controls,sens:S.sens,music:S.music,sfx:S.sfx,installed:S.installed}));},
   applySettingsUI(){
     $('#gfxQuality').value=S.gfx;$('#gfxShadow').value=S.shadow;$('#gfxView').value=S.view;
     $('#ctrlType').value=S.controls;$('#ctrlSens').value=S.sens;$('#langNPC').value=S.lang;
+    $('#musicOn').value=S.music;$('#sfxOn').value=S.sfx;
+  },
+  updateStoryBadge(){
+    const el=$('#storyProgress');if(!el)return;
+    let idx=-1;
+    try{const p=JSON.parse(localStorage.getItem('m5_story')||'{}');idx=typeof p.idx==='number'?p.idx:-1;}catch(e){}
+    el.textContent = idx>=5?'História concluída ★':(idx>0?'Continuar · Missão '+(idx+1):'Modo história');
   },
 
   bindLauncher(){
@@ -379,6 +473,15 @@ const app = {
     $('#ctrlType').onchange=e=>{S.controls=e.target.value;this.save();this.updateVirt();this.toast('Controles: '+e.target.value);};
     $('#ctrlSens').oninput=e=>{S.sens=parseFloat(e.target.value);this.save();};
     $('#langNPC').onchange=e=>{S.lang=e.target.value;this.save();this.toast('Idioma: '+e.target.value);};
+    $('#musicOn').onchange=e=>{S.music=e.target.value;this.save();audio.setMusic(S.music==='on');this.toast('Música: '+(S.music==='on'?'ligada':'desligada'));};
+    $('#sfxOn').onchange=e=>{S.sfx=e.target.value;this.save();audio.setSfx(S.sfx==='on');this.toast('Efeitos: '+(S.sfx==='on'?'ligados':'desligados'));};
+    $('#btnFullscreen').onclick=()=>this.toggleFullscreen();
+  },
+  toggleFullscreen(){
+    try{
+      if(!document.fullscreenElement){(document.documentElement.requestFullscreen||function(){}).call(document.documentElement);}
+      else{document.exitFullscreen();}
+    }catch(e){this.toast('Tela cheia indisponível neste navegador');}
   },
   bindInstall(){
     $('#btnCancelInstall').onclick=()=>{this.cancelInstall();};
@@ -389,9 +492,12 @@ const app = {
     $('#btnResume').onclick=()=>this.resume();
     $('#btnPauseSettings').onclick=()=>{this.openSettings();};
     $('#btnQuit').onclick=()=>this.quit();
+    $('#btnVictoryRP').onclick=()=>{this.hideVictory();this.enterGame('rp');};
+    $('#btnVictoryQuit').onclick=()=>{this.hideVictory();this.quit();};
     $('#btnRestart').onclick=()=>{
       try{localStorage.removeItem('m5_story');}catch(e){}
       if(this.game){this.game.missionIdx=-1;this.game.missionDone=false;this.game.reset('story');}
+      this.updateStoryBadge();
       this.resume();
       this.toast('História reiniciada');
     };
@@ -458,12 +564,14 @@ const app = {
 
   enterGame(mode){
     audio.init();
+    audio.setMusic(S.music==='on');
     S.mode=mode;S.screen='playing';
     $('#launcher').classList.add('hidden');
     $('#game').style.display='block';
     $('#hud').classList.add('active');
     $('#overlayInstall').classList.remove('active');
     $('#overlaySettings').classList.remove('active');
+    $('#victory').classList.remove('active');
     if(!this.game)this.game=new Game();
     this.game.start(mode);
     this.updateVirt();
@@ -482,12 +590,25 @@ const app = {
   resume(){S.screen='playing';$('#pause').classList.remove('active');$('#overlaySettings').classList.remove('active');if(this.game)this.game.lock();},
   quit(){
     if(this.game){this.game.dispose();this.game=null;}
+    audio.stopMusic();
     S.screen='launcher';
     $('#game').style.display='none';$('#hud').classList.remove('active');
-    $('#fullmap').classList.remove('active');$('#pause').classList.remove('active');$('#overlaySettings').classList.remove('active');
+    $('#fullmap').classList.remove('active');$('#pause').classList.remove('active');$('#overlaySettings').classList.remove('active');$('#victory').classList.remove('active');
     $('#launcher').classList.remove('hidden');
+    this.updateStoryBadge();
     this.toast('De volta à central Matteo 5');
   },
+  showVictory(){
+    S.screen='victory';
+    if(this.game)this.game.unlock();
+    audio.stopMusic();
+    audio.chime();
+    $('#vMoney').textContent='R$ '+S.money;
+    $('#hud').classList.remove('active');
+    $('#victory').classList.add('active');
+    this.updateStoryBadge();
+  },
+  hideVictory(){$('#victory').classList.remove('active');},
   toggleMap(){
     const m=$('#fullmap');const on=m.classList.toggle('active');
     if(on){this.game&&this.game.unlock();this.game&&this.game.drawFullMap();}
@@ -530,13 +651,25 @@ const app = {
     const b=$('#bubble');b.classList.add('show');
     clearTimeout(this._bt);this._bt=setTimeout(()=>b.classList.remove('show'),3200);
   },
+  storyLine(lines){
+    if(!lines||!lines.length)return;
+    clearTimeout(this._st);
+    let i=0;
+    const next=()=>{
+      if(i>=lines.length||S.screen!=='playing')return;
+      const l=lines[i++];
+      this.speak(l.who,l.pt,l.en);
+      this._st=setTimeout(next,3900);
+    };
+    next();
+  },
   toast(msg,ms=2000){
     const t=$('#toast');t.textContent=msg;t.classList.add('show');
     clearTimeout(this._tt);this._tt=setTimeout(()=>t.classList.remove('show'),ms);
   },
 
   onKey(e,down){
-    if(S.screen==='launcher'||S.screen==='settings')return;
+    if(S.screen==='launcher'||S.screen==='settings'||S.screen==='victory')return;
     const c=e.code;
     if(down&&c==='Escape'){e.preventDefault();if(S.screen==='playing')this.pauseGame();else if(S.screen==='paused')this.resume();return;}
     if(down&&c==='KeyM'&&S.screen==='playing'){e.preventDefault();this.toggleMap();return;}
@@ -615,7 +748,8 @@ Game.prototype.reset=function(mode){
   S.wanted=0;app.setWanted(0);
   this.police.forEach(p=>this.scene.remove(p.mesh));this.police=[];
   this.clearMarker();
-  this.missionIdx=-1;this.missionDone=false;this._distT=0;
+  this.missionIdx=-1;this.missionDone=false;this._distT=0;this._rpT=0;
+  clearTimeout(app._st);
   if(mode==='story'){
     let idx=0,money=500;
     try{const p=JSON.parse(localStorage.getItem('m5_story')||'{}');
@@ -625,9 +759,18 @@ Game.prototype.reset=function(mode){
     this.startMission(idx);
     app.toast(idx>0?('Continuando da missão '+(idx+1)):'Bem-vindo à Cidade do Sol!');
   }else{
-    app.setMoney(500);
+    let rp=null;
+    try{rp=JSON.parse(localStorage.getItem('m5_rp')||'null');}catch(e){}
+    app.setMoney(rp&&typeof rp.money==='number'?rp.money:500);
+    if(rp&&typeof rp.x==='number'&&typeof rp.z==='number'&&!this.hitsBuilding(rp.x,rp.z,0.8)){
+      this.player.position.set(rp.x,0,rp.z);
+      if(typeof rp.yaw==='number')this.player.rotation.y=rp.yaw;
+      if(rp.char==='carlos')this.switchChar('carlos');
+      app.toast('Bem-vindo de volta à Cidade do Sol!');
+    }else{
+      app.toast('Bem-vindo à Cidade do Sol!');
+    }
     app.setMission({title:'Modo RP',desc:'Explore a Cidade do Sol livremente.'});
-    app.toast('Bem-vindo à Cidade do Sol!');
   }
   this.applySettings();
   this.camera.position.set(37,4,0);
@@ -897,7 +1040,7 @@ Game.prototype.spawnPoliceCar=function(){
   const blue=new THREE.Mesh(new THREE.BoxGeometry(0.5,0.3,0.3),new THREE.MeshBasicMaterial({color:0x2244ff}));
   blue.position.set(0.45,1.95,-0.2);car.add(blue);
   const ang=Math.random()*Math.PI*2;
-  const d=55+Math.random()*30;
+  const d=65+Math.random()*35;
   car.position.set(this.player.position.x+Math.cos(ang)*d,0,this.player.position.z+Math.sin(ang)*d);
   car.userData={speed:0,red,blue,flash:0};
   this.scene.add(car);
@@ -968,11 +1111,31 @@ Game.prototype.spawnPoliceIfNeeded=function(){
 
 // ---- missions ----
 const MISSIONS=[
-  {title:'1. Primeiro Encontro',desc:'Luiza vai até a praça encontrar Carlos.',target:new THREE.Vector3(-80,0,0),type:'reach'},
-  {title:'2. Roubo de Carro',desc:'Entre em qualquer veículo.',target:null,type:'car'},
-  {title:'3. Fuga da Polícia',desc:'Perca a perseguição (procurado = 0).',target:null,type:'lose'},
-  {title:'4. Mirante do Casal',desc:'Leve o carro até o mirante.',target:new THREE.Vector3(-130,0,120),type:'reach'},
-  {title:'5. A Última Noite',desc:'Chegue ao ponto final com Carlos.',target:new THREE.Vector3(-30,0,180),type:'reach'}
+  {title:'1. Primeiro Encontro',desc:'Luiza vai até a praça encontrar Carlos.',target:new THREE.Vector3(-80,0,0),type:'reach',
+   intro:[
+     {who:'Luiza',pt:'Carlos! Estou chegando na praça. Você tá aí?',en:"Carlos! I'm heading to the plaza. Are you there?"},
+     {who:'Carlos',pt:'Tô sim. Vem com cuidado, a cidade tá estranha hoje.',en:"I'm here. Be careful, the city feels strange today."}
+   ]},
+  {title:'2. Roubo de Carro',desc:'Entre em qualquer veículo.',target:null,type:'car',
+   intro:[
+     {who:'Carlos',pt:'Pega qualquer carro. A gente precisa sumir daqui rápido.',en:"Take any car. We need to get out of here fast."},
+     {who:'Luiza',pt:'Tá bom, mas dessa vez você dirige!',en:"Fine, but this time you drive!"}
+   ]},
+  {title:'3. Fuga da Polícia',desc:'Perca a perseguição (procurado = 0).',target:null,type:'lose',
+   intro:[
+     {who:'Luiza',pt:'A polícia tá atrás da gente! Acelera e não olha pra trás!',en:"The police are after us! Floor it and don't look back!"},
+     {who:'Carlos',pt:'Segura firme, vou sumir no meio dos prédios.',en:"Hold on tight, I'll lose them between the buildings."}
+   ]},
+  {title:'4. Mirante do Casal',desc:'Leve o carro até o mirante.',target:new THREE.Vector3(-130,0,120),type:'reach',
+   intro:[
+     {who:'Carlos',pt:'O mirante é nosso lugar. Vamos até lá ver o pôr do sol.',en:"The overlook is our spot. Let's go watch the sunset."},
+     {who:'Luiza',pt:'Depois de tudo isso, eu só quero paz e um açaí.',en:"After all this, I just want peace and an açaí."}
+   ]},
+  {title:'5. A Última Noite',desc:'Chegue ao ponto final com Carlos.',target:new THREE.Vector3(-30,0,180),type:'reach',
+   intro:[
+     {who:'Luiza',pt:'Última noite, Carlos. Depois a gente some da cidade.',en:"Last night, Carlos. After this we disappear from the city."},
+     {who:'Carlos',pt:'Juntos. Sempre foi assim e sempre vai ser.',en:"Together. It's always been that way and always will be."}
+   ]}
 ];
 Game.prototype.activePos=function(){return (this.inCar&&this.car)?this.car.position:this.player.position;};
 Game.prototype.hitsBuilding=function(x,z,r){
@@ -984,6 +1147,16 @@ Game.prototype.hitsBuilding=function(x,z,r){
 };
 Game.prototype.saveStory=function(idx,money){
   try{localStorage.setItem('m5_story',JSON.stringify({idx:idx,money:money}));}catch(e){}
+  if(window.__app)window.__app.updateStoryBadge();
+};
+Game.prototype.saveRP=function(){
+  if(this.mode!=='rp')return;
+  const p=this.activePos();
+  try{localStorage.setItem('m5_rp',JSON.stringify({
+    x:p.x,z:p.z,money:S.money,
+    char:this.player===this.carlos?'carlos':'luiza',
+    yaw:this.player.rotation.y
+  }));}catch(e){}
 };
 Game.prototype.startMission=function(i){
   if(i>=MISSIONS.length){
@@ -991,8 +1164,7 @@ Game.prototype.startMission=function(i){
     this.missionDone=true;this.missionIdx=i;this.clearMarker();
     app.setMoney(S.money+2000);
     this.saveStory(MISSIONS.length,500);
-    audio.chime();
-    app.toast('Parabéns! História concluída.');
+    app.showVictory();
     return;
   }
   this.missionIdx=i;const m=MISSIONS[i];
@@ -1001,6 +1173,7 @@ Game.prototype.startMission=function(i){
   this.clearMarker();
   if(m.type==='reach'){this.placeMarker(m.target);}
   if(m.type==='lose'){app.setWanted(Math.max(2,S.wanted));this.spawnPoliceIfNeeded();}
+  if(m.intro)app.storyLine(m.intro);
 };
 Game.prototype.placeMarker=function(pos){
   this.clearMarker();
@@ -1017,6 +1190,11 @@ Game.prototype.clearMarker=function(){if(this.marker){this.scene.remove(this.mar
 Game.prototype.update=function(dt){
   S.time+=dt;
   if(this.water)this.water.material.uniforms.uTime.value=S.time;
+  // autosave RP progress
+  if(this.mode==='rp'){
+    this._rpT=(this._rpT||0)+dt;
+    if(this._rpT>5){this._rpT=0;this.saveRP();}
+  }
 
   // input vector
   let ix=0,iz=0;
@@ -1055,7 +1233,7 @@ Game.prototype.update=function(dt){
     const move=new THREE.Vector3();
     move.addScaledVector(fwd,-iz).addScaledVector(right,ix);
     if(move.lengthSq()>0.001){
-      move.normalize().multiplyScalar((run?8:4.2)*dt);
+      move.normalize().multiplyScalar((run>1?9:4.4)*dt);
       const px=this.player.position.x,pz=this.player.position.z;
       const nx=px+move.x,nz=pz+move.z;
       if(!this.hitsBuilding(nx,pz,0.5))this.player.position.x=nx;
@@ -1102,7 +1280,7 @@ Game.prototype.update=function(dt){
     const dir=new THREE.Vector3().subVectors(this.activePos(),car.position);
     dir.y=0;const dist=dir.length();
     dir.normalize();
-    const sp=(8+S.wanted*1.6);
+    const sp=(5.5+S.wanted*1.0);
     if(dist>4){car.position.addScaledVector(dir,sp*dt);}
     car.rotation.y=Math.atan2(dir.x,dir.z);
     car.userData.flash+=dt;
@@ -1111,12 +1289,26 @@ Game.prototype.update=function(dt){
     car.userData.blue.material.color.setHex(on?0x2244ff:0x000033);
   });
 
-  // wanted decay
+  // wanted decay: you must actually escape the police
   if(S.wanted>0){
-    S.wantedTimer+=dt;
-    if(S.wantedTimer>8){S.wantedTimer=0;app.setWanted(S.wanted-1);}
+    let near=Infinity;
+    this.police.forEach(p=>{const d=p.mesh.position.distanceTo(this.activePos());if(d<near)near=d;});
+    const hiding = near>70;
+    if(hiding)S.wantedTimer+=dt; else S.wantedTimer=0;
+    const left=Math.max(0,Math.ceil(6-S.wantedTimer));
+    $('#wantedLvl').textContent = hiding ? ('FUJA DA POLÍCIA · '+left+'s') : ('PROCURADO: '+S.wanted);
+    if(S.wantedTimer>6){
+      S.wantedTimer=0;
+      app.setWanted(S.wanted-1);
+      if(S.wanted===0){
+        this.police.forEach(p=>this.scene.remove(p.mesh));this.police=[];
+        app.toast('Você despistou a polícia!');
+      }
+    }
   }else{
     this.police.forEach(p=>this.scene.remove(p.mesh));this.police=[];
+    S.wantedTimer=0;
+    $('#wantedLvl').textContent='PROCURADO: 0';
   }
 
   // mission logic
@@ -1224,6 +1416,8 @@ Game.prototype.drawFullMap=function(){
 };
 
 Game.prototype.dispose=function(){
+  this.saveRP();
+  clearTimeout(app._st);
   this.ready=false;this.locked=false;
   if(document.pointerLockElement)document.exitPointerLock();
   if(this.renderer){this.renderer.dispose();this.renderer=null;}
@@ -1232,6 +1426,7 @@ Game.prototype.dispose=function(){
 app.init();
 window.__app=app;
 window.__S=S;
+window.__audio=audio;
 })();
 </script>
 </body>

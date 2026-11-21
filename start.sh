@@ -32,14 +32,17 @@ if [[ -f "$PROJECT_DIR/package.json" ]]; then
     : # Build output already lives in dist.
   elif [[ -f "$PROJECT_DIR/build/index.html" ]]; then
     run_timed cp -a "$PROJECT_DIR/build/." "$OUTPUT_DIR/"
+    if [[ -f "$PROJECT_DIR/three.min.js" ]]; then run_timed cp "$PROJECT_DIR/three.min.js" "$OUTPUT_DIR/three.min.js"; fi
   elif [[ -f "$PROJECT_DIR/index.html" ]]; then
     run_timed cp "$PROJECT_DIR/index.html" "$OUTPUT_DIR/index.html"
+    if [[ -f "$PROJECT_DIR/three.min.js" ]]; then run_timed cp "$PROJECT_DIR/three.min.js" "$OUTPUT_DIR/three.min.js"; fi
   else
     echo "Build completed but no static index.html was found in dist/, build/, or the project root." >&2
     exit 1
   fi
 elif [[ -f "$PROJECT_DIR/index.html" ]]; then
   run_timed cp -a "$PROJECT_DIR/index.html" "$OUTPUT_DIR/index.html"
+  if [[ -f "$PROJECT_DIR/three.min.js" ]]; then run_timed cp "$PROJECT_DIR/three.min.js" "$OUTPUT_DIR/three.min.js"; fi
 elif [[ -f "$OUTPUT_DIR/index.html" ]]; then
   : # Reuse an existing static build.
 else
@@ -79,6 +82,10 @@ fi
 if [[ ! -f "$OUTPUT_DIR/index.html" ]]; then
   echo "Static build output missing: $OUTPUT_DIR/index.html" >&2
   exit 1
+fi
+
+if [[ -f "$PROJECT_DIR/three.min.js" && ! -f "$OUTPUT_DIR/three.min.js" ]]; then
+  run_timed cp "$PROJECT_DIR/three.min.js" "$OUTPUT_DIR/three.min.js"
 fi
 
 run_timed mkdir -p "$(dirname "$DEPLOYMENT_FILE")"
