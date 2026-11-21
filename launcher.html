@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Matteo 5 — Launcher</title>
+<link rel="stylesheet" href="./assets/fonts/local.css" />
+<style>
+  :root{
+    --bg:#040b10;--panel:#07161d;--line:rgba(255,255,255,.12);
+    --gold:#ffc46b;--teal:#2ee6c8;--text:#eaf2f2;--muted:#8ea2a6;
+    --display:'Barlow Condensed',Impact,sans-serif;--body:'Manrope',system-ui,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;background:
+    radial-gradient(ellipse at 70% 15%,rgba(46,230,200,.14),transparent 45%),
+    radial-gradient(ellipse at 20% 90%,rgba(255,138,76,.16),transparent 50%),
+    var(--bg);
+    color:var(--text);font-family:var(--body);display:grid;place-items:center;padding:24px;overflow:auto}
+  .shell{width:min(920px,100%);border:1px solid var(--line);border-radius:14px;background:linear-gradient(180deg,rgba(7,22,29,.96),rgba(4,11,16,.98));box-shadow:0 40px 120px rgba(0,0,0,.75);overflow:hidden}
+  .top{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 22px;border-bottom:1px solid var(--line);background:rgba(0,0,0,.18)}
+  .brand{display:flex;align-items:center;gap:12px}
+  .mark{width:42px;height:42px;border:1px solid rgba(255,196,107,.5);border-radius:9px;display:grid;place-items:center;color:var(--gold)}
+  .mark svg{width:26px;height:26px}
+  .brand b{font-family:var(--display);font-size:24px;letter-spacing:.12em;line-height:1}
+  .brand b span{color:var(--gold)}
+  .brand small{display:block;font-size:8px;letter-spacing:.24em;color:var(--muted);margin-top:3px}
+  .status{font-size:9px;letter-spacing:.16em;color:var(--teal);display:flex;align-items:center;gap:7px}
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--teal);box-shadow:0 0 10px var(--teal);animation:pulse 1.8s infinite}
+  @keyframes pulse{50%{opacity:.35}}
+  .hero{padding:30px 26px 26px;display:grid;grid-template-columns:1.15fr .85fr;gap:26px}
+  .kicker{font-size:8px;letter-spacing:.26em;color:var(--teal);font-weight:800}
+  h1{font-family:var(--display);font-size:clamp(38px,7vw,62px);line-height:.92;margin:8px 0 12px;letter-spacing:.03em}
+  h1 em{font-style:normal;color:var(--gold)}
+  p.lead{margin:0;color:#b9c8c9;font-size:13px;line-height:1.7;max-width:46ch}
+  .art{position:relative;min-height:210px;border-radius:10px;overflow:hidden;border:1px solid var(--line);
+    background:linear-gradient(180deg,#122d3b,#1d4f5a 38%,#d97d54 72%,#f2b46b)}
+  .sun{position:absolute;right:20%;top:26%;width:78px;height:78px;border-radius:50%;
+    background:radial-gradient(circle,#ffe3a6,#ffb35e 60%,rgba(255,150,80,0) 72%);box-shadow:0 0 60px rgba(255,190,110,.55)}
+  .sea{position:absolute;left:0;right:0;bottom:0;height:42%;background:linear-gradient(180deg,#c8835d,#7a4e52 42%,#1c3340)}
+  .sea:before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(180deg,transparent 0 4px,rgba(255,255,255,.13) 4px 5px);mask-image:linear-gradient(180deg,transparent,#000)}
+  .city{position:absolute;left:0;right:0;bottom:40%;height:24%;background:
+    repeating-linear-gradient(90deg,#0d2129 0 14px,transparent 14px 22px),
+    repeating-linear-gradient(90deg,#123039 0 9px,transparent 9px 18px);opacity:.9}
+  .palms i{position:absolute;bottom:0;width:3px;height:52%;background:linear-gradient(180deg,#0b1f24,#123039);border-radius:3px}
+  .palms i:before,.palms i:after{content:"";position:absolute;top:-3px;left:50%;width:44px;height:15px;border-radius:100% 0 100% 0;border-top:3px solid #0b2025;transform:translateX(-50%) rotate(-18deg);transform-origin:left center}
+  .palms i:after{transform:translateX(-50%) rotate(18deg) scaleX(-1)}
+  .palms{position:absolute;bottom:26%;left:0;right:0;height:56%}
+  .palms i:nth-child(1){left:10%;height:58%}
+  .palms i:nth-child(2){right:12%;height:46%}
+  .palms i:nth-child(3){right:24%;height:34%}
+  .badge{position:absolute;top:12px;left:12px;padding:6px 9px;border-radius:5px;border:1px solid rgba(255,255,255,.2);background:rgba(3,10,14,.72);font-size:7px;letter-spacing:.2em;line-height:1.5;color:#dbe6e7}
+  .badge b{color:var(--gold)}
+  .panel{margin:0 26px 26px;padding:18px 20px;border:1px solid var(--line);border-radius:10px;background:rgba(0,0,0,.2)}
+  .row{display:flex;align-items:center;justify-content:space-between;gap:16px;font-size:11px;color:var(--muted);padding:7px 0;border-bottom:1px dashed rgba(255,255,255,.07)}
+  .row:last-child{border-bottom:0}
+  .row b{color:var(--text);font-size:11px}
+  .bar{height:6px;border-radius:99px;background:rgba(255,255,255,.09);overflow:hidden;margin-top:12px}
+  .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--teal),var(--gold));transition:width .4s ease}
+  .actions{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:16px 26px;border-top:1px solid var(--line);background:rgba(0,0,0,.2);flex-wrap:wrap}
+  .btn{appearance:none;border:1px solid var(--line);border-radius:7px;padding:11px 18px;font-family:var(--body);font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--text);background:transparent;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:9px;transition:transform .15s,background .15s}
+  .btn:hover{transform:translateY(-1px)}
+  .btn.primary{background:linear-gradient(180deg,#ffd27a,#ffb347);border-color:#ffd27a;color:#241403}
+  .btn.primary[aria-disabled="true"]{opacity:.45;pointer-events:none}
+  .foot{font-size:9px;letter-spacing:.06em;color:var(--muted)}
+  @media(max-width:760px){.hero{grid-template-columns:1fr}.art{min-height:170px;order:-1}.top{padding:13px 16px}.hero{padding:22px 18px}.panel{margin:0 18px 18px}.actions{padding:14px 18px}}
+</style>
+</head>
+<body>
+  <main class="shell">
+    <header class="top">
+      <div class="brand">
+        <div class="mark"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M32 3l25 14v30L32 61 7 47V17z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M20 43V21l12 12 12-12v22" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div><b>MATTEO <span>5</span></b><small>LAUNCHER • EDIÇÃO ORLA</small></div>
+      </div>
+      <div class="status"><span class="dot"></span> SISTEMA PRONTO</div>
+    </header>
+
+    <section class="hero">
+      <div>
+        <div class="kicker">INSTALAÇÃO LOCAL CONCLUÍDA</div>
+        <h1>GTA <em>6</em> BR</h1>
+        <p class="lead">Santo Matteo está instalado neste dispositivo. Luiza e Carlos esperam na orla — cinco missões, roleplay livre e uma cidade inteira para explorar.</p>
+        <div class="row" style="margin-top:18px"><span>Versão</span><b>1.0.4 • Orla Dourada</b></div>
+        <div class="row"><span>Conteúdo</span><b>5 missões + Roleplay</b></div>
+        <div class="row"><span>Progresso</span><b>Salvo neste navegador</b></div>
+      </div>
+      <div class="art" aria-hidden="true">
+        <div class="sun"></div><div class="city"></div><div class="sea"></div>
+        <div class="palms"><i></i><i></i><i></i></div>
+        <div class="badge">EDIÇÃO<br><b>ORLA DOURADA</b></div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="row"><span>Verificação de arquivos</span><b id="verify-state">Aguardando</b></div>
+      <div class="bar"><i id="verify-bar"></i></div>
+    </section>
+
+    <footer class="actions">
+      <span class="foot">Projeto original de ficção • WebGL 2 • Three.js</span>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <a class="btn" href="./index.html">Abrir no navegador</a>
+        <a class="btn primary" id="launch" href="./index.html" aria-disabled="true">▶ Iniciar experiência</a>
+      </div>
+    </footer>
+  </main>
+
+<script>
+  const bar = document.getElementById('verify-bar');
+  const state = document.getElementById('verify-state');
+  const launch = document.getElementById('launch');
+  let p = 0;
+  const tick = setInterval(() => {
+    p = Math.min(100, p + Math.random() * 14 + 6);
+    bar.style.width = p + '%';
+    state.textContent = p < 55 ? 'Verificando cidade…' : p < 90 ? 'Calibrando controles…' : 'Pronto';
+    if (p >= 100) {
+      clearInterval(tick);
+      launch.setAttribute('aria-disabled', 'false');
+    }
+  }, 160);
+</script>
+</body>
+</html>
