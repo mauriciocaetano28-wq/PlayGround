@@ -189,6 +189,9 @@ export class World {
     this.time = 0;
     this.sunDir = new THREE.Vector3(0.58, 0.18, 0.42).normalize();
     this._colliderStamp = 0;
+    this._camProbe = new THREE.Vector3();
+    this._camLast = new THREE.Vector3();
+    this._sunTargetPos = new THREE.Vector3();
     this.mapCanvas = document.createElement('canvas');
     this.mapCanvas.width = this.mapCanvas.height = 2048;
     this.mapScale = 2048 / 2000;
@@ -794,7 +797,7 @@ export class World {
       if (c.position.x > 2200) c.position.x = -2200;
     }
     if (this.sunLight) {
-      const p = playerPos || new THREE.Vector3();
+      const p = playerPos || this._sunTargetPos.set(0, 0, 0);
       this.sunLight.position.set(p.x + this.sunDir.x * 260, this.sunDir.y * 320 + 60, p.z + this.sunDir.z * 260);
       this.sunLight.target.position.set(p.x, 0, p.z);
       this.sunLight.target.updateMatrixWorld();
@@ -2163,12 +2166,12 @@ World.prototype.pointBlocked = function (x, y, z, margin = 0.25) {
 
 World.prototype.cameraCollision = function (from, to) {
   const steps = 18;
-  const p = new THREE.Vector3();
-  let last = from.clone();
+  const p = this._camProbe;
+  const last = this._camLast.copy(from);
   for (let i = 1; i <= steps; i++) {
     p.lerpVectors(from, to, i / steps);
     if (this.pointBlocked(p.x, p.y, p.z, 0.3)) {
-      return last.clone().lerp(to, Math.max(0, (i - 1.5) / steps));
+      return last.lerp(to, Math.max(0, (i - 1.5) / steps));
     }
     last.copy(p);
   }

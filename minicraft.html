@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+<meta name="theme-color" content="#071410" />
+<title>Minicraft — Matteo 5</title>
+<meta name="description" content="Minicraft: um sandbox voxel original com mundo procedural, mineração, construção e controles para desktop e celular." />
+<link rel="stylesheet" href="./assets/fonts/local.css" />
+<link rel="stylesheet" href="./css/minicraft.css" />
+<script type="importmap">
+{ "imports": { "three": "./vendor/three.module.js" } }
+</script>
+</head>
+<body class="mc-body">
+<div id="mc-app">
+  <canvas id="mc-canvas" aria-label="Mundo voxel 3D de Minicraft"></canvas>
+  <div class="mc-vignette"></div>
+  <div class="mc-grain"></div>
+
+  <!-- ============ HUD ============ -->
+  <div id="mc-hud" class="mc-hud hidden">
+    <div class="mc-crosshair" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+
+    <div class="mc-info" id="mc-info">
+      <b>MINICRAFT</b>
+      <span id="mc-coords">0 / 0 / 0</span>
+      <small id="mc-seed">SEED —</small>
+    </div>
+
+    <div class="mc-topright">
+      <div class="mc-clock"><span id="mc-day">DIA 1</span><b id="mc-time">06:30</b></div>
+      <button class="mc-icon-btn" id="mc-sound" title="Som" aria-label="Som">♪</button>
+      <button class="mc-icon-btn" id="mc-pause" title="Pausa" aria-label="Pausa">Ⅱ</button>
+    </div>
+
+    <div class="mc-mode" id="mc-mode">SOBREVIVÊNCIA LEVE</div>
+    <div class="mc-toast" id="mc-toast"></div>
+    <div class="mc-blockname" id="mc-blockname">Grama</div>
+    <div class="mc-hotbar" id="mc-hotbar" aria-label="Hotbar de blocos"></div>
+    <div class="mc-hint" id="mc-hint">CLIQUE PARA JOGAR</div>
+
+    <div class="mc-touch" id="mc-touch">
+      <div class="mc-joystick" id="mc-joystick">
+        <div class="mc-stick-base"></div>
+        <div class="mc-stick-knob" id="mc-stick-knob"></div>
+        <span>MOVER</span>
+      </div>
+      <div class="mc-lookhint"><i>↔</i> ARRASTE PARA OLHAR</div>
+      <div class="mc-touch-actions">
+        <button class="mc-round jump" data-mc="jump" aria-label="Pular">▲<small>PULAR</small></button>
+        <button class="mc-round mine" data-mc="mine" aria-label="Minerar">⛏<small>MINERAR</small></button>
+        <button class="mc-round place" data-mc="place" aria-label="Colocar bloco">▣<small>COLOCAR</small></button>
+        <button class="mc-round fly" data-mc="fly" aria-label="Alternar voo">✈<small>VOAR</small></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ LOADING ============ -->
+  <section id="mc-loading" class="mc-screen mc-loading">
+    <div class="mc-load-card">
+      <div class="mc-logo small">MINI<span>CRAFT</span></div>
+      <div class="mc-load-title">GERANDO MUNDO</div>
+      <div class="mc-load-bar"><i id="mc-load-bar"></i></div>
+      <div class="mc-load-status"><span id="mc-load-status">Preparando blocos…</span><b id="mc-load-pct">0%</b></div>
+    </div>
+  </section>
+
+  <!-- ============ MAIN MENU ============ -->
+  <section id="mc-menu" class="mc-screen mc-menu hidden">
+    <div class="mc-menu-bg" aria-hidden="true">
+      <i class="mc-float f1"></i><i class="mc-float f2"></i><i class="mc-float f3"></i><i class="mc-float f4"></i>
+      <i class="mc-float f5"></i><i class="mc-float f6"></i><i class="mc-float f7"></i><i class="mc-float f8"></i>
+      <div class="mc-grid-floor"></div>
+    </div>
+    <div class="mc-menu-inner">
+      <div class="mc-kicker">MATTEO 5 • NOVO JOGO ORIGINAL</div>
+      <div class="mc-logo">MINI<span>CRAFT</span></div>
+      <p class="mc-tagline">Um mundo de blocos gerado do zero. Minere, construa e explore — no desktop ou no celular.</p>
+      <div class="mc-menu-actions">
+        <button class="mc-btn primary" id="mc-play"><b>JOGAR AGORA</b><small>Novo mundo procedural</small></button>
+        <button class="mc-btn" id="mc-continue"><b>CONTINUAR</b><small id="mc-continue-sub">Nenhum mundo salvo</small></button>
+        <button class="mc-btn" id="mc-help-open"><b>COMO JOGAR</b><small>Controles e objetivos</small></button>
+        <a class="mc-btn ghost" id="mc-back" href="./launcher.html"><b>VOLTAR</b><small>Biblioteca Matteo 5</small></a>
+      </div>
+      <div class="mc-menu-foot"><span>VOXEL SANDBOX</span><span>WEBGL 2</span><span>96 × 96 BLOCOS</span><span>v1.0</span></div>
+    </div>
+    <aside class="mc-menu-side">
+      <div class="mc-card">
+        <div class="mc-card-art" aria-hidden="true"><i class="c1"></i><i class="c2"></i><i class="c3"></i><i class="c4"></i></div>
+        <b>MUNDO PROCEDURAL</b>
+        <p>Montanhas, praias, lagos e florestas. Cada seed cria uma paisagem diferente para explorar.</p>
+      </div>
+      <div class="mc-card small"><b>CONSTRUA SEM LIMITES</b><p>Nove blocos na hotbar. Escave, colete e monte sua base bloco a bloco.</p></div>
+    </aside>
+  </section>
+
+  <!-- ============ PAUSE ============ -->
+  <section id="mc-pause-menu" class="mc-overlay hidden">
+    <div class="mc-panel">
+      <div class="mc-panel-head"><small>MINICRAFT // PAUSA</small><h2>JOGO PAUSADO</h2></div>
+      <div class="mc-pause-stats">
+        <div><small>SEED</small><b id="mc-pause-seed">—</b></div>
+        <div><small>POSIÇÃO</small><b id="mc-pause-pos">—</b></div>
+        <div><small>MODO</small><b id="mc-pause-mode">—</b></div>
+      </div>
+      <div class="mc-panel-actions">
+        <button class="mc-btn primary" id="mc-resume"><b>CONTINUAR</b><small>Voltar ao mundo</small></button>
+        <button class="mc-btn" id="mc-save"><b>SALVAR</b><small>Gravar neste navegador</small></button>
+        <button class="mc-btn" id="mc-help-open2"><b>COMO JOGAR</b><small>Controles</small></button>
+        <button class="mc-btn danger" id="mc-reset"><b>REINICIAR MUNDO</b><small>Apagar construções</small></button>
+        <a class="mc-btn ghost" id="mc-exit" href="./launcher.html"><b>SAIR</b><small>Voltar à biblioteca</small></a>
+      </div>
+      <div class="mc-panel-foot">Pressione <kbd>ESC</kbd> para continuar</div>
+    </div>
+  </section>
+
+  <!-- ============ HELP ============ -->
+  <section id="mc-help" class="mc-overlay hidden">
+    <div class="mc-panel help-panel">
+      <div class="mc-panel-head"><small>MINICRAFT // MANUAL</small><h2>COMO JOGAR</h2></div>
+      <div class="mc-help-grid">
+        <div><kbd>WASD</kbd><b>Mover</b><small>Use o analógico no celular</small></div>
+        <div><kbd>ESPAÇO</kbd><b>Pular</b><small>No modo voo, sobe</small></div>
+        <div><kbd>SHIFT</kbd><b>Correr</b><small>No modo voo, desce</small></div>
+        <div><kbd>F</kbd><b>Voar</b><small>Alterna gravidade zero</small></div>
+        <div><kbd>CLIQUE ESQ.</kbd><b>Minerar</b><small>Coleta o bloco alvo</small></div>
+        <div><kbd>CLIQUE DIR.</kbd><b>Colocar</b><small>Usa o bloco selecionado</small></div>
+        <div><kbd>1 — 9</kbd><b>Hotbar</b><small>Role o mouse ou toque nas casas</small></div>
+        <div><kbd>ESC</kbd><b>Pausa</b><small>Salvar, ajuda e sair</small></div>
+      </div>
+      <div class="mc-help-note"><b>DICA</b> Minere árvores para conseguir tronco e folhas. Coloque blocos para construir pontes, abrigos e escadas. O progresso é salvo automaticamente neste navegador.</div>
+      <div class="mc-panel-foot"><button class="mc-btn primary" id="mc-help-close"><b>ENTENDI</b></button></div>
+    </div>
+  </section>
+
+  <div id="mc-flash" class="mc-flash"></div>
+</div>
+<script type="module" src="./js/minicraft.js"></script>
+</body>
+</html>

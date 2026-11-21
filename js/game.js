@@ -2,7 +2,15 @@ import * as THREE from 'three';
 import { World, LANDMARKS, ROADS_X, ROADS_Z, WATER_LEVEL, SHORE_X, WORLD_BOUNDS, DISTRICTS } from './world.js';
 import { AudioSystem } from './audio.js';
 
-const $ = (id) => document.getElementById(id);
+const _domCache = new Map();
+const $ = (id) => {
+  let el = _domCache.get(id);
+  if (!el || !el.isConnected) {
+    el = document.getElementById(id);
+    if (el) _domCache.set(id, el);
+  }
+  return el;
+};
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const lerp = (a, b, t) => a + (b - a) * t;
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -521,6 +529,7 @@ export class Game {
     this.dialogueActive = false;
     this.mapOpen = false;
     this.resultOpen = false;
+    this.waypoint = this.save.waypoint || null;
     this.mission = null;
     this.rpJob = null;
     this.completed = new Set(this.save.completed || []);
@@ -543,7 +552,7 @@ export class Game {
       x: 0, y: 0, joyX: 0, joyY: 0,
       sprint: false, aim: false, shoot: false,
       brake: false, throttle: false, handbrake: false, boost: false,
-      lookDX: 0, lookDY: 0
+      lookBack: false, lookDX: 0, lookDY: 0
     };
     this.mouse = { down: false, right: false, lastX: 0, lastY: 0 };
     this.touch = { lookId: null, joyId: null, lastX: 0, lastY: 0 };
@@ -559,6 +568,12 @@ export class Game {
     this._camYaw = Math.PI / 2;
     this._camPitch = 0.16;
     this._camDist = 5.4;
+    this._camSide = 1;
+    this._camTarget = new THREE.Vector3();
+    this._camFwd = new THREE.Vector3();
+    this._camRight = new THREE.Vector3();
+    this._camDesired = new THREE.Vector3();
+    this._camLook = new THREE.Vector3();
     this._camShake = 0;
     this._flashDamage = 0;
     this._noiseTime = 0;
@@ -655,6 +670,10 @@ export class Game {
     this.rpJob = null;
     this.dialogueActive = false;
     this.cutscene = false;
+    this.keys = {};
+    this.input.sprint = false; this.input.aim = false; this.input.shoot = false;
+    this.input.brake = false; this.input.throttle = false; this.input.handbrake = false;
+    this.input.boost = false; this.input.lookBack = false;
     this._hideAllOverlays();
     this.hideHUD();
     this._clearMissionEntities();
@@ -683,6 +702,7 @@ export class Game {
     this.setWanted(0, true);
     this.clockMinutes = saveState?.clock ?? 18 * 60 + 42;
     this.playtime = saveState?.playtime || (fresh ? 0 : this.playtime) || 0;
+    this.waypoint = saveState?.waypoint || (fresh ? null : this.save.waypoint) || null;
     if (saveState?.x != null) {
       this.player.pos.set(saveState.x, 0, saveState.z);
       this.player.yaw = saveState.yaw ?? Math.PI / 2;
@@ -701,7 +721,7 @@ export class Game {
     this.notify(
       'SANTO MATTEO',
       this._touchEnabled()
-        ? 'Use o direcional virtual para andar, ○ para interagir e o botão de mapa para navegar.'
+        ? 'Use o analógico para andar, ○ para interagir, L1 para rolar e o touchpad para abrir o mapa.'
         : 'Use WASD para andar, E para interagir e M para o mapa.',
       'good'
     );
@@ -720,6 +740,7 @@ export class Game {
     this.player.money = saveState?.money ?? this.save.money ?? 2450;
     this.player.health = 100; this.player.armor = 40;
     this.rp = saveState?.rp || this.save.rp || { rep: 0, done: 0 };
+    this.waypoint = saveState?.waypoint || this.save.waypoint || null;
     this.setWanted(0, true);
     if (saveState?.x != null) {
       this.player.pos.set(saveState.x, 0, saveState.z);
@@ -1038,18 +1059,20 @@ export class Game {
   applySettings(s) {
     this.settings = { ...this.settings, ...s };
     const st = this.settings;
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    const scale = clamp((st.resScale ?? 100) / 100, 0.5, 1);
-    this.renderer.setPixelRatio(dpr * scale);
+    this._applyRenderScale();
     this.renderer.setSize(window.innerWidth, window.innerHeight, false);
     if (this.camera) {
       this.camera.aspect = window.innerWidth / window.innerHeight;
       this.camera.updateProjectionMatrix();
     }
     const shadows = st.shadows !== false;
+    const touchOn = this._touchEnabled();
+    const shadowSize = shadows ? (touchOn ? 1024 : 2048) : 512;
     this.renderer.shadowMap.enabled = shadows;
-    if (this.world.sunLight) this.world.sunLight.castShadow = shadows;
-    this.world.sunLight.shadow.mapSize.set(shadows ? 2048 : 512, shadows ? 2048 : 512);
+    if (this.world.sunLight) {
+      this.world.sunLight.castShadow = shadows;
+      this.world.sunLight.shadow.mapSize.set(shadowSize, shadowSize);
+    }
     if (this.world.scene.fog) {
       const base = (this.world.tod === 'night' ? 1050 : this.world.tod === 'day' ? 1900 : 1650);
       this.world.scene.fog.far = base * (0.55 + (st.distance ?? 80) / 100 * 0.45);
@@ -1060,11 +1083,6 @@ export class Game {
     document.body.classList.toggle('no-grain', st.grain === false);
     document.body.classList.toggle('high-contrast', !!st.contrast);
     document.documentElement.style.setProperty('--hud-scale', ((st.hudScale ?? 100) / 100).toString());
-    const touchOn = this._touchEnabled();
-    document.body.classList.toggle('touch-mode', touchOn);
-    const tc = $('touch-controls');
-    if (tc) tc.classList.toggle('hidden', !touchOn);
-    if (tc) tc.style.setProperty('--touch-scale', ((st.touchScale ?? 100) / 100).toString());
     const mm = $('minimap-wrap');
     if (mm) {
       const size = st.minimap === 'small' ? 142 : st.minimap === 'large' ? 218 : 184;
@@ -1073,6 +1091,14 @@ export class Game {
     $('fps-counter').classList.toggle('hidden', !st.showFps);
     this.audio.setVolumes(st);
     if (this.world.sunLight) this.world.sunLight.shadow.needsUpdate = true;
+    this._syncTouchMode();
+  }
+
+  _applyRenderScale() {
+    const cap = this._touchEnabled() ? 1.5 : 2;
+    const dpr = Math.min(window.devicePixelRatio || 1, cap);
+    const scale = clamp((this.settings.resScale ?? 100) / 100, 0.5, 1);
+    this.renderer.setPixelRatio(dpr * scale);
   }
 
   _touchEnabled() {
@@ -1082,19 +1108,34 @@ export class Game {
     return window.matchMedia('(pointer: coarse)').matches || window.innerWidth < 760;
   }
 
+  _syncTouchMode() {
+    const on = this._touchEnabled();
+    document.body.classList.toggle('touch-mode', on);
+    const menu = this.mode === 'attract';
+    document.body.classList.toggle('menu-mode', on && menu);
+    const tc = $('touch-controls');
+    const hud = $('hud');
+    const hudVisible = hud && !hud.classList.contains('hidden');
+    const visible = on && (menu || hudVisible);
+    if (tc) {
+      tc.classList.toggle('hidden', !visible);
+      tc.style.setProperty('--touch-scale', ((this.settings.touchScale ?? 100) / 100).toString());
+    }
+  }
+
   resize() {
     const w = window.innerWidth, h = window.innerHeight;
     this.renderer.setSize(w, h, false);
     this.camera.aspect = w / h;
     this.camera.updateProjectionMatrix();
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    const scale = clamp((this.settings.resScale ?? 100) / 100, 0.5, 1);
-    this.renderer.setPixelRatio(dpr * scale);
+    this._applyRenderScale();
+    // Re-evaluate touch layout on rotation and responsive resizes.
+    this._syncTouchMode();
   }
 
   showHUD() {
     $('hud').classList.remove('hidden');
-    if (this._touchEnabled()) $('touch-controls').classList.remove('hidden');
+    this._syncTouchMode();
     if (this._touchHint) this._touchHint.classList.remove('hide');
     this._updateCharHUD();
     this._updateMoneyHUD();
@@ -1102,7 +1143,8 @@ export class Game {
 
   hideHUD() {
     $('hud').classList.add('hidden');
-    $('touch-controls').classList.add('hidden');
+    if (this.mode === 'attract') this._syncTouchMode();
+    else $('touch-controls').classList.add('hidden');
   }
 
   notify(title, text, type = '') {
@@ -1122,10 +1164,14 @@ export class Game {
     if (grid) {
       if (this._touchEnabled()) {
         grid.innerHTML = `
-          <div><kbd>◀</kbd><b>Mover</b><small>Joystick virtual</small></div>
-          <div><kbd>○</kbd><b>Interagir</b><small>Veículos e pessoas</small></div>
-          <div><kbd>R2</kbd><b>Mirar &amp; atirar</b><small>Segure para atirar</small></div>
-          <div><kbd>▣</kbd><b>Mapa</b><small>Missões e distritos</small></div>`;
+          <div><kbd>◀</kbd><b>Mover</b><small>Analógico esquerdo (L3 troca o ombro)</small></div>
+          <div><kbd>R2</kbd><b>Atirar / Acelerar</b><small>Segure para atirar; no carro acelera</small></div>
+          <div><kbd>L2</kbd><b>Mirar / Frear</b><small>No carro, L1 olha para trás</small></div>
+          <div><kbd>○</kbd><b>Interagir / Sair</b><small>Entrar em veículos e falar</small></div>
+          <div><kbd>△</kbd><b>Personagem</b><small>Troca Luiza e Carlos</small></div>
+          <div><kbd>▭</kbd><b>Touchpad / Mapa</b><small>Toque no mapa para marcar um ponto</small></div>
+          <div><kbd>▽</kbd><b>Recarregar / Buzina</b><small>D-pad para baixo</small></div>
+          <div><kbd>R3</kbd><b>Câmera</b><small>Centraliza a visão</small></div>`;
       } else {
         grid.innerHTML = `
           <div><kbd>WASD</kbd><b>Mover</b><small>Shift para correr</small></div>
@@ -1153,6 +1199,7 @@ export class Game {
       armor: p ? p.armor : 40, completed: [...this.completed],
       rp: this.rp || this.save.rp || { rep: 0, done: 0 },
       clock: this.clockMinutes, playtime: this.playtime,
+      waypoint: this.waypoint || null,
       updated: Date.now()
     };
   }
@@ -1195,6 +1242,12 @@ export class Game {
       if (e.code === 'Tab') { e.preventDefault(); this.openSwitch(); return; }
       if (this.paused) return;
       if (this.cutscene) return;
+      const touchPulse = {
+        KeyE: 'interact', KeyF: 'melee', Space: 'jump', KeyR: 'dpad-down',
+        KeyM: 'touchpad', Tab: 'switch', Digit1: 'dpad-left', Digit2: 'dpad-right',
+        ShiftLeft: 'sprint', ShiftRight: 'sprint'
+      };
+      if (this._touchEnabled() && touchPulse[e.code]) this._pulseTouch(touchPulse[e.code]);
       if (e.code === 'KeyE') this._interact();
       if (e.code === 'KeyF') this._melee();
       if (e.code === 'Space') { e.preventDefault(); this._jump(); }
@@ -1361,6 +1414,12 @@ export class Game {
           if (driving) { this.input.boost = true; this._haptic(10); return; }
           this.input.sprint = true; this._haptic(6); return;
         }
+        if (action === 'dodge') {
+          if (driving) this.input.lookBack = true;
+          else this._dodge();
+          this._haptic(8);
+          return;
+        }
         if (action === 'interact') { this._interact(); this._haptic(8); }
         if (action === 'melee') {
           if (driving) { this.audio.play('horn'); this._haptic(10); return; }
@@ -1371,6 +1430,23 @@ export class Game {
           this._jump(); this._haptic(8);
         }
         if (action === 'switch') { this.openSwitch(); this._haptic(8); }
+        if (action === 'l3') { this._shoulderSwap(); this._haptic(6); return; }
+        if (action === 'r3') { this._resetCamera(); this._haptic(6); return; }
+        if (action === 'dpad-up') { this._quickMissions(); this._haptic(8); return; }
+        if (action === 'dpad-down') {
+          if (driving) this.audio.play('horn');
+          else this._reload();
+          this._haptic(8);
+          return;
+        }
+        if (action === 'dpad-left') { this._switchTo('luiza'); this._haptic(8); return; }
+        if (action === 'dpad-right') { this._switchTo('carlos'); this._haptic(8); return; }
+        if (action === 'dpad-center') { this.openMap(); this._haptic(8); return; }
+        if (action === 'create') { this._toggleTutorial(); this._haptic(6); return; }
+        if (action === 'options') { this._openSettings(); this._haptic(6); return; }
+        if (action === 'ps') { this.togglePause(true); this._haptic(8); return; }
+        if (action === 'touchpad') { this.openMap(); this._haptic(8); return; }
+        if (action === 'hud') { this._toggleTouchHud(); this._haptic(6); return; }
       });
       const release = () => {
         btn.classList.remove('pressed');
@@ -1378,6 +1454,7 @@ export class Game {
         if (action === 'shoot') { stopFire(); this.input.aim = false; this.input.throttle = false; }
         if (action === 'sprint') { this.input.sprint = false; this.input.boost = false; }
         if (action === 'jump') this.input.handbrake = false;
+        if (action === 'dodge') this.input.lookBack = false;
       };
       btn.addEventListener('pointerup', release);
       btn.addEventListener('pointercancel', release);
@@ -1429,8 +1506,6 @@ export class Game {
     if (expand) expand.addEventListener('click', () => this.openMap());
     const tMap = $('tbtn-map');
     if (tMap) tMap.addEventListener('click', () => this.openMap());
-    const tPause = $('tbtn-pause');
-    if (tPause) tPause.addEventListener('click', () => this.togglePause(true));
 
     const zoomIn = $('map-zoom-in'), zoomOut = $('map-zoom-out');
     if (zoomIn) zoomIn.addEventListener('click', () => this._zoomMap(1.25));
@@ -1448,11 +1523,13 @@ export class Game {
       mapWrap.addEventListener('pointerdown', (e) => {
         if (!this.mapOpen) return;
         this.touch.mapId = e.pointerId; this.touch.mapX = e.clientX; this.touch.mapY = e.clientY;
+        this.touch.mapMoved = 0;
         try { mapWrap.setPointerCapture(e.pointerId); } catch (_) {}
       });
       mapWrap.addEventListener('pointermove', (e) => {
         if (this.touch.mapId !== e.pointerId || !this.mapOpen) return;
         const dx = e.clientX - this.touch.mapX, dy = e.clientY - this.touch.mapY;
+        this.touch.mapMoved = (this.touch.mapMoved || 0) + Math.abs(dx) + Math.abs(dy);
         this.touch.mapX = e.clientX; this.touch.mapY = e.clientY;
         const scale = 2000 / (this.mapView.zoom * 1200);
         this.mapView.x -= dx * scale;
@@ -1461,7 +1538,11 @@ export class Game {
         this.mapView.z = clamp(this.mapView.z, -1000, 1000);
         this.drawFullMap();
       });
-      mapWrap.addEventListener('pointerup', (e) => { if (this.touch.mapId === e.pointerId) this.touch.mapId = null; });
+      mapWrap.addEventListener('pointerup', (e) => {
+        if (this.touch.mapId !== e.pointerId) return;
+        this.touch.mapId = null;
+        if ((this.touch.mapMoved || 0) < 7) this._setWaypointFromScreen(e.clientX, e.clientY);
+      });
       mapWrap.addEventListener('pointercancel', () => { this.touch.mapId = null; });
       mapWrap.addEventListener('wheel', (e) => {
         if (!this.mapOpen) return;
@@ -1469,6 +1550,17 @@ export class Game {
         this._zoomMap(e.deltaY < 0 ? 1.12 : 0.89);
       }, { passive: false });
     }
+
+    const wpClear = $('map-wp-clear');
+    if (wpClear) wpClear.addEventListener('click', () => this._clearWaypoint());
+    const mapTouchClear = $('map-touch-clear');
+    if (mapTouchClear) mapTouchClear.addEventListener('click', () => this._clearWaypoint());
+    const mapTouchIn = $('map-touch-in');
+    if (mapTouchIn) mapTouchIn.addEventListener('click', () => this._zoomMap(1.25));
+    const mapTouchOut = $('map-touch-out');
+    if (mapTouchOut) mapTouchOut.addEventListener('click', () => this._zoomMap(0.8));
+    const mapTouchClose = $('map-touch-close');
+    if (mapTouchClose) mapTouchClose.addEventListener('click', () => this.closeMap());
 
     document.querySelectorAll('.switch-card').forEach((card) => {
       card.addEventListener('click', () => {
@@ -1591,7 +1683,7 @@ export class Game {
     const p = this.player;
     if (!p) return;
     const v = p.inVehicle;
-    const target = new THREE.Vector3();
+    const target = this._camTarget;
     let baseYaw = this._camYaw;
 
     if (v) {
@@ -1609,21 +1701,23 @@ export class Game {
     if (this.input.aim) this._camDist += (3.2 - this._camDist) * Math.min(1, dt * 7);
 
     baseYaw = this._camYaw;
-    const fwd = new THREE.Vector3(Math.sin(baseYaw), 0, Math.cos(baseYaw));
-    const right = new THREE.Vector3(Math.cos(baseYaw), 0, -Math.sin(baseYaw));
+    if (this.input.lookBack && v) baseYaw += Math.PI;
+    const fwd = this._camFwd.set(Math.sin(baseYaw), 0, Math.cos(baseYaw));
+    const right = this._camRight.set(Math.cos(baseYaw), 0, -Math.sin(baseYaw));
     const horiz = Math.cos(this._camPitch) * this._camDist;
-    const desired = new THREE.Vector3(
+    const desired = this._camDesired.set(
       target.x - fwd.x * horiz,
       target.y + 0.55 + Math.sin(this._camPitch) * this._camDist,
       target.z - fwd.z * horiz
     );
-    desired.addScaledVector(right, p.aim || this.input.aim ? 0.95 : 0.72);
+    const aiming = !!(p.aim || this.input.aim);
+    desired.addScaledVector(right, (aiming ? 0.95 : 0.72) * this._camSide);
     const safe = this.world.cameraCollision(target, desired);
     if (snap) this.camera.position.copy(safe);
     else this.camera.position.lerp(safe, Math.min(1, dt * 9));
 
-    const look = target.clone().addScaledVector(right, p.aim || this.input.aim ? 0.5 : 0.35);
-    if (p.aim || this.input.aim) look.addScaledVector(fwd, 7).add(new THREE.Vector3(0, 0.18, 0));
+    const look = this._camLook.copy(target).addScaledVector(right, (aiming ? 0.5 : 0.35) * this._camSide);
+    if (aiming) { look.addScaledVector(fwd, 7); look.y += 0.18; }
     else look.addScaledVector(fwd, 2.1);
 
     if (this._camShake > 0.001) {
@@ -1651,6 +1745,84 @@ export class Game {
     this.audio.play('ui');
   }
 
+  _dodge() {
+    const p = this.player;
+    if (!p || p.inVehicle || p.dead || this.dialogueActive) return;
+    if ((p.dodgeCooldown || 0) > 0 || p.stamina < 10) return;
+    const axes = this._moveAxes();
+    let dx, dz;
+    if (axes.len > 0.1) {
+      const cy = this._camYaw;
+      dx = Math.sin(cy) * axes.y + Math.cos(cy) * axes.x;
+      dz = Math.cos(cy) * axes.y - Math.sin(cy) * axes.x;
+      const len = Math.hypot(dx, dz) || 1;
+      dx /= len; dz /= len;
+    } else {
+      dx = Math.sin(p.yaw); dz = Math.cos(p.yaw);
+    }
+    p.dodgeX = dx; p.dodgeZ = dz;
+    p.dodgeTime = 0.3; p.dodgeCooldown = 0.9;
+    p.stamina = Math.max(0, p.stamina - 10);
+    this.audio.play('ui');
+  }
+
+  _shoulderSwap() {
+    if (!this.player) return;
+    this._camSide = this._camSide === 1 ? -1 : 1;
+    this._lastLookAt = performance.now();
+    this.audio.play('ui');
+  }
+
+  _resetCamera() {
+    if (!this.player) return;
+    this._camSide = 1;
+    this._snapCamera();
+    this.audio.play('ui');
+  }
+
+  _quickMissions() {
+    if (this.mode === 'attract' || this.dialogueActive || this.mapOpen || this.resultOpen) return;
+    if (!this.paused) this.togglePause(true);
+    if (this.callbacks.onOpenMissions) this.callbacks.onOpenMissions();
+  }
+
+  _openSettings() {
+    if (this.mode === 'attract' || this.dialogueActive || this.mapOpen || this.resultOpen) return;
+    if (!this.paused) this.togglePause(true);
+    if (this.callbacks.onOpenSettings) this.callbacks.onOpenSettings();
+  }
+
+  _toggleTutorial() {
+    if (this.mode === 'attract') return;
+    this._showTutorial();
+  }
+
+  _toggleTouchHud() {
+    const tc = $('touch-controls');
+    if (!tc) return;
+    const collapsed = tc.classList.toggle('touch-collapsed');
+    const btn = $('tbtn-hud');
+    if (btn) {
+      btn.title = collapsed ? 'Mostrar controles' : 'Recolher controles';
+      btn.setAttribute('aria-label', btn.title);
+    }
+    if (this.mode !== 'attract') {
+      this.notify(
+        collapsed ? 'CONTROLES RECOLHIDOS' : 'CONTROLES RESTAURADOS',
+        collapsed ? 'Toque em ◱ para mostrar novamente.' : 'HUD virtual completo ativo.',
+        'good'
+      );
+    }
+  }
+
+  _pulseTouch(action) {
+    const btn = document.querySelector('[data-touch="' + action + '"]');
+    if (!btn) return;
+    btn.classList.add('pressed');
+    clearTimeout(btn._pulseTO);
+    btn._pulseTO = setTimeout(() => btn.classList.remove('pressed'), 140);
+  }
+
   _moveAxes() {
     let x = (this.keys.KeyD || this.keys.ArrowRight ? 1 : 0) - (this.keys.KeyA || this.keys.ArrowLeft ? 1 : 0);
     let y = (this.keys.KeyW || this.keys.ArrowUp ? 1 : 0) - (this.keys.KeyS || this.keys.ArrowDown ? 1 : 0);
@@ -1668,6 +1840,8 @@ export class Game {
     p.meleeCooldown = Math.max(0, p.meleeCooldown - dt);
     p.meleeTime = Math.max(0, p.meleeTime - dt);
     p.interactCooldown = Math.max(0, p.interactCooldown - dt);
+    p.dodgeCooldown = Math.max(0, (p.dodgeCooldown || 0) - dt);
+    p.dodgeTime = Math.max(0, (p.dodgeTime || 0) - dt);
     if (p.reloading > 0) {
       p.reloading -= dt;
       if (p.reloading <= 0) {
@@ -1713,7 +1887,13 @@ export class Game {
     if (p.sprinting && p.stamina <= 0) speed = 4.0;
 
     let dx = 0, dz = 0;
-    if (moving) {
+    const dodging = p.dodgeTime > 0;
+    if (dodging) {
+      dx = p.dodgeX || Math.sin(p.yaw);
+      dz = p.dodgeZ || Math.cos(p.yaw);
+      speed = 12.5;
+      p.yaw = Math.atan2(dx, dz);
+    } else if (moving) {
       const cy = this._camYaw;
       const fx = Math.sin(cy), fz = Math.cos(cy);
       const rx = Math.cos(cy), rz = -Math.sin(cy);
@@ -1741,7 +1921,7 @@ export class Game {
       const targetY = WATER_LEVEL - 0.72;
       p.pos.y += (targetY - p.pos.y) * Math.min(1, dt * 6);
       p.vy = 0; p.onGround = true;
-      if (moving && Math.random() < dt * 6) this.audio.play('splash');
+      if ((moving || dodging) && Math.random() < dt * 6) this.audio.play('splash');
     } else {
       if (!p.onGround) {
         p.vy -= 17 * dt;
@@ -1757,7 +1937,7 @@ export class Game {
     p.model.group.rotation.y = p.yaw;
     if (p.shadow) p.shadow.position.set(p.pos.x, Math.max(0.02, gh + 0.02), p.pos.z);
     const animState = p.meleeTime > 0 ? 'shoot' : p.aim ? 'aim' : 'idle';
-    p.model.update(dt, moving ? speed : 0, animState);
+    p.model.update(dt, moving || dodging ? speed : 0, animState);
     if (p.aim && p.model.parts.armR) p.model.parts.armR.rotation.x = -1.5;
 
     // Auto interaction prompts
@@ -1890,6 +2070,7 @@ export class Game {
     this.input.handbrake = false;
     this.input.boost = false;
     this.input.aim = false;
+    this.input.lookBack = false;
     this._updateTouchLabels();
     const ip = $('interact-prompt'); if (ip) ip.classList.add('hidden');
     p.model.group.visible = false;
@@ -1914,6 +2095,7 @@ export class Game {
     this.input.handbrake = false;
     this.input.boost = false;
     this.input.aim = false;
+    this.input.lookBack = false;
     this._updateTouchLabels();
     const side = new THREE.Vector3(Math.cos(v.angle), 0, -Math.sin(v.angle)).multiplyScalar(2.4);
     let x = v.pos.x + side.x, z = v.pos.z + side.z;
@@ -3142,30 +3324,54 @@ export class Game {
     const ctx = $('mh-context');
     if (!ctx) return;
     const veh = p.inVehicle;
-    ctx.classList.toggle('vehicle', !!veh);
+    const driving = !!veh;
+    if (driving !== this._mhDriving) {
+      this._mhDriving = driving;
+      ctx.classList.toggle('vehicle', driving);
+      this._updateTouchLabels();
+    }
 
-    const ma = $('mh-ammo'); if (ma) ma.textContent = p.weapon.mag;
-    const mr = $('mh-reserve'); if (mr) mr.textContent = p.weapon.reserve;
+    if (this._mhMag !== p.weapon.mag) {
+      this._mhMag = p.weapon.mag;
+      const ma = $('mh-ammo'); if (ma) ma.textContent = p.weapon.mag;
+    }
+    if (this._mhReserve !== p.weapon.reserve) {
+      this._mhReserve = p.weapon.reserve;
+      const mr = $('mh-reserve'); if (mr) mr.textContent = p.weapon.reserve;
+    }
 
     if (veh) {
       const kmh = Math.round(Math.abs(veh.speed) * 3.6);
-      const sv = $('mh-speed-val'); if (sv) sv.textContent = kmh;
-      const arc = $('mh-speed-arc');
-      if (arc) arc.style.strokeDashoffset = String(207 - clamp(kmh / 220, 0, 1) * 207);
-      const vn = $('mh-vehicle-name'); if (vn) vn.textContent = veh.name;
-      const gear = $('mh-gear');
-      if (gear) gear.textContent = veh.speed < -0.5 ? 'R' : veh.speed < 0.5 ? 'N' : 'D';
-    } else {
-      const wn = $('mh-weapon-name'); if (wn) wn.textContent = 'PISTOLA MATTEO .40';
+      if (this._mhKmh !== kmh) {
+        this._mhKmh = kmh;
+        const sv = $('mh-speed-val'); if (sv) sv.textContent = kmh;
+        const arc = $('mh-speed-arc');
+        if (arc) arc.style.strokeDashoffset = String(207 - clamp(kmh / 220, 0, 1) * 207);
+      }
+      if (this._mhVehicleName !== veh.name) {
+        this._mhVehicleName = veh.name;
+        const vn = $('mh-vehicle-name'); if (vn) vn.textContent = veh.name;
+      }
+      const gear = veh.speed < -0.5 ? 'R' : veh.speed < 0.5 ? 'N' : 'D';
+      if (this._mhGear !== gear) {
+        this._mhGear = gear;
+        const g = $('mh-gear'); if (g) g.textContent = gear;
+      }
+    } else if (this._mhWeaponName !== 'PISTOLA MATTEO .40') {
+      this._mhWeaponName = 'PISTOLA MATTEO .40';
+      const wn = $('mh-weapon-name'); if (wn) wn.textContent = this._mhWeaponName;
     }
 
-    const driving = !!veh;
-    if (driving !== this._mobileDriving) {
-      this._mobileDriving = driving;
-      this._updateTouchLabels();
+    const low = p.health <= 30 && !p.dead;
+    if (low !== this._mhLow) {
+      this._mhLow = low;
+      document.body.classList.toggle('low-health', low);
     }
-    document.body.classList.toggle('low-health', p.health <= 30 && !p.dead);
-    document.body.classList.toggle('high-wanted', (this.wanted || 0) >= 3);
+    const wantedHigh = (this.wanted || 0) >= 3;
+    if (wantedHigh !== this._mhWantedHigh) {
+      this._mhWantedHigh = wantedHigh;
+      document.body.classList.toggle('high-wanted', wantedHigh);
+    }
   }
 
   _updateHUD(dt) {
@@ -3410,6 +3616,23 @@ export class Game {
       star(this._objectivePos.x, this._objectivePos.z, '#ffc46b', 7);
     }
 
+    // Custom waypoint: dashed route and cyan diamond, clamped to the rim.
+    if (this.waypoint) {
+      const target = toScreen(this.waypoint.x, this.waypoint.z);
+      const edge = clampToRing(target, 10);
+      ctx.save();
+      ctx.setLineDash([6, 6]);
+      ctx.lineDashOffset = -t * 18;
+      ctx.strokeStyle = 'rgba(46,230,200,.9)';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath(); ctx.moveTo(half, half); ctx.lineTo(edge.x, edge.y); ctx.stroke();
+      ctx.restore();
+      const pulse = 4 + Math.sin(t * 3.4) * 1.4;
+      ctx.beginPath(); ctx.arc(edge.x, edge.y, pulse + 6, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(46,230,200,.45)'; ctx.lineWidth = 2; ctx.stroke();
+      diamond(this.waypoint.x, this.waypoint.z, '#2ee6c8', 6);
+    }
+
     for (const m of this.markers) {
       if (m.userData.kind === 'mission') star(m.position.x, m.position.z, '#ffd27a', 6);
       if (m.userData.kind === 'rp') diamond(m.position.x, m.position.z, '#2ee6c8', 5);
@@ -3479,6 +3702,44 @@ export class Game {
     this.drawFullMap();
   }
 
+  _setWaypointFromScreen(clientX, clientY) {
+    const cv = $('fullmap');
+    if (!cv || !this.mapView) return;
+    const rect = cv.getBoundingClientRect();
+    if (!rect.width || !rect.height) return;
+    const u = clamp((clientX - rect.left) / rect.width, 0, 1);
+    const v = clamp((clientY - rect.top) / rect.height, 0, 1);
+    const W = cv.width, H = cv.height;
+    const z = this.mapView.zoom;
+    const px = (this.mapView.x + 1000) / 2000 * W;
+    const pz = (this.mapView.z + 1000) / 2000 * H;
+    const mx = (u * W - W / 2) / z + px;
+    const my = (v * H - H / 2) / z + pz;
+    const wx = mx / W * 2000 - 1000;
+    const wz = my / H * 2000 - 1000;
+    this.waypoint = {
+      x: clamp(wx, -980, 1520),
+      z: clamp(wz, -980, 980)
+    };
+    this.drawFullMap();
+    this._autosave();
+    this.audio.play('ui');
+    this.notify('PONTO MARCADO', 'Rota criada até o ponto no mapa. Toque em LIMPAR para remover.', 'good');
+  }
+
+  _clearWaypoint() {
+    if (!this.waypoint) return;
+    this.waypoint = null;
+    this.drawFullMap();
+    this._autosave();
+    this.audio.play('ui-back');
+  }
+
+  _waypointDistance() {
+    if (!this.waypoint || !this.player) return 0;
+    return Math.hypot(this.waypoint.x - this.player.pos.x, this.waypoint.z - this.player.pos.z);
+  }
+
   drawFullMap() {
     const cv = $('fullmap');
     const p = this.player;
@@ -3518,6 +3779,31 @@ export class Game {
       ctx.restore();
     }
 
+    // Custom waypoint route and marker.
+    if (this.waypoint) {
+      const b = worldToMap(this.waypoint.x, this.waypoint.z);
+      if (p) {
+        const a = worldToMap(p.pos.x, p.pos.z);
+        ctx.save();
+        ctx.setLineDash([14, 10]);
+        ctx.lineDashOffset = -performance.now() / 42;
+        ctx.strokeStyle = 'rgba(46,230,200,.92)';
+        ctx.lineWidth = 6;
+        ctx.lineCap = 'round';
+        ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+        ctx.restore();
+      }
+      const pulse = 11 + Math.sin(performance.now() / 260) * 3;
+      ctx.beginPath(); ctx.arc(b.x, b.y, pulse + 8, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(46,230,200,.5)'; ctx.lineWidth = 3; ctx.stroke();
+      ctx.save();
+      ctx.translate(b.x, b.y); ctx.rotate(Math.PI / 4);
+      ctx.fillStyle = '#2ee6c8';
+      ctx.fillRect(-10, -10, 20, 20);
+      ctx.strokeStyle = '#062026'; ctx.lineWidth = 3; ctx.strokeRect(-10, -10, 20, 20);
+      ctx.restore();
+    }
+
     for (const m of this.markers) {
       if (m.userData.kind === 'mission') dot(m.position.x, m.position.z, '#ffd27a', 9);
       if (m.userData.kind === 'rp') dot(m.position.x, m.position.z, '#2ee6c8', 7);
@@ -3544,6 +3830,13 @@ export class Game {
     }
     const zl = $('map-zoom-level');
     if (zl) zl.textContent = z.toFixed(1) + '×';
+    const wp = $('map-wp');
+    const wpClear = $('map-wp-clear');
+    if (wp) {
+      wp.hidden = !this.waypoint;
+      if (this.waypoint) wp.textContent = 'PONTO • ' + Math.round(this._waypointDistance()) + ' m';
+    }
+    if (wpClear) wpClear.classList.toggle('hidden', !this.waypoint);
     this._updateMapMissions();
   }
 
@@ -3574,7 +3867,7 @@ export class Game {
     if (el) el.classList.toggle('hidden', !want);
     if (want) {
       if (this._touchFireTimer) { clearInterval(this._touchFireTimer); this._touchFireTimer = null; }
-      this.input.aim = false; this.input.sprint = false;
+      this.input.aim = false; this.input.sprint = false; this.input.lookBack = false;
       this._populatePause();
       document.exitPointerLock && document.exitPointerLock();
       this.audio.play('ui-back');

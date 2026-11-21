@@ -167,6 +167,7 @@
           <button class="nav-item" data-menu="rp"><span class="nav-ico">◈</span><span class="nav-label"><b>Roleplay</b><small>Viva Santo Matteo do seu jeito</small></span><span class="nav-glyph">RP</span></button>
           <button class="nav-item" id="nav-continue" data-menu="continue"><span class="nav-ico">⏵</span><span class="nav-label"><b>Continuar</b><small id="continue-sub">Nenhum jogo salvo</small></span><span class="nav-glyph"><svg><use href="#glyph-cross"/></svg></span></button>
           <div class="nav-row">
+            <button class="nav-item compact" data-menu="minicraft"><span class="nav-ico">▦</span><span class="nav-label"><b>Minicraft</b><small>Novo jogo voxel</small></span></button>
             <button class="nav-item compact" data-menu="download"><span class="nav-ico">⤓</span><span class="nav-label"><b>Instalar / Baixar</b><small>Launcher Matteo 5</small></span></button>
             <button class="nav-item compact" data-menu="settings"><span class="nav-ico">⚙</span><span class="nav-label"><b>Definições</b><small>Gráficos &amp; controles</small></span></button>
             <button class="nav-item compact" data-menu="credits"><span class="nav-ico">✦</span><span class="nav-label"><b>Créditos</b><small>Projeto original</small></span></button>
@@ -347,31 +348,61 @@
       </div>
     </div>
 
-    <div class="touch-controls hidden" id="touch-controls">
-      <div class="touch-brand">MATTEO 5 <span>PS5 VIRTUAL</span></div>
+  </div>
+
+  <div class="touch-controls hidden" id="touch-controls" aria-label="Controle virtual PlayStation 5">
+      <div class="touch-brand">MATTEO 5 <span>DUALSENSE VIRTUAL</span></div>
       <div class="touch-look-hint" id="touch-look-hint"><span>↔</span> ARRASTE PARA OLHAR</div>
       <div class="touch-top">
-        <button class="touch-mini" id="tbtn-map"><svg><use href="#icon-map"/></svg></button>
-        <button class="touch-mini" id="tbtn-pause"><svg><use href="#icon-pause"/></svg></button>
+        <div class="touch-status" aria-hidden="true"><i class="ts-led"></i><b>P1</b><span class="ts-batt"><i></i></span></div>
+        <button class="touch-mini" id="tbtn-create" data-touch="create" title="Criar / Ajuda e controles" aria-label="Criar / Ajuda e controles"><span class="mini-glyph">≡</span></button>
+        <button class="touch-mini" id="tbtn-map" title="Mapa" aria-label="Mapa"><svg><use href="#icon-map"/></svg></button>
+        <button class="touch-mini" id="tbtn-options" data-touch="options" title="Opções / Definições" aria-label="Opções / Definições"><span class="mini-glyph">☰</span></button>
+        <button class="touch-mini" id="tbtn-hud" data-touch="hud" title="Recolher controles" aria-label="Recolher controles"><span class="mini-glyph">◱</span></button>
+        <button class="touch-mini ps-home" id="tbtn-ps" data-touch="ps" title="Menu de pausa" aria-label="Menu de pausa"><span class="ps-mark">PS</span></button>
       </div>
-      <div class="joystick" id="joystick"><div class="stick-base"></div><div class="stick-knob" id="stick-knob"></div><span class="stick-label">MOVER</span></div>
+
+      <div class="touch-shoulders-left" aria-label="Gatilhos esquerdos">
+        <button class="tbtn shoulder l1" data-touch="dodge" data-label="ROLAR" data-label-vehicle="OLHAR"><span>L1</span><small>ROLAR</small></button>
+        <button class="tbtn shoulder l2" data-touch="aim" data-label="MIRAR" data-label-vehicle="FREIO"><span>L2</span><small>MIRAR</small></button>
+      </div>
+
+      <div class="joystick" id="joystick">
+        <div class="stick-base"></div><div class="stick-knob" id="stick-knob"></div>
+        <button class="stick-click" id="tbtn-l3" data-touch="l3" data-label="OMBRO" data-label-vehicle="OMBRO" title="Trocar ombro da câmera" aria-label="Trocar ombro da câmera"><span>L3</span></button>
+        <span class="stick-label">MOVER</span>
+      </div>
+
+      <div class="touch-dpad" id="touch-dpad" aria-label="Direcional">
+        <button class="dpad-btn up" data-touch="dpad-up" data-label="MISSÕES" data-label-vehicle="MISSÕES" title="Missões" aria-label="Missões">▲<small>MISSÕES</small></button>
+        <button class="dpad-btn left" data-touch="dpad-left" data-label="LUIZA" data-label-vehicle="LUIZA" title="Jogar como Luiza" aria-label="Jogar como Luiza">◀<small>LUIZA</small></button>
+        <button class="dpad-btn center" data-touch="dpad-center" data-label="MAPA" data-label-vehicle="MAPA" title="Abrir mapa" aria-label="Abrir mapa">▭<small>MAPA</small></button>
+        <button class="dpad-btn right" data-touch="dpad-right" data-label="CARLOS" data-label-vehicle="CARLOS" title="Jogar como Carlos" aria-label="Jogar como Carlos">▶<small>CARLOS</small></button>
+        <button class="dpad-btn down" data-touch="dpad-down" data-label="RECARREGAR" data-label-vehicle="BUZINA" title="Recarregar" aria-label="Recarregar">▼<small>RECARREGAR</small></button>
+      </div>
+
       <div class="touch-actions" id="touch-actions">
+        <button class="tbtn shoulder r2" data-touch="shoot" data-label="ATIRAR" data-label-vehicle="ACELERAR"><span>R2</span><small>ATIRAR</small></button>
+        <button class="tbtn shoulder r1" data-touch="sprint" data-label="CORRER" data-label-vehicle="TURBO"><span>R1</span><small>CORRER</small></button>
         <button class="tbtn glyph-tri ps-tri" data-touch="switch" data-label="PERSONAGEM" data-label-vehicle="PERSONAGEM"><svg><use href="#glyph-triangle"/></svg><small>PERSONAGEM</small></button>
         <button class="tbtn glyph-cir ps-cir" data-touch="interact" data-label="INTERAGIR" data-label-vehicle="SAIR"><svg><use href="#glyph-circle"/></svg><small>INTERAGIR</small></button>
         <button class="tbtn glyph-sq ps-sq" data-touch="melee" data-label="ATACAR" data-label-vehicle="BUZINA"><svg><use href="#glyph-square"/></svg><small>ATACAR</small></button>
         <button class="tbtn glyph-cr ps-cr" data-touch="jump" data-label="PULAR" data-label-vehicle="FREIO MÃO"><svg><use href="#glyph-cross"/></svg><small>PULAR</small></button>
-        <button class="tbtn shoulder l2" data-touch="aim" data-label="MIRAR" data-label-vehicle="FREIO"><span>L2</span><small>MIRAR</small></button>
-        <button class="tbtn shoulder r2" data-touch="shoot" data-label="ATIRAR" data-label-vehicle="ACELERAR"><span>R2</span><small>ATIRAR</small></button>
-        <button class="tbtn shoulder r1" data-touch="sprint" data-label="CORRER" data-label-vehicle="TURBO"><span>R1</span><small>CORRER</small></button>
+        <button class="tbtn stick-click r3" data-touch="r3" data-label="CÂMERA" data-label-vehicle="CÂMERA" title="Centralizar câmera" aria-label="Centralizar câmera"><span>R3</span><small>CÂMERA</small></button>
       </div>
+
+      <button class="touch-touchpad" id="tbtn-touchpad" data-touch="touchpad" data-label="MAPA" data-label-vehicle="MAPA" title="Touchpad — abrir mapa" aria-label="Touchpad — abrir mapa">
+        <span>TOUCHPAD</span><small>MAPA</small>
+      </button>
     </div>
-  </div>
 
   <!-- ============ FULL MAP ============ -->
   <section id="map-overlay" class="overlay map-overlay hidden">
     <header class="overlay-head">
       <div><small>MATTEO 5 // SISTEMA DE NAVEGAÇÃO</small><h2>MAPA DE SANTO MATTEO</h2></div>
       <div class="map-head-actions">
+        <span class="map-wp" id="map-wp" hidden>PONTO • 0 m</span>
+        <button class="pill wp-clear hidden" id="map-wp-clear" title="Limpar ponto marcado">⌖ LIMPAR</button>
         <span class="map-zoom-level" id="map-zoom-level">1.0×</span>
         <button class="pill" id="map-zoom-out">−</button><button class="pill" id="map-zoom-in">+</button>
         <button class="icon-btn close-overlay" data-close="map-overlay"><svg><use href="#icon-close"/></svg></button>
@@ -404,8 +435,13 @@
           <button data-district="parque">Parque Aurora</button>
         </div>
         <div class="map-missions" id="map-missions"></div>
-        <div class="map-foot">Arraste para explorar • Role para zoom • <kbd>M</kbd> fechar</div>
+        <div class="map-foot">Toque ou clique no mapa para marcar um ponto • Arraste para explorar • Role para zoom • <kbd>M</kbd> fechar</div>
       </aside>
+    </div>
+    <div class="map-touch" id="map-touch">
+      <button id="map-touch-clear">⌖ LIMPAR PONTO</button>
+      <div class="map-touch-zoom"><button id="map-touch-out">−</button><button id="map-touch-in">+</button></div>
+      <button id="map-touch-close">✕ FECHAR MAPA</button>
     </div>
   </section>
 

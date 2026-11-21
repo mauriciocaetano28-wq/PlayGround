@@ -110,7 +110,9 @@ function initGame() {
           const note = $('pause-save-state');
           if (note) note.innerHTML = 'Salvo automaticamente • <span>agora mesmo</span>';
         },
-        onOpenRP: () => openRPModal()
+        onOpenRP: () => openRPModal(),
+        onOpenMissions: () => openMissionsModal(),
+        onOpenSettings: () => openOverlay('settings-modal')
       }
     });
     game.applySettings(settings);
@@ -239,6 +241,7 @@ function openCharSelect(mode) {
 function openMissionsModal() {
   const list = $('missions-list');
   if (!list || !game) return;
+  if (game.mode !== 'attract' && !game.paused && !game.mapOpen && !game.dialogueActive) game.togglePause(true);
   list.innerHTML = '';
   const completed = new Set((save && save.completed) || []);
   MISSIONS.forEach((m, i) => {
@@ -273,7 +276,7 @@ function openMissionsModal() {
 /* ---------- RP ---------- */
 function openRPModal() {
   if (!game) return;
-  if (game.paused) game.togglePause(false);
+  if (game.mode !== 'attract' && !game.paused && !game.mapOpen && !game.dialogueActive) game.togglePause(true);
   renderRPJobs();
   updateRPPanel();
   openOverlay('rp-modal');
@@ -523,6 +526,7 @@ function bindMenu() {
       if (action === 'play') openCharSelect('story');
       else if (action === 'rp') openCharSelect('rp');
       else if (action === 'continue') continueGame();
+      else if (action === 'minicraft') window.location.href = './minicraft.html?from=gta';
       else if (action === 'download') openOverlay('download-modal');
       else if (action === 'settings') openOverlay('settings-modal');
       else if (action === 'credits') openOverlay('credits-modal');
