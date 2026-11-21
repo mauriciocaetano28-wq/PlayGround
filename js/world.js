@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 
 /* ============================================================
-   GTA 6 BR — Santo Matteo world builder
+   GTA 7 BR — São Paulo world builder
    Original procedural coastal city. No external game assets.
    ============================================================ */
 
@@ -13,31 +13,31 @@ export const ROADS_X = [-840, -700, -560, -420, -280, -140, 0, 140, 280, 420, 56
 export const ROADS_Z = [-840, -700, -560, -420, -280, -140, 0, 140, 280, 420, 560, 700];
 
 export const LANDMARKS = {
-  spawn:      { x: 580, z: 24, name: 'Orla de Matteo' },
-  kiosk:      { x: 596, z: 120, name: 'Quiosque da Orla' },
-  pier:       { x: 782, z: 146, name: 'Píer do Sol' },
-  marina:     { x: 748, z: 10, name: 'Marina Maré' },
-  port:       { x: -210, z: 560, name: 'Porto Velho' },
-  favela:     { x: -560, z: -280, name: 'Morro da Lua' },
-  casino:     { x: 0, z: 280, name: 'Cassino Aurora' },
-  warehouse:  { x: -280, z: 420, name: 'Galpão 12' },
-  safehouse:  { x: 500, z: -140, name: 'Casa da Orla' },
-  monument:   { x: -840, z: 0, name: 'Mirante do Sol' },
-  hospital:   { x: 140, z: -700, name: 'Hospital Maré' },
+  spawn:      { x: 580, z: 24, name: 'Avenida Paulista' },
+  kiosk:      { x: 596, z: 120, name: 'Quiosque Paulista' },
+  pier:       { x: 782, z: 146, name: 'Pinheiros' },
+  marina:     { x: 748, z: 10, name: 'Marina Paulista' },
+  port:       { x: -210, z: 560, name: 'Porto de Santos' },
+  favela:     { x: -560, z: -280, name: 'Heliópolis' },
+  casino:     { x: 0, z: 280, name: 'Cassino Bela Vista' },
+  warehouse:  { x: -280, z: 420, name: 'Galpão da Mooca' },
+  safehouse:  { x: 500, z: -140, name: 'Apartamento Paulista' },
+  monument:   { x: -840, z: 0, name: 'Mirante do Vale' },
+  hospital:   { x: 140, z: -700, name: 'Hospital Paulista' },
   garage:     { x: 280, z: 140, name: 'Garagem Central' },
-  park:       { x: -210, z: 210, name: 'Parque Aurora' },
+  park:       { x: -210, z: 210, name: 'Parque Ibirapuera' },
   rpBoard:    { x: 590, z: 46, name: 'Mural RP' }
 };
 
 export const DISTRICTS = [
-  { id: 'orla',     name: 'ORLA DE MATTEO',        x: 618, z: 20,  color: '#e7bd7f' },
-  { id: 'centro',   name: 'CENTRO DOURADO',        x: -120, z: 20, color: '#c9a56c' },
-  { id: 'morro',    name: 'MORRO DA LUA',          x: -690, z: -520, color: '#d7826d' },
-  { id: 'porto',    name: 'PORTO VELHO',           x: -160, z: 640, color: '#9aa7a3' },
-  { id: 'jardim',   name: 'JARDIM DAS PALMEIRAS',  x: 250, z: -620, color: '#8fb08a' },
-  { id: 'mirante',  name: 'MIRANTE DO SOL',        x: -890, z: 60,  color: '#d7a35c' },
-  { id: 'parque',   name: 'PARQUE AURORA',         x: -210, z: 210, color: '#6f9a64' },
-  { id: 'marina',   name: 'MARINA MARÉ',           x: 760, z: 20,  color: '#75aab5' }
+  { id: 'orla',     name: 'AVENIDA PAULISTA',        x: 618, z: 20,  color: '#e7bd7f' },
+  { id: 'centro',   name: 'CENTRO HISTÓRICO',        x: -120, z: 20, color: '#c9a56c' },
+  { id: 'morro',    name: 'HELIOPÓLIS',          x: -690, z: -520, color: '#d7826d' },
+  { id: 'porto',    name: 'PORTO DE SANTOS',           x: -160, z: 640, color: '#9aa7a3' },
+  { id: 'jardim',   name: 'JARDINS',  x: 250, z: -620, color: '#8fb08a' },
+  { id: 'mirante',  name: 'MIRANTE DO VALE',        x: -890, z: 60,  color: '#d7a35c' },
+  { id: 'parque',   name: 'PARQUE IBIRAPUERA',         x: -210, z: 210, color: '#6f9a64' },
+  { id: 'marina',   name: 'MARINA PAULISTA',           x: 760, z: 20,  color: '#75aab5' }
 ];
 
 export const TIME_PRESETS = {
@@ -176,10 +176,10 @@ export class World {
     this.wheels = [];
     this.billboards = [];
     this.docks = [
-      // Píer do Sol: passarela estreita + praça na ponta.
+      // Pinheiros: passarela estreita + praça na ponta.
       { x1: 634, x2: 858, z1: 136, z2: 146, h: 0.62 },
       { x1: 858, x2: 882, z1: 120, z2: 168, h: 0.62 },
-      // Marina Maré: dock principal + dedos de atracação.
+      // Marina Paulista: dock principal + dedos de atracação.
       { x1: 634, x2: 798, z1: 4, z2: 12, h: 0.55 },
       { x1: 734, x2: 740, z1: -28, z2: 44, h: 0.55 },
       { x1: 764, x2: 770, z1: -28, z2: 44, h: 0.55 },
@@ -515,7 +515,7 @@ export class World {
     });
     this.water = new THREE.Mesh(geo, mat);
     // A borda oeste fica sob a areia molhada: as cristas lambem a praia
-    // em vez de formar uma parede d'água na linha da maré.
+    // em vez de formar uma parede d'água na linha da trânsito.
     this.water.position.set(1890, -0.5, 0);
     this.water.frustumCulled = false;
     this.scene.add(this.water);
@@ -704,11 +704,11 @@ export class World {
 
   _buildBillboards() {
     const defs = [
-      { x: 545, z: -240, ry: -Math.PI / 2, lines: [{ text: 'ORLA DOURADA', size: 84 }, { text: 'VIVA O PÔR DO SOL', size: 34, color: '#ffe3ad' }], bg: '#0d2b34', accent: '#ffc46b' },
+      { x: 545, z: -240, ry: -Math.PI / 2, lines: [{ text: 'PAULISTA', size: 84 }, { text: 'VIVA O PÔR DO SOL', size: 34, color: '#ffe3ad' }], bg: '#0d2b34', accent: '#ffc46b' },
       { x: 300, z: 140, ry: Math.PI, lines: [{ text: 'SUNSET FM', size: 86 }, { text: '98.7 · O SOM DA CIDADE', size: 30, color: '#8ff5e4' }], bg: '#0a1f2c', accent: '#2ee6c8' },
-      { x: -420, z: 280, ry: Math.PI / 2, lines: [{ text: 'MATTEO 5', size: 86 }, { text: 'JOGUE SEM LIMITES', size: 32, color: '#ffd9a1' }], bg: '#101a2c', accent: '#ffb347' },
-      { x: -140, z: 560, ry: 0, lines: [{ text: 'PORTO VELHO', size: 76 }, { text: 'O TRABALHO NUNCA PARA', size: 27, color: '#b8f0d7' }], bg: '#182321', accent: '#7dfba7' },
-      { x: 140, z: -420, ry: 0, lines: [{ text: 'MORRO DA LUA', size: 78 }, { text: 'A CIDADE É SUA', size: 30, color: '#ffc7b4' }], bg: '#291a19', accent: '#ff6b57' },
+      { x: -420, z: 280, ry: Math.PI / 2, lines: [{ text: 'GTA 7 BR', size: 86 }, { text: 'JOGUE SEM LIMITES', size: 32, color: '#ffd9a1' }], bg: '#101a2c', accent: '#ffb347' },
+      { x: -140, z: 560, ry: 0, lines: [{ text: 'PORTO DE SANTOS', size: 76 }, { text: 'O TRABALHO NUNCA PARA', size: 27, color: '#b8f0d7' }], bg: '#182321', accent: '#7dfba7' },
+      { x: 140, z: -420, ry: 0, lines: [{ text: 'HELIOPÓLIS', size: 78 }, { text: 'A CIDADE É SUA', size: 30, color: '#ffc7b4' }], bg: '#291a19', accent: '#ff6b57' },
       { x: -840, z: 140, ry: Math.PI / 2, lines: [{ text: 'MIRANTE', size: 86 }, { text: 'DO SOL · ABERTO 24H', size: 28, color: '#ffe4a6' }], bg: '#1c2430', accent: '#ffc46b' }
     ];
     for (const d of defs) {
@@ -1460,7 +1460,7 @@ World.prototype._buildLandmarks = function () {
       const p = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.3, 8.5, 6), pMat);
       p.position.set(0, 4.25, off); g.add(p);
     }
-    const tex = makeTextTexture([{ text: 'ORLA DOURADA', size: 90 }], { w: 768, h: 170, bg: '#08191f', accent: '#ffc46b' });
+    const tex = makeTextTexture([{ text: 'PAULISTA', size: 90 }], { w: 768, h: 170, bg: '#08191f', accent: '#ffc46b' });
     const sign = new THREE.Mesh(new THREE.PlaneGeometry(13.6, 3.0), new THREE.MeshStandardMaterial({ map: tex, emissive: 0xffffff, emissiveMap: tex, emissiveIntensity: 0.25 }));
     sign.position.set(0, 7.2, 0); sign.rotation.y = Math.PI / 2; g.add(sign);
     const bar = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.35, 14), pMat);
@@ -1552,10 +1552,10 @@ World.prototype._buildLandmarks = function () {
     }
   };
 
-  // Píer do Sol: passarela + praça na ponta.
+  // Pinheiros: passarela + praça na ponta.
   buildDock(634, 858, 136, 146, 0.62, ['z1', 'z2'], true);
   buildDock(858, 882, 120, 168, 0.62, ['x2', 'z1', 'z2']);
-  // Marina Maré: dock principal + dedos de atracação.
+  // Marina Paulista: dock principal + dedos de atracação.
   buildDock(634, 798, 4, 12, 0.55, ['z1', 'z2'], true);
   for (const [fx1, fx2] of [[734, 740], [764, 770], [794, 798]]) {
     buildDock(fx1, fx2, -28, 4, 0.55, ['x1', 'x2']);
@@ -1692,7 +1692,7 @@ World.prototype._buildLandmarks = function () {
       const col = new THREE.Mesh(new THREE.CylinderGeometry(0.7, 0.9, 17, 8), stone);
       col.position.set(0, 8.5, off); g.add(col);
     }
-    const tex = makeTextTexture([{ text: 'MIRANTE DO SOL', size: 68 }, { text: 'SANTO MATTEO · FUNDADO 1912', size: 24, color: '#ffe3ad' }], { w: 768, h: 180, bg: '#0c222b', accent: '#ffc46b' });
+    const tex = makeTextTexture([{ text: 'MIRANTE DO VALE', size: 68 }, { text: 'SÃO PAULO · FUNDADO 1912', size: 24, color: '#ffe3ad' }], { w: 768, h: 180, bg: '#0c222b', accent: '#ffc46b' });
     const plaque = new THREE.Mesh(new THREE.PlaneGeometry(12, 2.8), new THREE.MeshStandardMaterial({ map: tex, roughness: 0.6 }));
     plaque.position.set(0, 3.2, 12.2); g.add(plaque);
     g.position.set(-906, 0, 0);
@@ -1813,7 +1813,7 @@ World.prototype._buildMountains = function () {
     this.scene.add(mesh);
   }
 
-  // Granite peaks rising from the sea (original "Pico do Matteo").
+  // Granite peaks rising from the sea (original "Pico do GTA 7 BR").
   const granite = new THREE.MeshStandardMaterial({ color: 0x7d8378, roughness: 0.95, flatShading: true });
   const peakGeo = (r, h, seed) => {
     const pts = [];
@@ -1852,7 +1852,7 @@ World.prototype._buildMountains = function () {
   this.scene.add(skirt2);
 
   // Hillside sign
-  const tex = makeTextTexture([{ text: 'MATTEO 5', size: 116 }, { text: 'SANTO MATTEO · BRASIL', size: 30, color: '#ffe3ad' }], { w: 1024, h: 300, bg: '#102018', accent: '#ffc46b', border: false });
+  const tex = makeTextTexture([{ text: 'GTA 7 BR', size: 116 }, { text: 'SÃO PAULO · BRASIL', size: 30, color: '#ffe3ad' }], { w: 1024, h: 300, bg: '#102018', accent: '#ffc46b', border: false });
   const sign = new THREE.Mesh(new THREE.PlaneGeometry(250, 73), new THREE.MeshStandardMaterial({ map: tex, roughness: 0.8, emissive: 0xffffff, emissiveMap: tex, emissiveIntensity: 0.18 }));
   sign.position.set(-1035, 128, -540);
   sign.rotation.y = Math.PI / 2;
@@ -2103,7 +2103,7 @@ World.prototype._buildMap = function () {
   g.textAlign = 'center';
   g.font = '800 34px "Barlow Condensed", Arial';
   g.fillStyle = 'rgba(255,196,107,.5)';
-  g.fillText('SANTO MATTEO', W / 2, H - 46);
+  g.fillText('SÃO PAULO', W / 2, H - 46);
 };
 
 /* ============================================================
@@ -2197,15 +2197,15 @@ World.prototype.isWater = function (x, z) {
 };
 
 World.prototype.districtAt = function (x, z) {
-  if (x > SHORE_X) return 'MARINA MARÉ';
-  if (x > 560) return 'ORLA DE MATTEO';
-  if (x < -840) return 'MIRANTE DO SOL';
-  if (x < -420 && z < -140) return 'MORRO DA LUA';
-  if (z > 420 && x < 280) return 'PORTO VELHO';
-  if (x > 420) return 'ORLA DE MATTEO';
-  if (x > -280 && x < -140 && z > 140 && z < 280) return 'PARQUE AURORA';
-  if (x > -420 && x < 280 && z > -280 && z < 420) return 'CENTRO DOURADO';
-  return 'JARDIM DAS PALMEIRAS';
+  if (x > SHORE_X) return 'MARINA PAULISTA';
+  if (x > 560) return 'AVENIDA PAULISTA';
+  if (x < -840) return 'MIRANTE DO VALE';
+  if (x < -420 && z < -140) return 'HELIOPÓLIS';
+  if (z > 420 && x < 280) return 'PORTO DE SANTOS';
+  if (x > 420) return 'AVENIDA PAULISTA';
+  if (x > -280 && x < -140 && z > 140 && z < 280) return 'PARQUE IBIRAPUERA';
+  if (x > -420 && x < 280 && z > -280 && z < 420) return 'CENTRO HISTÓRICO';
+  return 'JARDINS';
 };
 
 World.prototype.nearestRoad = function (x, z) {
