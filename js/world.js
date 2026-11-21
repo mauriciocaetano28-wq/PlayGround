@@ -5,12 +5,12 @@ import * as THREE from 'three';
    Original procedural coastal city. No external game assets.
    ============================================================ */
 
-export const WORLD_BOUNDS = { minX: -980, maxX: 1550, minZ: -980, maxZ: 980 };
+export const WORLD_BOUNDS = { minX: -1250, maxX: 1750, minZ: -1250, maxZ: 1250 };
 export const WATER_LEVEL = -0.35;
 export const SHORE_X = 650;
 
-export const ROADS_X = [-840, -700, -560, -420, -280, -140, 0, 140, 280, 420, 560];
-export const ROADS_Z = [-840, -700, -560, -420, -280, -140, 0, 140, 280, 420, 560, 700];
+export const ROADS_X = [-1120, -840, -700, -560, -420, -280, -140, 0, 140, 280, 420, 560, 700, 980, 1260];
+export const ROADS_Z = [-1120, -840, -700, -560, -420, -280, -140, 0, 140, 280, 420, 560, 700, 980, 1120];
 
 export const LANDMARKS = {
   spawn:      { x: 580, z: 24, name: 'Avenida Paulista' },
@@ -26,7 +26,13 @@ export const LANDMARKS = {
   hospital:   { x: 140, z: -700, name: 'Hospital Paulista' },
   garage:     { x: 280, z: 140, name: 'Garagem Central' },
   park:       { x: -210, z: 210, name: 'Parque Ibirapuera' },
-  rpBoard:    { x: 590, z: 46, name: 'Mural RP' }
+  rpBoard:    { x: 590, z: 46, name: 'Mural RP' },
+  republica:  { x: 420, z: 760, name: 'Praça da República' },
+  mooca:      { x: -520, z: 820, name: 'Distrito da Mooca' },
+  pinheiros:  { x: 980, z: -680, name: 'Mercado de Pinheiros' },
+  tatuape:    { x: 1180, z: 520, name: 'Terminal Tatuapé' },
+  aeroporto:  { x: 1380, z: 980, name: 'Aeroporto Zona Leste' },
+  ponte:      { x: 1120, z: 1120, name: 'Ponte dos Bandeirantes' }
 };
 
 export const DISTRICTS = [
@@ -37,7 +43,11 @@ export const DISTRICTS = [
   { id: 'jardim',   name: 'JARDINS',  x: 250, z: -620, color: '#8fb08a' },
   { id: 'mirante',  name: 'MIRANTE DO VALE',        x: -890, z: 60,  color: '#d7a35c' },
   { id: 'parque',   name: 'PARQUE IBIRAPUERA',         x: -210, z: 210, color: '#6f9a64' },
-  { id: 'marina',   name: 'MARINA PAULISTA',           x: 760, z: 20,  color: '#75aab5' }
+  { id: 'marina',   name: 'MARINA PAULISTA',           x: 760, z: 20,  color: '#75aab5' },
+  { id: 'republica', name: 'REPÚBLICA',                  x: 420, z: 760, color: '#9e9ab7' },
+  { id: 'mooca',     name: 'MOOCA',                      x: -520, z: 820,  color: '#b18a64' },
+  { id: 'pinheiros', name: 'PINHEIROS',                  x: 980, z: -680, color: '#7fa58d' },
+  { id: 'tatuape',   name: 'TATUAPÉ',                    x: 1180, z: 520,  color: '#b79a75' }
 ];
 
 export const TIME_PRESETS = {
