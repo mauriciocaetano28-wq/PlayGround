@@ -4,8 +4,8 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
 <meta name="theme-color" content="#07131c" />
-<title>GTA 6 BR — Matteo 5</title>
-<meta name="description" content="GTA 6 BR: uma experiência de mundo aberto original no emulador Matteo 5. Luiza e Carlos, uma cidade litorânea brasileira e cinco missões." />
+<title>GTA 7 BR — GTA 7 BR</title>
+<meta name="description" content="GTA 7 BR: uma experiência de mundo aberto original no emulador GTA 7 BR. Maria e Felipe, uma megacidade brasileira e cinco missões." />
 <link rel="stylesheet" href="./assets/fonts/local.css" />
 <link rel="stylesheet" href="./css/style.css" />
 <script type="importmap">
@@ -14,7 +14,7 @@
 </head>
 <body>
 <div id="app">
-  <canvas id="game-canvas" aria-label="Mundo aberto 3D de GTA 6 BR"></canvas>
+  <canvas id="game-canvas" aria-label="Mundo aberto 3D de GTA 7 BR"></canvas>
   <div id="grade"></div>
   <div id="vignette"></div>
   <div id="grain"></div>
@@ -27,16 +27,16 @@
       <linearGradient id="tealGrad" x1="0" y1="0" x2="1" y2="1">
         <stop offset="0" stop-color="#7dfbe3"/><stop offset="1" stop-color="#0c9c9c"/>
       </linearGradient>
-      <linearGradient id="skinLuiza" x1="0" y1="0" x2="0" y2="1">
+      <linearGradient id="skinMaria" x1="0" y1="0" x2="0" y2="1">
         <stop offset="0" stop-color="#b9784f"/><stop offset="1" stop-color="#8d5233"/>
       </linearGradient>
-      <linearGradient id="skinCarlos" x1="0" y1="0" x2="0" y2="1">
+      <linearGradient id="skinFelipe" x1="0" y1="0" x2="0" y2="1">
         <stop offset="0" stop-color="#c98c5e"/><stop offset="1" stop-color="#9d6138"/>
       </linearGradient>
-      <linearGradient id="shirtLuiza" x1="0" y1="0" x2="1" y2="1">
+      <linearGradient id="shirtMaria" x1="0" y1="0" x2="1" y2="1">
         <stop offset="0" stop-color="#24d9c2"/><stop offset="1" stop-color="#0b7f8c"/>
       </linearGradient>
-      <linearGradient id="shirtCarlos" x1="0" y1="0" x2="1" y2="1">
+      <linearGradient id="shirtFelipe" x1="0" y1="0" x2="1" y2="1">
         <stop offset="0" stop-color="#ff7a59"/><stop offset="1" stop-color="#c9392f"/>
       </linearGradient>
       <radialGradient id="portraitBgA" cx=".5" cy=".35" r=".8">
@@ -51,10 +51,10 @@
         <rect width="200" height="240" fill="url(#portraitBgA)"/>
         <circle cx="42" cy="54" r="40" fill="#2ee6c8" opacity=".10"/>
         <circle cx="164" cy="80" r="55" fill="#ffb347" opacity=".08"/>
-        <path d="M28 240 C30 178 62 158 100 158 C138 158 170 178 172 240Z" fill="url(#shirtLuiza)"/>
+        <path d="M28 240 C30 178 62 158 100 158 C138 158 170 178 172 240Z" fill="url(#shirtMaria)"/>
         <path d="M74 166 L100 196 L126 166 L118 158 L82 158Z" fill="#062a30" opacity=".55"/>
         <rect x="88" y="128" width="24" height="40" rx="10" fill="#8d5233"/>
-        <ellipse cx="100" cy="104" rx="37" ry="43" fill="url(#skinLuiza)"/>
+        <ellipse cx="100" cy="104" rx="37" ry="43" fill="url(#skinMaria)"/>
         <ellipse cx="100" cy="88" rx="43" ry="38" fill="#17110f"/>
         <g fill="#241a17">
           <circle cx="59" cy="76" r="19"/><circle cx="70" cy="52" r="20"/><circle cx="94" cy="42" r="21"/>
@@ -79,10 +79,10 @@
         <rect width="200" height="240" fill="url(#portraitBgB)"/>
         <circle cx="152" cy="62" r="46" fill="#ffb347" opacity=".12"/>
         <circle cx="38" cy="100" r="44" fill="#2ee6c8" opacity=".08"/>
-        <path d="M24 240 C28 180 60 158 100 158 C140 158 172 180 176 240Z" fill="url(#shirtCarlos)"/>
+        <path d="M24 240 C28 180 60 158 100 158 C140 158 172 180 176 240Z" fill="url(#shirtFelipe)"/>
         <path d="M76 162 L100 198 L124 162" stroke="#ffd7c2" stroke-width="6" fill="none"/>
         <rect x="87" y="126" width="26" height="42" rx="10" fill="#9d6138"/>
-        <ellipse cx="100" cy="103" rx="38" ry="44" fill="url(#skinCarlos)"/>
+        <ellipse cx="100" cy="103" rx="38" ry="44" fill="url(#skinFelipe)"/>
         <path d="M62 94 q-2 -46 38 -46 q40 0 38 46 q-6 -20 -38 -20 q-32 0 -38 20Z" fill="#211512"/>
         <path d="M59 72 q41 -30 82 0 l-5 13 q-36 -20 -72 0Z" fill="#1b2a2e"/>
         <path d="M122 64 q24 4 30 17 q-19 4 -33 -3Z" fill="#2ee6c8" opacity=".85"/>
@@ -127,12 +127,12 @@
       <div class="m5-mark big">
         <svg viewBox="0 0 64 64" aria-hidden="true"><path d="M32 3l25 14v30L32 61 7 47V17z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M20 43V21l12 12 12-12v22" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </div>
-      <div class="boot-brand">MATTEO<span>5</span></div>
-      <div class="boot-sub">SISTEMA DE ENTRETENIMENTO • EDIÇÃO ORLA</div>
+      <div class="boot-brand">GTA 7 BR<span>5</span></div>
+      <div class="boot-sub">SISTEMA DE ENTRETENIMENTO • EDIÇÃO PAULISTA</div>
       <div class="boot-bar"><i id="boot-progress"></i></div>
       <div class="boot-status"><span id="boot-status-text">INICIANDO NÚCLEO GRÁFICO</span><span id="boot-pct">0%</span></div>
     </div>
-    <div class="boot-foot">© 2026 MATTEO SYSTEMS — PROJETO ORIGINAL DE FICÇÃO</div>
+    <div class="boot-foot">© 2026 GTA 7 BR SYSTEMS — PROJETO ORIGINAL DE FICÇÃO</div>
   </section>
 
   <!-- ============ MAIN MENU ============ -->
@@ -143,7 +143,7 @@
         <div class="m5-mark small">
           <svg viewBox="0 0 64 64" aria-hidden="true"><path d="M32 3l25 14v30L32 61 7 47V17z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M20 43V21l12 12 12-12v22" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </div>
-        <div class="sys-name">MATTEO <b>5</b><small>SISTEMA ORLA</small></div>
+        <div class="sys-name">GTA 7 BR<small>SISTEMA ORLA</small></div>
       </div>
       <div class="sys-center"><span class="dot"></span> SERVIDOR SÃO PAULO <span class="sep">/</span> <span id="menu-clock">18:42</span> <span class="sep">/</span> <span class="online">CONECTADO</span></div>
       <div class="sys-right">
@@ -155,20 +155,20 @@
 
     <div class="menu-grid">
       <div class="menu-hero">
-        <div class="presented">MATTEO 5 APRESENTA</div>
-        <div class="game-logo" aria-label="GTA 6 BR">
-          <div class="logo-top"><span class="logo-gta">GTA</span><span class="logo-six">6</span></div>
+        <div class="presented">GTA 7 BR APRESENTA</div>
+        <div class="game-logo" aria-label="GTA 7 BR">
+          <div class="logo-top"><span class="logo-gta">GTA</span><span class="logo-six">7</span></div>
           <div class="logo-bottom"><span>BRASIL</span><i></i></div>
-          <div class="logo-tag">LUIZA &amp; CARLOS • SANTO MATTEO</div>
+          <div class="logo-tag">MARIA &amp; FELIPE • SÃO PAULO</div>
         </div>
-        <p class="menu-blurb">Sol, asfalto e ambição. Uma cidade litorânea inteira, dois destinos entrelaçados e nenhuma saída fácil.</p>
+        <p class="menu-blurb">Sol, asfalto e ambição. Uma metrópole inteira, dois destinos entrelaçados e nenhuma saída fácil.</p>
         <nav class="main-nav">
-          <button class="nav-item primary" data-menu="play"><span class="nav-ico">▶</span><span class="nav-label"><b>Jogar História</b><small>5 missões • Luiza &amp; Carlos</small></span><span class="nav-glyph"><svg><use href="#glyph-triangle"/></svg></span></button>
-          <button class="nav-item" data-menu="rp"><span class="nav-ico">◈</span><span class="nav-label"><b>Roleplay</b><small>Viva Santo Matteo do seu jeito</small></span><span class="nav-glyph">RP</span></button>
+          <button class="nav-item primary" data-menu="play"><span class="nav-ico">▶</span><span class="nav-label"><b>Jogar História</b><small>5 missões • Maria &amp; Felipe</small></span><span class="nav-glyph"><svg><use href="#glyph-triangle"/></svg></span></button>
+          <button class="nav-item" data-menu="rp"><span class="nav-ico">◈</span><span class="nav-label"><b>Roleplay</b><small>Viva São Paulo do seu jeito</small></span><span class="nav-glyph">RP</span></button>
           <button class="nav-item" id="nav-continue" data-menu="continue"><span class="nav-ico">⏵</span><span class="nav-label"><b>Continuar</b><small id="continue-sub">Nenhum jogo salvo</small></span><span class="nav-glyph"><svg><use href="#glyph-cross"/></svg></span></button>
           <div class="nav-row">
             <button class="nav-item compact" data-menu="minicraft"><span class="nav-ico">▦</span><span class="nav-label"><b>Minicraft</b><small>Novo jogo voxel</small></span></button>
-            <button class="nav-item compact" data-menu="download"><span class="nav-ico">⤓</span><span class="nav-label"><b>Instalar / Baixar</b><small>Launcher Matteo 5</small></span></button>
+            <button class="nav-item compact" data-menu="download"><span class="nav-ico">⤓</span><span class="nav-label"><b>Instalar / Baixar</b><small>Launcher GTA 7 BR</small></span></button>
             <button class="nav-item compact" data-menu="settings"><span class="nav-ico">⚙</span><span class="nav-label"><b>Definições</b><small>Gráficos &amp; controles</small></span></button>
             <button class="nav-item compact" data-menu="credits"><span class="nav-ico">✦</span><span class="nav-label"><b>Créditos</b><small>Projeto original</small></span></button>
           </div>
@@ -184,14 +184,14 @@
             <div class="art-city"></div>
             <div class="art-palms"><i></i><i></i><i></i><i></i></div>
             <div class="art-car"><span></span></div>
-            <div class="art-badge">EDIÇÃO<br><b>ORLA DOURADA</b></div>
+            <div class="art-badge">EDIÇÃO<br><b>PAULISTA</b></div>
             <div class="art-scan"></div>
           </div>
           <div class="edition-body">
             <div class="edition-top"><span class="live-dot"></span> EM DESTAQUE</div>
             <h3>O Último Pôr do Sol</h3>
-            <p>A missão final. Dois protagonistas, uma cidade contra eles e um horizonte que não espera.</p>
-            <div class="edition-tags"><span>CAP. 5</span><span>LUIZA + CARLOS</span><span>4★</span></div>
+            <p>A missão final. Dois protagonistas, uma cidade contra eles e um asfalto que não espera.</p>
+            <div class="edition-tags"><span>CAP. 5</span><span>MARIA + FELIPE</span><span>4★</span></div>
           </div>
         </div>
         <div class="side-stats">
@@ -200,7 +200,7 @@
           <div><small>MISSÕES</small><b>05</b></div>
           <div><small>ALVO</small><b>60 FPS</b></div>
         </div>
-        <div class="side-note"><span>MATTEO 5</span> otimizado para este dispositivo. Ajuste gráficos nas definições.</div>
+        <div class="side-note"><span>GTA 7 BR</span> otimizado para este dispositivo. Ajuste gráficos nas definições.</div>
       </aside>
     </div>
 
@@ -224,7 +224,7 @@
       <div class="minimap-wrap" id="minimap-wrap">
         <canvas id="minimap" width="440" height="440"></canvas>
         <div class="minimap-ring"></div>
-        <div class="minimap-district" id="minimap-district">ORLA DE MATTEO</div>
+        <div class="minimap-district" id="minimap-district">AVENIDA PAULISTA</div>
         <button class="minimap-expand" id="btn-expand-map" title="Expandir mapa (M)"><svg><use href="#icon-map"/></svg></button>
         <div class="minimap-north">N</div>
       </div>
@@ -250,7 +250,7 @@
       <div class="objective-panel" id="objective-panel">
         <div class="obj-kicker" id="obj-kicker">MISSÃO ATIVA</div>
         <div class="obj-title" id="obj-title">Onda de Calor</div>
-        <div class="obj-text" id="obj-text">Vá até o quiosque na orla</div>
+        <div class="obj-text" id="obj-text">Vá até o quiosque na avenida paulista</div>
         <div class="obj-progress"><i id="obj-progress" style="width:0%"></i></div>
         <div class="obj-meta"><span id="obj-distance">124 m</span><span id="obj-timer"></span></div>
       </div>
@@ -269,7 +269,7 @@
     <div class="hud-bottom-left">
       <div class="char-badge" id="char-badge">
         <div class="char-portrait" id="char-portrait"><svg><use href="#portrait-luiza"/></svg></div>
-        <div class="char-meta"><small>JOGANDO COMO</small><b id="char-name">LUIZA</b><span id="char-role">A VOZ DA ORLA</span></div>
+        <div class="char-meta"><small>JOGANDO COMO</small><b id="char-name">MARIA</b><span id="char-role">A VOZ DE SÃO PAULO</span></div>
         <div class="char-switch"><kbd>TAB</kbd><small>TROCAR</small></div>
       </div>
       <div class="hud-hints" id="hud-hints">
@@ -280,19 +280,19 @@
     <div class="hud-bottom-right">
       <div class="weapon-card" id="weapon-card">
         <div class="weapon-ico">▰</div>
-        <div class="weapon-meta"><small>ARMA ATUAL</small><b>PISTOLA MATTEO .40</b><span><i id="ammo-mag">12</i> / <em id="ammo-reserve">48</em></span></div>
+        <div class="weapon-meta"><small>ARMA ATUAL</small><b>PISTOLA GTA 7 BR .40</b><span><i id="ammo-mag">12</i> / <em id="ammo-reserve">48</em></span></div>
         <div class="weapon-silhouette"></div>
       </div>
       <div class="speedo hidden" id="speedo">
         <div class="speedo-ring"><svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="50" class="ring-bg"/><circle cx="60" cy="60" r="50" class="ring-fg" id="speedo-arc"/></svg><b id="speedo-val">0</b><small>KM/H</small></div>
         <div class="speedo-meta"><b id="vehicle-name">VECTOR GT</b><span id="vehicle-gear">D</span></div>
       </div>
-      <div class="hud-time"><span id="hud-clock">18:42</span><small>SANTO MATTEO</small></div>
+      <div class="hud-time"><span id="hud-clock">18:42</span><small>SÃO PAULO</small></div>
     </div>
 
     <div id="notifications" class="notifications"></div>
     <div id="subtitle" class="subtitle hidden">
-      <div class="sub-speaker" id="sub-speaker">LUIZA</div>
+      <div class="sub-speaker" id="sub-speaker">MARIA</div>
       <div class="sub-text" id="sub-text"></div>
       <div class="sub-en" id="sub-en"></div>
     </div>
@@ -310,7 +310,7 @@
         <div class="mobile-status" id="mobile-status">
           <div class="ms-char" id="ms-char"><svg><use href="#portrait-luiza"/></svg></div>
           <div class="ms-core">
-            <div class="ms-top"><b id="ms-name">LUIZA</b><span class="ms-cash">R$ <b id="ms-money">2.450</b></span><span class="ms-ammo"><b id="ms-ammo">12</b>/<em id="ms-ammo-reserve">48</em></span></div>
+            <div class="ms-top"><b id="ms-name">MARIA</b><span class="ms-cash">R$ <b id="ms-money">2.450</b></span><span class="ms-ammo"><b id="ms-ammo">12</b>/<em id="ms-ammo-reserve">48</em></span></div>
             <div class="ms-bars">
               <i class="ms-health" id="ms-health" style="width:100%"></i>
               <i class="ms-armor" id="ms-armor" style="width:40%"></i>
@@ -324,7 +324,7 @@
             <div class="mh-ico">▰</div>
             <div class="mh-meta">
               <small>ARMA EQUIPADA</small>
-              <b id="mh-weapon-name">PISTOLA MATTEO .40</b>
+              <b id="mh-weapon-name">PISTOLA GTA 7 BR .40</b>
               <span><i id="mh-ammo">12</i> / <em id="mh-reserve">48</em></span>
             </div>
             <button class="mh-btn" id="mh-reload" title="Recarregar" aria-label="Recarregar">↻</button>
@@ -351,7 +351,7 @@
   </div>
 
   <div class="touch-controls hidden" id="touch-controls" aria-label="Controle virtual PlayStation 5">
-      <div class="touch-brand">MATTEO 5 <span>DUALSENSE VIRTUAL</span></div>
+      <div class="touch-brand">GTA 7 BR <span>DUALSENSE VIRTUAL</span></div>
       <div class="touch-look-hint" id="touch-look-hint"><span>↔</span> ARRASTE PARA OLHAR</div>
       <div class="touch-top">
         <div class="touch-status" aria-hidden="true"><i class="ts-led"></i><b>P1</b><span class="ts-batt"><i></i></span></div>
@@ -375,9 +375,9 @@
 
       <div class="touch-dpad" id="touch-dpad" aria-label="Direcional">
         <button class="dpad-btn up" data-touch="dpad-up" data-label="MISSÕES" data-label-vehicle="MISSÕES" title="Missões" aria-label="Missões">▲<small>MISSÕES</small></button>
-        <button class="dpad-btn left" data-touch="dpad-left" data-label="LUIZA" data-label-vehicle="LUIZA" title="Jogar como Luiza" aria-label="Jogar como Luiza">◀<small>LUIZA</small></button>
+        <button class="dpad-btn left" data-touch="dpad-left" data-label="MARIA" data-label-vehicle="MARIA" title="Jogar como Maria" aria-label="Jogar como Maria">◀<small>MARIA</small></button>
         <button class="dpad-btn center" data-touch="dpad-center" data-label="MAPA" data-label-vehicle="MAPA" title="Abrir mapa" aria-label="Abrir mapa">▭<small>MAPA</small></button>
-        <button class="dpad-btn right" data-touch="dpad-right" data-label="CARLOS" data-label-vehicle="CARLOS" title="Jogar como Carlos" aria-label="Jogar como Carlos">▶<small>CARLOS</small></button>
+        <button class="dpad-btn right" data-touch="dpad-right" data-label="FELIPE" data-label-vehicle="FELIPE" title="Jogar como Felipe" aria-label="Jogar como Felipe">▶<small>FELIPE</small></button>
         <button class="dpad-btn down" data-touch="dpad-down" data-label="RECARREGAR" data-label-vehicle="BUZINA" title="Recarregar" aria-label="Recarregar">▼<small>RECARREGAR</small></button>
       </div>
 
@@ -399,7 +399,7 @@
   <!-- ============ FULL MAP ============ -->
   <section id="map-overlay" class="overlay map-overlay hidden">
     <header class="overlay-head">
-      <div><small>MATTEO 5 // SISTEMA DE NAVEGAÇÃO</small><h2>MAPA DE SANTO MATTEO</h2></div>
+      <div><small>GTA 7 BR // SISTEMA DE NAVEGAÇÃO</small><h2>MAPA DE SÃO PAULO</h2></div>
       <div class="map-head-actions">
         <span class="map-wp" id="map-wp" hidden>PONTO • 0 m</span>
         <button class="pill wp-clear hidden" id="map-wp-clear" title="Limpar ponto marcado">⌖ LIMPAR</button>
@@ -426,13 +426,13 @@
         </div>
         <div class="map-districts">
           <h3>DISTRITOS</h3>
-          <button data-district="orla">Orla de Matteo</button>
-          <button data-district="centro">Centro Dourado</button>
-          <button data-district="morro">Morro da Lua</button>
-          <button data-district="porto">Porto Velho</button>
-          <button data-district="jardim">Jardim das Palmeiras</button>
-          <button data-district="mirante">Mirante do Sol</button>
-          <button data-district="parque">Parque Aurora</button>
+          <button data-district="orla">Avenida Paulista</button>
+          <button data-district="centro">Centro Histórico</button>
+          <button data-district="morro">Heliópolis</button>
+          <button data-district="porto">Porto de Santos</button>
+          <button data-district="jardim">Jardins</button>
+          <button data-district="mirante">Mirante do Vale</button>
+          <button data-district="parque">Parque Ibirapuera</button>
         </div>
         <div class="map-missions" id="map-missions"></div>
         <div class="map-foot">Toque ou clique no mapa para marcar um ponto • Arraste para explorar • Role para zoom • <kbd>M</kbd> fechar</div>
@@ -449,7 +449,7 @@
   <div id="dialogue" class="dialogue hidden">
     <div class="dlg-portrait" id="dlg-portrait"><svg><use href="#portrait-luiza"/></svg></div>
     <div class="dlg-main">
-      <div class="dlg-head"><b id="dlg-name">LUIZA</b><span id="dlg-loc">ORLA DE MATTEO</span></div>
+      <div class="dlg-head"><b id="dlg-name">MARIA</b><span id="dlg-loc">AVENIDA PAULISTA</span></div>
       <div class="dlg-pt" id="dlg-pt"></div>
       <div class="dlg-en" id="dlg-en"></div>
     </div>
@@ -460,7 +460,7 @@
   <section id="pause-menu" class="overlay pause-menu hidden">
     <div class="pause-grid">
       <div class="pause-left">
-        <div class="pause-brand">MATTEO <b>5</b><small>PAUSA DO SISTEMA</small></div>
+        <div class="pause-brand">GTA 7 BR<small>PAUSA DO SISTEMA</small></div>
         <nav class="pause-nav">
           <button data-pause="resume" class="active"><span>▶</span> Continuar</button>
           <button data-pause="map"><span>◈</span> Mapa</button>
@@ -477,7 +477,7 @@
       <div class="pause-right">
         <div class="pause-head">
           <div class="pause-char" id="pause-char"><svg><use href="#portrait-luiza"/></svg></div>
-          <div><small>PERFIL ATIVO</small><h2 id="pause-char-name">LUIZA</h2><span id="pause-char-role">A VOZ DA ORLA</span></div>
+          <div><small>PERFIL ATIVO</small><h2 id="pause-char-name">MARIA</h2><span id="pause-char-role">A VOZ DE SÃO PAULO</span></div>
           <div class="pause-level"><small>NÍVEL</small><b id="pause-level">27</b></div>
         </div>
         <div class="pause-stats">
@@ -506,7 +506,7 @@
   <!-- ============ SETTINGS ============ -->
   <section id="settings-modal" class="overlay modal settings-modal hidden">
     <div class="modal-head">
-      <div><small>MATTEO 5 // SISTEMA</small><h2>DEFINIÇÕES</h2></div>
+      <div><small>GTA 7 BR // SISTEMA</small><h2>DEFINIÇÕES</h2></div>
       <button class="icon-btn close-overlay" data-close="settings-modal"><svg><use href="#icon-close"/></svg></button>
     </div>
     <div class="settings-grid">
@@ -611,37 +611,37 @@
   <!-- ============ DOWNLOAD ============ -->
   <section id="download-modal" class="overlay modal download-modal hidden">
     <div class="modal-head">
-      <div><small>MATTEO 5 // INSTALAÇÃO</small><h2>INSTALAR GTA 6 BR</h2></div>
+      <div><small>GTA 7 BR // INSTALAÇÃO</small><h2>INSTALAR GTA 7 BR</h2></div>
       <button class="icon-btn close-overlay" data-close="download-modal"><svg><use href="#icon-close"/></svg></button>
     </div>
     <div class="download-body">
       <div class="dl-hero">
-        <div class="dl-art"><div class="art-sun"></div><div class="art-sea"></div><div class="art-city"></div><div class="art-palms"><i></i><i></i><i></i></div><span>GTA 6 BR</span></div>
+        <div class="dl-art"><div class="art-sun"></div><div class="art-sea"></div><div class="art-city"></div><div class="art-palms"><i></i><i></i><i></i></div><span>GTA 7 BR</span></div>
         <div class="dl-info">
           <div class="dl-kicker">EXPERIÊNCIA COMPLETA • 100% ORIGINAL</div>
           <h3>Uma cidade. Dois destinos. Nenhum limite.</h3>
-          <p>O mundo aberto de Santo Matteo roda direto no seu navegador, com instalação instantânea e progresso salvo no dispositivo.</p>
+          <p>O mundo aberto de São Paulo roda direto no seu navegador, com instalação instantânea e progresso salvo no dispositivo.</p>
           <ul class="dl-features">
-            <li>5 missões de história com Luiza e Carlos</li>
+            <li>5 missões de história com Maria e Felipe</li>
             <li>Modo Roleplay com trabalhos e economia</li>
-            <li>Mapa completo, 7 distritos e litoral navegável</li>
+            <li>Mapa completo, 7 distritos e avenidas interligadas</li>
             <li>Controles PS5 para desktop e celular</li>
           </ul>
         </div>
       </div>
       <div class="dl-editions">
         <button class="edition-option selected" data-edition="standard"><span class="ed-tag">PADRÃO</span><b>Orla</b><small>Jogo completo • 5 missões</small><em>GRÁTIS</em></button>
-        <button class="edition-option" data-edition="deluxe"><span class="ed-tag">DELUXE</span><b>Orla Dourada</b><small>+ R$ 25.000 e trajes</small><em>INCLUÍDO</em></button>
+        <button class="edition-option" data-edition="deluxe"><span class="ed-tag">DELUXE</span><b>São Paulo</b><small>+ R$ 25.000 e trajes</small><em>INCLUÍDO</em></button>
       </div>
       <div class="dl-progress-wrap">
         <div class="dl-progress-head"><span id="dl-status">PRONTO PARA INSTALAR</span><span id="dl-size">3,4 GB • SSD RECOMENDADO</span></div>
         <div class="dl-bar"><i id="dl-bar"></i></div>
-        <div class="dl-progress-meta"><span id="dl-detail">O launcher Matteo 5 já está disponível neste navegador.</span><span id="dl-pct">0%</span></div>
+        <div class="dl-progress-meta"><span id="dl-detail">O launcher GTA 7 BR já está disponível neste navegador.</span><span id="dl-pct">0%</span></div>
       </div>
       <div class="dl-actions">
         <button class="btn primary big" id="btn-download-start"><span>⤓</span> Baixar &amp; instalar</button>
         <button class="btn ghost big hidden" id="btn-download-play">▶ Iniciar experiência</button>
-        <a class="btn ghost big" id="btn-launcher-download" href="./launcher.html" download="Matteo5-GTA6BR-Launcher.html">Baixar launcher (.html)</a>
+        <a class="btn ghost big" id="btn-launcher-download" href="./launcher.html" download="GTA 7 BR5-GTA6BR-Launcher.html">Baixar launcher (.html)</a>
       </div>
       <div class="dl-note">Instalação simulada para esta demonstração jogável. Nenhum arquivo de terceiros é utilizado. Requer navegador com WebGL 2.</div>
     </div>
@@ -650,18 +650,18 @@
   <!-- ============ CREDITS ============ -->
   <section id="credits-modal" class="overlay modal credits-modal hidden">
     <div class="modal-head">
-      <div><small>MATTEO 5 // PROJETO</small><h2>CRÉDITOS</h2></div>
+      <div><small>GTA 7 BR // PROJETO</small><h2>CRÉDITOS</h2></div>
       <button class="icon-btn close-overlay" data-close="credits-modal"><svg><use href="#icon-close"/></svg></button>
     </div>
     <div class="credits-body">
-      <div class="credits-logo">GTA <span>6</span> BR</div>
-      <p class="credits-lead">Uma obra de ficção original criada para o emulador fictício <b>Matteo 5</b>. Personagens, cidade, logotipos e arte são originais.</p>
+      <div class="credits-logo">GTA <span>7</span> BR</div>
+      <p class="credits-lead">Uma obra de ficção original criada para o emulador fictício <b>GTA 7 BR</b>. Personagens, cidade, logotipos e arte são originais.</p>
       <div class="credit-grid">
-        <div><small>DIREÇÃO CRIATIVA</small><b>Estúdio Orla Dourada</b></div>
-        <div><small>MUNDO &amp; LEVEL DESIGN</small><b>Santo Matteo Team</b></div>
-        <div><small>PROGRAMAÇÃO</small><b>Matteo 5 Engine / Three.js</b></div>
+        <div><small>DIREÇÃO CRIATIVA</small><b>Estúdio São Paulo</b></div>
+        <div><small>MUNDO &amp; LEVEL DESIGN</small><b>São Paulo Team</b></div>
+        <div><small>PROGRAMAÇÃO</small><b>GTA 7 BR Engine / Three.js</b></div>
         <div><small>TRILHA &amp; SOM</small><b>Ondas do Sul (procedural)</b></div>
-        <div><small>PERSONAGENS</small><b>Luiza Andrade &amp; Carlos Mendes</b></div>
+        <div><small>PERSONAGENS</small><b>Maria Andrade &amp; Felipe Mendes</b></div>
         <div><small>IDIOMAS</small><b>Português (BR) &amp; English</b></div>
       </div>
       <div class="credits-note">
@@ -670,33 +670,33 @@
       </div>
       <div class="credits-tech">Feito com WebGL 2, Three.js e Web Audio API. 60 FPS alvo com escalonamento adaptativo.</div>
     </div>
-    <div class="modal-foot"><span class="save-note">© 2026 Estúdio Orla Dourada</span><button class="btn primary" data-close="credits-modal">Voltar</button></div>
+    <div class="modal-foot"><span class="save-note">© 2026 Estúdio São Paulo</span><button class="btn primary" data-close="credits-modal">Voltar</button></div>
   </section>
 
   <!-- ============ CHARACTER SELECT ============ -->
   <section id="char-select" class="overlay char-select hidden">
     <div class="cs-head">
       <small>ESCOLHA SEU CAMINHO</small>
-      <h2>QUEM VAI DESCOBRIR SANTO MATTEO?</h2>
-      <p>Você pode alternar entre Luiza e Carlos durante o modo livre.</p>
+      <h2>QUEM VAI DESCOBRIR SÃO PAULO?</h2>
+      <p>Você pode alternar entre Maria e Felipe durante o modo livre.</p>
     </div>
     <div class="cs-cards">
       <button class="cs-card luiza" data-char="luiza">
         <div class="cs-art"><svg><use href="#portrait-luiza"/></svg><div class="cs-shade"></div></div>
         <div class="cs-info">
-          <div class="cs-role">A VOZ DA ORLA</div><h3>LUIZA ANDRADE</h3>
+          <div class="cs-role">A VOZ DE SÃO PAULO</div><h3>MARIA ANDRADE</h3>
           <p>Locutora de rádio e ex-mecânica. Conhece cada beco, cada dívida e cada segredo da cidade.</p>
           <div class="cs-stats"><span>CONDUÇÃO <i style="--v:82%"></i></span><span>CARISMA <i style="--v:95%"></i></span><span>COMBATE <i style="--v:64%"></i></span></div>
-          <span class="cs-cta">JOGAR COMO LUIZA <em>△</em></span>
+          <span class="cs-cta">JOGAR COMO MARIA <em>△</em></span>
         </div>
       </button>
       <button class="cs-card carlos" data-char="carlos">
         <div class="cs-art"><svg><use href="#portrait-carlos"/></svg><div class="cs-shade"></div></div>
         <div class="cs-info">
-          <div class="cs-role">O BRAÇO DO MORRO</div><h3>CARLOS MENDES</h3>
+          <div class="cs-role">O BRAÇO DO ZONA SUL</div><h3>FELIPE MENDES</h3>
           <p>Ex-lutador e entregador do porto. Leal à família, rápido no gatilho e mais rápido ainda para sumir.</p>
           <div class="cs-stats"><span>CONDUÇÃO <i style="--v:88%"></i></span><span>CARISMA <i style="--v:61%"></i></span><span>COMBATE <i style="--v:92%"></i></span></div>
-          <span class="cs-cta">JOGAR COMO CARLOS <em>△</em></span>
+          <span class="cs-cta">JOGAR COMO FELIPE <em>△</em></span>
         </div>
       </button>
     </div>
@@ -706,7 +706,7 @@
   <!-- ============ MISSION LIST ============ -->
   <section id="missions-modal" class="overlay modal missions-modal hidden">
     <div class="modal-head">
-      <div><small>MODO HISTÓRIA // LUIZA &amp; CARLOS</small><h2>MISSÕES</h2></div>
+      <div><small>MODO HISTÓRIA // MARIA &amp; FELIPE</small><h2>MISSÕES</h2></div>
       <button class="icon-btn close-overlay" data-close="missions-modal"><svg><use href="#icon-close"/></svg></button>
     </div>
     <div class="missions-list" id="missions-list"></div>
@@ -716,13 +716,13 @@
   <!-- ============ RP PANEL ============ -->
   <section id="rp-modal" class="overlay modal rp-modal hidden">
     <div class="modal-head">
-      <div><small>MODO LIVRE // SANTO MATTEO ONLINE</small><h2>TRABALHOS DE ROLEPLAY</h2></div>
+      <div><small>MODO LIVRE // SÃO PAULO ONLINE</small><h2>TRABALHOS DE ROLEPLAY</h2></div>
       <button class="icon-btn close-overlay" data-close="rp-modal"><svg><use href="#icon-close"/></svg></button>
     </div>
     <div class="rp-head">
-      <div class="rp-id"><span class="rp-avatar" id="rp-avatar"><svg><use href="#portrait-luiza"/></svg></span><div><small>SEU PERSONAGEM</small><b id="rp-name">LUIZA ANDRADE</b><span id="rp-money">R$ 2.450</span></div></div>
+      <div class="rp-id"><span class="rp-avatar" id="rp-avatar"><svg><use href="#portrait-luiza"/></svg></span><div><small>SEU PERSONAGEM</small><b id="rp-name">MARIA ANDRADE</b><span id="rp-money">R$ 2.450</span></div></div>
       <div class="rp-rep"><small>REPUTAÇÃO RP</small><b id="rp-rep">Cidadão</b><div class="rp-rep-bar"><i id="rp-rep-bar" style="width:12%"></i></div></div>
-      <div class="rp-online"><span class="live-dot"></span> 128 JOGADORES EM SANTO MATTEO</div>
+      <div class="rp-online"><span class="live-dot"></span> 128 JOGADORES EM SÃO PAULO</div>
     </div>
     <div class="rp-jobs" id="rp-jobs"></div>
     <div class="rp-foot-note">Trabalhos são gerados localmente. Você pode aceitar um por vez. O progresso RP é salvo automaticamente.</div>
@@ -734,7 +734,7 @@
     <div class="result-card">
       <div class="result-kicker" id="result-kicker">MISSÃO CONCLUÍDA</div>
       <h2 id="result-title">ONDA DE CALOR</h2>
-      <p id="result-text">Você entregou o pacote e manteve a orla em paz — por enquanto.</p>
+      <p id="result-text">Você entregou o pacote e manteve a Avenida Paulista em paz — por enquanto.</p>
       <div class="result-stars" id="result-stars"></div>
       <div class="result-rewards">
         <div><small>RECOMPENSA</small><b id="result-money">R$ 2.500</b></div>
@@ -752,8 +752,8 @@
     <div class="chapter-inner">
       <div class="chapter-kicker" id="chapter-kicker">CAPÍTULO 1</div>
       <h1 id="chapter-title">ONDA DE CALOR</h1>
-      <div class="chapter-meta"><span id="chapter-char">LUIZA</span><i></i><span id="chapter-loc">ORLA DE MATTEO</span><i></i><span id="chapter-time">18:42</span></div>
-      <p id="chapter-sub">Toda cidade tem um preço. A orla acabou de cobrar o dela.</p>
+      <div class="chapter-meta"><span id="chapter-char">MARIA</span><i></i><span id="chapter-loc">AVENIDA PAULISTA</span><i></i><span id="chapter-time">18:42</span></div>
+      <p id="chapter-sub">Toda cidade tem um preço. A Avenida Paulista acabou de cobrar o dela.</p>
     </div>
   </section>
 
@@ -761,14 +761,14 @@
   <section id="switch-overlay" class="overlay switch-overlay hidden">
     <div class="switch-head"><small>ALTERNÂNCIA DE PERSONAGEM</small><h2>QUEM ASSUME AGORA?</h2></div>
     <div class="switch-cards">
-      <button class="switch-card active" data-char="luiza"><span class="switch-num">1</span><svg><use href="#portrait-luiza"/></svg><b>LUIZA</b><small>Orla</small></button>
-      <button class="switch-card" data-char="carlos"><span class="switch-num">2</span><svg><use href="#portrait-carlos"/></svg><b>CARLOS</b><small>Morro</small></button>
+      <button class="switch-card active" data-char="luiza"><span class="switch-num">1</span><svg><use href="#portrait-luiza"/></svg><b>MARIA</b><small>Orla</small></button>
+      <button class="switch-card" data-char="carlos"><span class="switch-num">2</span><svg><use href="#portrait-carlos"/></svg><b>FELIPE</b><small>Zona Sul</small></button>
     </div>
     <div class="switch-note" id="switch-note">Troca instantânea • TAB ou ESC para voltar</div>
   </section>
 
   <!-- ============ LOADING / TRANSITION ============ -->
-  <div id="transition" class="transition hidden"><div class="tr-logo">MATTEO <b>5</b></div><div class="tr-bar"><i id="tr-bar"></i></div><div class="tr-text" id="tr-text">CARREGANDO SANTO MATTEO</div></div>
+  <div id="transition" class="transition hidden"><div class="tr-logo">GTA 7 BR</div><div class="tr-bar"><i id="tr-bar"></i></div><div class="tr-text" id="tr-text">CARREGANDO SÃO PAULO</div></div>
 
   <!-- ============ TOASTS ============ -->
   <div id="toast-layer" class="toast-layer"></div>
@@ -784,7 +784,7 @@
       <div><kbd>BOTÃO DIR.</kbd><b>Mirar &amp; atirar</b><small>Clique para disparar</small></div>
       <div><kbd>M</kbd><b>Mapa completo</b><small>Missões e distritos</small></div>
     </div>
-    <button class="btn primary" id="tut-start">Explorar Santo Matteo</button>
+    <button class="btn primary" id="tut-start">Explorar São Paulo</button>
   </div>
 </div>
 

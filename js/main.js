@@ -1,5 +1,5 @@
 /* ============================================================
-   GTA 6 BR — Matteo 5
+   GTA 7 BR — GTA 7 BR
    Application shell: boot, menus, settings, saves and panels.
    ============================================================ */
 import { Game, MISSIONS } from './game.js';
@@ -67,7 +67,7 @@ function bootSequence() {
   const status = $('boot-status-text');
   const stages = [
     [12, 'INICIANDO NÚCLEO GRÁFICO'],
-    [32, 'GERANDO SANTO MATTEO'],
+    [32, 'GERANDO SÃO PAULO'],
     [54, 'CARREGANDO DISTRITOS E ORLA'],
     [72, 'SINTETIZANDO TRILHA ORIGINAL'],
     [88, 'CALIBRANDO CONTROLES PS5'],
@@ -120,10 +120,10 @@ function initGame() {
     window.__game = game;
     window.__matteo = { settings, get save() { return save; } };
   } catch (err) {
-    console.error('[Matteo 5] Falha ao iniciar o mundo:', err);
+    console.error('[GTA 7 BR] Falha ao iniciar o mundo:', err);
     const boot = $('boot');
     if (boot) {
-      boot.innerHTML = `<div class="boot-center"><div class="boot-brand">MATTEO<span>5</span></div>
+      boot.innerHTML = `<div class="boot-center"><div class="boot-brand">GTA 7 BR<span>5</span></div>
         <div class="boot-sub" style="max-width:520px;line-height:1.8">Não foi possível iniciar o WebGL 2 neste dispositivo.<br>
         Ative a aceleração de hardware ou abra em um navegador atualizado.<br><small style="opacity:.6">${String(err.message || err)}</small></div></div>`;
     }
@@ -182,7 +182,7 @@ function updateContinueState() {
   if (!btn || !sub) return;
   const s = loadJSON(SAVE_KEY, null);
   if (s) {
-    const ch = s.char === 'carlos' ? 'Carlos' : 'Luiza';
+    const ch = s.char === 'carlos' ? 'Felipe' : 'Maria';
     const mode = s.mode === 'rp' ? 'Roleplay' : `${(s.completed || []).length}/5 missões`;
     sub.textContent = `${ch} • ${mode} • ${new Date(s.updated || Date.now()).toLocaleDateString('pt-BR')}`;
     btn.classList.remove('disabled');
@@ -232,8 +232,8 @@ function openCharSelect(mode) {
   charSelectMode = mode;
   const head = document.querySelector('#char-select .cs-head small');
   const title = document.querySelector('#char-select .cs-head h2');
-  if (head) head.textContent = mode === 'rp' ? 'MODO LIVRE • SANTO MATTEO ONLINE' : 'ESCOLHA SEU CAMINHO';
-  if (title) title.textContent = mode === 'rp' ? 'QUEM VAI VIVER A CIDADE?' : 'QUEM VAI DESCOBRIR SANTO MATTEO?';
+  if (head) head.textContent = mode === 'rp' ? 'MODO LIVRE • SÃO PAULO ONLINE' : 'ESCOLHA SEU CAMINHO';
+  if (title) title.textContent = mode === 'rp' ? 'QUEM VAI VIVER A CIDADE?' : 'QUEM VAI DESCOBRIR SÃO PAULO?';
   openOverlay('char-select');
 }
 
@@ -255,7 +255,7 @@ function openMissionsModal() {
       <div class="mission-num">${String(m.num).padStart(2, '0')}</div>
       <div class="mission-info">
         <b>${m.title}</b>
-        <small>${m.char === 'luiza' ? 'LUIZA' : 'CARLOS'} • ${m.location}</small>
+        <small>${m.char === 'luiza' ? 'MARIA' : 'FELIPE'} • ${m.location}</small>
         <div class="mission-tags"><span>CAP. ${m.num}</span><span>R$ ${m.reward.toLocaleString('pt-BR')}</span><span>${m.time}</span></div>
       </div>
       <div class="mission-state ${done ? 'done' : available ? 'available' : ''}">${done ? 'CONCLUÍDA' : available ? 'DISPONÍVEL' : 'BLOQUEADA'}</div>
@@ -291,7 +291,7 @@ function renderRPJobs() {
     const el = document.createElement('button');
     el.className = 'rp-job';
     el.innerHTML = `
-      <span class="rj-type">${job.type.toUpperCase()} • SANTO MATTEO</span>
+      <span class="rj-type">${job.type.toUpperCase()} • SÃO PAULO</span>
       <b>${job.title}</b>
       <p>${job.pt}</p>
       <div class="rj-meta"><span>⏱ ${Math.round(job.time / 60)} min</span><em>R$ ${job.reward.toLocaleString('pt-BR')}</em></div>
@@ -312,7 +312,7 @@ function updateRPPanel() {
   const av = $('rp-avatar');
   if (av) av.innerHTML = `<svg><use href="#portrait-${isL ? 'luiza' : 'carlos'}"/></svg>`;
   const name = $('rp-name');
-  if (name) name.textContent = isL ? 'LUIZA ANDRADE' : 'CARLOS MENDES';
+  if (name) name.textContent = isL ? 'MARIA ANDRADE' : 'FELIPE MENDES';
   const money = $('rp-money');
   if (money) money.textContent = 'R$ ' + Math.floor(p.money).toLocaleString('pt-BR');
   const rep = game.rp || { rep: 0, done: 0 };
@@ -504,7 +504,7 @@ function bindDownload() {
         clearInterval(iv);
         running = false;
         if (status) status.textContent = 'INSTALADO • PRONTO PARA JOGAR';
-        if (detail) detail.textContent = 'Santo Matteo está pronto neste navegador.';
+        if (detail) detail.textContent = 'São Paulo está pronto neste navegador.';
         if (play) play.classList.remove('hidden');
         start.classList.add('hidden');
       }

@@ -22,152 +22,152 @@ const nowSec = () => performance.now() / 1000;
    ============================================================ */
 const DIALOGUES = {
   m1_1: [
-    { who: 'LUIZA', pt: 'Zeca! Cadê o pacote que a Marina deixou no quiosque?', en: "Zeca! Where's the package Marina left at the kiosk?" },
-    { who: 'ZECA', pt: 'O moleque da moto levou, Luiza. Disse que era entrega expressa. Expressa pra ele.', en: 'The bike kid took it, Luiza. Said it was express delivery. Express for him.' },
-    { who: 'LUIZA', pt: 'Se ele chegou antes de mim, é porque roubou. E ninguém rouba na minha orla.', en: 'If he got here before me, he stole it. And nobody steals on my shoreline.' }
+    { who: 'MARIA', pt: 'Zeca! Cadê o pacote que a Marina deixou no quiosque?', en: "Zeca! Where's the package Marina left at the kiosk?" },
+    { who: 'ZECA', pt: 'O moleque da moto levou, Maria. Disse que era entrega expressa. Expressa pra ele.', en: 'The bike kid took it, Maria. Said it was express delivery. Express for him.' },
+    { who: 'MARIA', pt: 'Se ele chegou antes de mim, é porque roubou. E ninguém rouba na minha Avenida Paulista.', en: 'If he got here before me, he stole it. And nobody steals on my shoreline.' }
   ],
   m1_2: [
-    { who: 'LUIZA', pt: 'Entregador na Avenida das Palmeiras. Vou atrás. Se o pacote cair, ele vai junto.', en: "Courier on Palm Avenue. I'm on him. If the package drops, he drops with it." }
+    { who: 'MARIA', pt: 'Entregador na Avenida Paulista. Vou atrás. Se o pacote cair, ele vai junto.', en: "Courier on Palm Avenue. I'm on him. If the package drops, he drops with it." }
   ],
   m1_3: [
-    { who: 'LUIZA', pt: 'Pacote recuperado. Agora é só não abrir.', en: "Package recovered. Now let's just not open it." }
+    { who: 'MARIA', pt: 'Pacote recuperado. Agora é só não abrir.', en: "Package recovered. Now let's just not open it." }
   ],
   m1_4: [
     { who: 'MARINA', pt: 'Chegou inteiro. O cliente vai gostar. E o seu pagamento também.', en: "It arrived in one piece. The client will be pleased. So will your wallet." },
-    { who: 'LUIZA', pt: 'Diz pro cliente que a Orla Dourada cobra caro. Mas entrega.', en: 'Tell the client Orla Dourada charges a lot. But delivers.' }
+    { who: 'MARIA', pt: 'Diz pro cliente que a São Paulo cobra caro. Mas entrega.', en: 'Tell the client São Paulo charges a lot. But delivers.' }
   ],
   m2_1: [
-    { who: 'CARLOS', pt: 'Seu Anselmo, carga do porto. Tá tudo aqui?', en: 'Anselmo, port cargo. Is it all here?' },
-    { who: 'ANSELMO', pt: 'Tá. Mas a polícia já sabe. Leva pelo Morro, sem parar.', en: "It is. But the police already know. Take it through the hill. Don't stop." },
-    { who: 'CARLOS', pt: 'Ninguém para o Carlos Mendes.', en: 'Nobody stops Carlos Mendes.' }
+    { who: 'FELIPE', pt: 'Seu Anselmo, carga do porto. Tá tudo aqui?', en: 'Anselmo, port cargo. Is it all here?' },
+    { who: 'ANSELMO', pt: 'Tá. Mas a polícia já sabe. Leva pela Zona Sul, sem parar.', en: "It is. But the police already know. Take it through the hill. Don't stop." },
+    { who: 'FELIPE', pt: 'Ninguém para o Felipe Mendes.', en: 'Nobody stops Felipe Mendes.' }
   ],
   m2_2: [
-    { who: 'RÁDIO POLÍCIA', pt: 'Atenção, unidades. Veículo suspeito saindo do Porto Velho. Abordagem imediata.', en: 'Attention, units. Suspicious vehicle leaving Porto Velho. Immediate intercept.' },
-    { who: 'CARLOS', pt: 'Dois graus. Tranquilo. Só mais dois graus.', en: 'Two stars. Easy. Just two more stars.' }
+    { who: 'RÁDIO POLÍCIA', pt: 'Atenção, unidades. Veículo suspeito saindo do Porto de Santos. Abordagem imediata.', en: 'Attention, units. Suspicious vehicle leaving Porto de Santos. Immediate intercept.' },
+    { who: 'FELIPE', pt: 'Dois graus. Tranquilo. Só mais dois graus.', en: 'Two stars. Easy. Just two more stars.' }
   ],
   m2_3: [
-    { who: 'DONA ROSA', pt: 'Carlos! Tá todo mundo atrás de você. Entra, rápido.', en: "Carlos! Everyone's after you. Get inside, quick." },
-    { who: 'CARLOS', pt: 'Relaxa, tia. A mercadoria chegou. O resto é conversa.', en: "Relax, auntie. The cargo's here. The rest is talk." }
+    { who: 'DONA ROSA', pt: 'Felipe! Tá todo mundo atrás de você. Entra, rápido.', en: "Felipe! Everyone's after you. Get inside, quick." },
+    { who: 'FELIPE', pt: 'Relaxa, tia. A mercadoria chegou. O resto é conversa.', en: "Relax, auntie. The cargo's here. The rest is talk." }
   ],
   m3_1: [
-    { who: 'LUIZA', pt: 'O pedido tá pronto?', en: 'Is the order ready?' },
+    { who: 'MARIA', pt: 'O pedido tá pronto?', en: 'Is the order ready?' },
     { who: 'ENTREGADOR', pt: 'Tá. Três clientes estão esperando. Não deixe esfriar.', en: 'It is. Three customers are waiting. Do not let it get cold.' },
-    { who: 'LUIZA', pt: 'Três entregas em vinte segundos?', en: 'Three deliveries in twenty seconds?' }
+    { who: 'MARIA', pt: 'Três entregas em vinte segundos?', en: 'Three deliveries in twenty seconds?' }
   ],
   m3_2: [
-    { who: 'LUIZA', pt: 'Primeira entrega. Mantém o ritmo.', en: 'First delivery. Keep the pace.' }
+    { who: 'MARIA', pt: 'Primeira entrega. Mantém o ritmo.', en: 'First delivery. Keep the pace.' }
   ],
   m3_3: [
     { who: 'CLIENTE', pt: 'Chegou quentinho. Finalmente!', en: 'It arrived hot. Finally!' },
-    { who: 'LUIZA', pt: 'Entrega concluída. O iFood de Santo Matteo agradece.', en: 'Delivery complete. Santo Matteo thanks you.' }
+    { who: 'MARIA', pt: 'Entrega concluída. O iFood de São Paulo agradece.', en: 'Delivery complete. São Paulo thanks you.' }
   ],
   m4_1: [
-    { who: 'CARLOS', pt: 'Cassino Aurora. Bonito por fora, podre por dentro.', en: 'Cassino Aurora. Pretty outside, rotten inside.' },
-    { who: 'RECEPCIONISTA', pt: 'O Galpão 12 está esperando. Seis homens. Nenhum deles quer conversar.', en: 'Warehouse 12 is waiting. Six men. None of them want to talk.' },
-    { who: 'CARLOS', pt: 'Ótimo. Eu também não.', en: "Great. Neither do I." }
+    { who: 'FELIPE', pt: 'Cassino Bela Vista. Bonito por fora, podre por dentro.', en: 'Cassino Bela Vista. Pretty outside, rotten inside.' },
+    { who: 'RECEPCIONISTA', pt: 'O Galpão da Mooca está esperando. Seis homens. Nenhum deles quer conversar.', en: 'Warehouse 12 is waiting. Six men. None of them want to talk.' },
+    { who: 'FELIPE', pt: 'Ótimo. Eu também não.', en: "Great. Neither do I." }
   ],
   m4_2: [
-    { who: 'CARLOS', pt: 'Seis contra um. A conta tá justa.', en: "Six against one. That's a fair count." }
+    { who: 'FELIPE', pt: 'Seis contra um. A conta tá justa.', en: "Six against one. That's a fair count." }
   ],
   m4_3: [
-    { who: 'CARLOS', pt: 'Seis. E ainda sobrou munição.', en: 'Six. And I still have ammo left.' },
-    { who: 'RÁDIO POLÍCIA', pt: 'Todas as unidades, suspeito armado no Porto Velho.', en: 'All units, armed suspect in Porto Velho.' },
-    { who: 'CARLOS', pt: 'Hora de sumir.', en: 'Time to vanish.' }
+    { who: 'FELIPE', pt: 'Seis. E ainda sobrou munição.', en: 'Six. And I still have ammo left.' },
+    { who: 'RÁDIO POLÍCIA', pt: 'Todas as unidades, suspeito armado no Porto de Santos.', en: 'All units, armed suspect in Porto de Santos.' },
+    { who: 'FELIPE', pt: 'Hora de sumir.', en: 'Time to vanish.' }
   ],
   m4_4: [
-    { who: 'CARLOS', pt: 'Casa da Orla. Luz apagada, porta dos fundos.', en: 'Casa da Orla. Lights off, back door.' }
+    { who: 'FELIPE', pt: 'Apartamento Paulista. Luz apagada, porta dos fundos.', en: 'Apartamento Paulista. Lights off, back door.' }
   ],
   m5_1: [
-    { who: 'LUIZA', pt: 'Carlos, o mirante. Agora.', en: 'Carlos, the overlook. Now.' },
-    { who: 'CARLOS', pt: 'Tô indo. E dessa vez, sem parar na polícia.', en: "On my way. And this time, no stopping for the cops." },
-    { who: 'LUIZA', pt: 'O servidor do cassino está aqui. Se eu derrubar, a cidade perde o controle.', en: 'The casino server is here. If I take it down, the city loses control.' },
-    { who: 'CARLOS', pt: 'E a polícia vai tentar impedir. Eu seguro.', en: 'And the police will try to stop us. I hold the line.' }
+    { who: 'MARIA', pt: 'Felipe, o mirante. Agora.', en: 'Felipe, the overlook. Now.' },
+    { who: 'FELIPE', pt: 'Tô indo. E dessa vez, sem parar na polícia.', en: "On my way. And this time, no stopping for the cops." },
+    { who: 'MARIA', pt: 'O servidor do cassino está aqui. Se eu derrubar, a cidade perde o controle.', en: 'The casino server is here. If I take it down, the city loses control.' },
+    { who: 'FELIPE', pt: 'E a polícia vai tentar impedir. Eu seguro.', en: 'And the police will try to stop us. I hold the line.' }
   ],
   m5_2: [
-    { who: 'LUIZA', pt: 'Vai! Eu preciso de dois minutos.', en: 'Go! I need two minutes.' },
-    { who: 'CARLOS', pt: 'Você tem até o sol cair.', en: 'You have until the sun goes down.' }
+    { who: 'MARIA', pt: 'Vai! Eu preciso de dois minutos.', en: 'Go! I need two minutes.' },
+    { who: 'FELIPE', pt: 'Você tem até o sol cair.', en: 'You have until the sun goes down.' }
   ],
   m5_3: [
-    { who: 'CARLOS', pt: 'Ainda tô de pé, Luiza!', en: "Still standing, Luiza!" },
-    { who: 'LUIZA', pt: 'Consegui. A cidade é nossa.', en: "I got it. The city is ours." },
-    { who: 'CARLOS', pt: 'Sempre foi.', en: 'It always was.' }
+    { who: 'FELIPE', pt: 'Ainda tô de pé, Maria!', en: "Still standing, Maria!" },
+    { who: 'MARIA', pt: 'Consegui. A cidade é nossa.', en: "I got it. The city is ours." },
+    { who: 'FELIPE', pt: 'Sempre foi.', en: 'It always was.' }
   ],
   m5_4: [
-    { who: 'LUIZA', pt: 'Casa da Orla. Se a polícia nos seguir até lá, o sol não vai ser o único a cair.', en: "Casa da Orla. If the cops follow us there, the sun won't be the only thing going down." }
+    { who: 'MARIA', pt: 'Apartamento Paulista. Se a polícia nos seguir até lá, o sol não vai ser o único a cair.', en: "Apartamento Paulista. If the cops follow us there, the sun won't be the only thing going down." }
   ]
 };
 
 const NPC_LINES = [
   { pt: 'Esse sol não perdoa, né?', en: "This sun doesn't forgive, does it?" },
-  { pt: 'Dizem que o Cassino Aurora lava dinheiro até a lua.', en: 'They say Cassino Aurora launders money all the way to the moon.' },
+  { pt: 'Dizem que o Cassino Bela Vista lava dinheiro até a lua.', en: 'They say Cassino Bela Vista launders money all the way to the moon.' },
   { pt: 'Já viu o mirante no fim da tarde? Vale a pena.', en: 'Have you seen the overlook at sunset? Worth it.' },
   { pt: 'A polícia tá em todo canto hoje.', en: 'Police are everywhere today.' },
-  { pt: 'Se for pra orla, leva protetor. E paciência.', en: 'If you go to the shore, bring sunscreen. And patience.' },
-  { pt: 'O Carlos? Aquele entregador do morro? Nunca deve nada a ninguém.', en: "Carlos? That courier from the hill? He never owes anyone anything." },
-  { pt: 'A Luiza tem a voz mais bonita do rádio. E o pé mais pesado.', en: 'Luiza has the prettiest voice on radio. And the heaviest foot.' },
-  { pt: 'Cuidado com a maré. Ela sobe rápido.', en: 'Watch the tide. It comes up fast.' },
-  { pt: 'O Matteo 5 roda tudo. Até a saudade.', en: 'The Matteo 5 runs everything. Even homesickness.' },
-  { pt: 'Santo Matteo não dorme. Só finge.', en: "Santo Matteo doesn't sleep. It just pretends." },
+  { pt: 'Se for pra Avenida Paulista, leva protetor. E paciência.', en: 'If you go to the shore, bring sunscreen. And patience.' },
+  { pt: 'O Felipe? Aquele entregador da Zona Sul? Nunca deve nada a ninguém.', en: "Felipe? That courier from the hill? He never owes anyone anything." },
+  { pt: 'A Maria tem a voz mais bonita do rádio. E o pé mais pesado.', en: 'Maria has the prettiest voice on radio. And the heaviest foot.' },
+  { pt: 'Cuidado com a trânsito. Ela sobe rápido.', en: 'Watch the tide. It comes up fast.' },
+  { pt: 'O GTA 7 BR roda tudo. Até a saudade.', en: 'The GTA 7 BR runs everything. Even homesickness.' },
+  { pt: 'São Paulo não dorme. Só finge.', en: "São Paulo doesn't sleep. It just pretends." },
   { pt: 'Ouviu o barulho no porto? Melhor não ouvir.', en: 'Did you hear that noise at the port? Better not to.' },
-  { pt: 'A Roda do Sol tá mais bonita hoje.', en: 'The Sun Wheel is prettier today.' }
+  { pt: 'A Parque Trianon tá mais bonita hoje.', en: 'The Sun Wheel is prettier today.' }
 ];
 
 const MISSIONS = [
   {
     id: 'm1', num: 1, title: 'Onda de Calor', char: 'luiza', reward: 2500,
-    location: 'ORLA DE MATTEO', time: '18:42', start: LANDMARKS.kiosk,
-    sub: 'Toda cidade tem um preço. A orla acabou de cobrar o dela.',
+    location: 'AVENIDA PAULISTA', time: '18:42', start: LANDMARKS.kiosk,
+    sub: 'Toda cidade tem um preço. A Avenida Paulista acabou de cobrar o dela.',
     steps: [
-      { type: 'goto', pos: LANDMARKS.kiosk, r: 6, desc: 'Encontre Zeca no Quiosque da Orla', descEn: 'Meet Zeca at the Shore Kiosk', dialogOnArrive: 'm1_1' },
+      { type: 'goto', pos: LANDMARKS.kiosk, r: 6, desc: 'Encontre Zeca no Quiosque Paulista', descEn: 'Meet Zeca at the Shore Kiosk', dialogOnArrive: 'm1_1' },
       { type: 'chase', desc: 'Alcance o entregador e recupere o pacote', descEn: 'Catch the courier and recover the package', dialog: 'm1_2', target: { x: 430, z: 0, type: 'sports', color: 0xff7a59, name: 'ENTREGADOR' } },
-      { type: 'goto', pos: LANDMARKS.pier, r: 7, desc: 'Entregue o pacote no Píer do Sol', descEn: 'Deliver the package at Sun Pier', dialogOnArrive: 'm1_4' }
+      { type: 'goto', pos: LANDMARKS.pier, r: 7, desc: 'Entregue o pacote no Pinheiros', descEn: 'Deliver the package at Sun Pier', dialogOnArrive: 'm1_4' }
     ]
   },
   {
-    id: 'm2', num: 2, title: 'Entrega no Morro', char: 'carlos', reward: 4000,
-    location: 'PORTO VELHO', time: '19:10', start: LANDMARKS.port,
+    id: 'm2', num: 2, title: 'Entrega na Zona Sul', char: 'carlos', reward: 4000,
+    location: 'PORTO DE SANTOS', time: '19:10', start: LANDMARKS.port,
     sub: 'A carga é pesada. A cidade inteira está olhando.',
     steps: [
-      { type: 'goto', pos: LANDMARKS.port, r: 7, desc: 'Pegue a carga no Porto Velho', descEn: 'Pick up the cargo at Porto Velho', dialogOnArrive: 'm2_1' },
+      { type: 'goto', pos: LANDMARKS.port, r: 7, desc: 'Pegue a carga no Porto de Santos', descEn: 'Pick up the cargo at Porto de Santos', dialogOnArrive: 'm2_1' },
       { type: 'goto', pos: { x: -140, z: 420 }, r: 8, desc: 'Atravesse o Centro com a carga', descEn: 'Cross Downtown with the cargo', dialog: 'm2_2', wanted: 2 },
-      { type: 'goto', pos: { x: -280, z: 140 }, r: 8, desc: 'Siga para a saída do Morro', descEn: 'Head for the hill exit' },
-      { type: 'goto', pos: LANDMARKS.favela, r: 9, desc: 'Entregue a carga no Morro da Lua', descEn: 'Deliver the cargo at Morro da Lua', dialogOnArrive: 'm2_3', clearWanted: true }
+      { type: 'goto', pos: { x: -280, z: 140 }, r: 8, desc: 'Siga para a saída da Zona Sul', descEn: 'Head for the hill exit' },
+      { type: 'goto', pos: LANDMARKS.favela, r: 9, desc: 'Entregue a carga no Heliópolis', descEn: 'Deliver the cargo at Heliópolis', dialogOnArrive: 'm2_3', clearWanted: true }
     ]
   },
   {
     id: 'm3', num: 3, title: 'Entrega iFood', char: 'luiza', reward: 3200,
-    location: 'QUIOSQUE DA ORLA', time: '12:40', start: LANDMARKS.kiosk,
+    location: 'QUIOSQUE PAULISTA', time: '12:40', start: LANDMARKS.kiosk,
     sub: 'Pegue o pedido e faça três entregas pela cidade.',
     timeLimit: 220,
     repReward: 18,
     steps: [
-      { type: 'goto', pos: LANDMARKS.kiosk, r: 8, desc: 'Pegue o pedido no Quiosque da Orla', descEn: 'Pick up the order at the Shore Kiosk', dialogOnArrive: 'm3_1' },
-      { type: 'goto', pos: LANDMARKS.pier, r: 8, desc: 'Entregue o pedido no Píer do Sol', descEn: 'Deliver the order at Sun Pier', dialogOnArrive: 'm3_2' },
-      { type: 'goto', pos: LANDMARKS.casino, r: 8, desc: 'Entregue o pedido no Cassino Aurora', descEn: 'Deliver the order at Cassino Aurora' },
-      { type: 'goto', pos: LANDMARKS.park, r: 8, desc: 'Entregue o último pedido no Parque Aurora', descEn: 'Deliver the last order at Aurora Park', dialogOnArrive: 'm3_3' }
+      { type: 'goto', pos: LANDMARKS.kiosk, r: 8, desc: 'Pegue o pedido no Quiosque Paulista', descEn: 'Pick up the order at the Shore Kiosk', dialogOnArrive: 'm3_1' },
+      { type: 'goto', pos: LANDMARKS.pier, r: 8, desc: 'Entregue o pedido no Pinheiros', descEn: 'Deliver the order at Sun Pier', dialogOnArrive: 'm3_2' },
+      { type: 'goto', pos: LANDMARKS.casino, r: 8, desc: 'Entregue o pedido no Cassino Bela Vista', descEn: 'Deliver the order at Cassino Bela Vista' },
+      { type: 'goto', pos: LANDMARKS.park, r: 8, desc: 'Entregue o último pedido no Parque Ibirapuera', descEn: 'Deliver the last order at Aurora Park', dialogOnArrive: 'm3_3' }
     ]
   },
   {
     id: 'm4', num: 4, title: 'Noite no Cassino', char: 'carlos', reward: 8000,
-    location: 'CENTRO DOURADO', time: '22:05', start: LANDMARKS.casino,
+    location: 'CENTRO HISTÓRICO', time: '22:05', start: LANDMARKS.casino,
     sub: 'A casa sempre ganha. Até alguém virar a mesa.',
     steps: [
-      { type: 'goto', pos: LANDMARKS.casino, r: 7, desc: 'Vá ao Cassino Aurora', descEn: 'Go to Cassino Aurora', dialogOnArrive: 'm4_1' },
-      { type: 'goto', pos: LANDMARKS.warehouse, r: 9, desc: 'Siga para o Galpão 12', descEn: 'Head to Warehouse 12', dialogOnArrive: 'm4_2', spawnEnemies: 'gang' },
-      { type: 'combat', desc: 'Elimine os homens do Galpão 12', descEn: 'Take out the Warehouse 12 crew', count: 6, dialogOnDone: 'm4_3', wantedOnDone: 3 },
-      { type: 'goto', pos: LANDMARKS.safehouse, r: 9, desc: 'Chegue à Casa da Orla', descEn: 'Reach Casa da Orla', dialogOnArrive: 'm4_4' },
+      { type: 'goto', pos: LANDMARKS.casino, r: 7, desc: 'Vá ao Cassino Bela Vista', descEn: 'Go to Cassino Bela Vista', dialogOnArrive: 'm4_1' },
+      { type: 'goto', pos: LANDMARKS.warehouse, r: 9, desc: 'Siga para o Galpão da Mooca', descEn: 'Head to Warehouse 12', dialogOnArrive: 'm4_2', spawnEnemies: 'gang' },
+      { type: 'combat', desc: 'Elimine os homens do Galpão da Mooca', descEn: 'Take out the Warehouse 12 crew', count: 6, dialogOnDone: 'm4_3', wantedOnDone: 3 },
+      { type: 'goto', pos: LANDMARKS.safehouse, r: 9, desc: 'Chegue à Apartamento Paulista', descEn: 'Reach Apartamento Paulista', dialogOnArrive: 'm4_4' },
       { type: 'escape', desc: 'Despiste a polícia', descEn: 'Lose the police' }
     ]
   },
   {
     id: 'm5', num: 5, title: 'O Último Pôr do Sol', char: 'luiza', reward: 25000,
-    location: 'MIRANTE DO SOL', time: '17:58', start: LANDMARKS.monument,
-    sub: 'Dois destinos, uma cidade e um horizonte que não espera.',
+    location: 'MIRANTE DO VALE', time: '17:58', start: LANDMARKS.monument,
+    sub: 'Dois destinos, uma cidade e um asfalto que não espera.',
     steps: [
-      { type: 'goto', pos: LANDMARKS.monument, r: 9, desc: 'Encontre Carlos no Mirante do Sol', descEn: 'Meet Carlos at Sun Overlook', dialogOnArrive: 'm5_1' },
+      { type: 'goto', pos: LANDMARKS.monument, r: 9, desc: 'Encontre Felipe no Mirante do Vale', descEn: 'Meet Felipe at Sun Overlook', dialogOnArrive: 'm5_1' },
       { type: 'switch', char: 'carlos', desc: 'Prepare-se para a defesa', descEn: 'Prepare for the defense', dialog: 'm5_2' },
-      { type: 'defend', seconds: 50, desc: 'Defenda Luiza no Mirante', descEn: 'Defend Luiza at the Overlook', wanted: 4 },
-      { type: 'goto', pos: LANDMARKS.safehouse, r: 9, desc: 'Fuja para a Casa da Orla', descEn: 'Escape to Casa da Orla', dialogOnArrive: 'm5_4' },
+      { type: 'defend', seconds: 50, desc: 'Defenda Maria no Mirante', descEn: 'Defend Maria at the Overlook', wanted: 4 },
+      { type: 'goto', pos: LANDMARKS.safehouse, r: 9, desc: 'Fuja para a Apartamento Paulista', descEn: 'Escape to Apartamento Paulista', dialogOnArrive: 'm5_4' },
       { type: 'escape', desc: 'Despiste a polícia e desapareça', descEn: 'Lose the police and disappear' }
     ]
   }
@@ -176,8 +176,8 @@ const MISSIONS = [
 const RP_JOB_DEFS = [
   { type: 'delivery', title: 'Entrega Expressa', pt: 'Leve o pacote ao destino antes que o cliente perca a paciência.', en: 'Deliver the package before the client loses patience.', reward: 1800, time: 150, rep: 12 },
   { type: 'security', title: 'Segurança de Rua', pt: 'Três valentões estão causando no point. Resolva a situação.', en: 'Three troublemakers are causing a scene. Handle it.', reward: 2200, time: 180, rep: 18 },
-  { type: 'race', title: 'Corrida da Orla', pt: 'Quatro checkpoints pela cidade. O asfalto decide quem manda.', en: 'Four checkpoints across the city. The asphalt decides.', reward: 2600, time: 120, rep: 20 },
-  { type: 'photo', title: 'Fotógrafo da Cidade', pt: 'Registre três cartões-postais de Santo Matteo para a revista Orla.', en: 'Capture three Santo Matteo postcards for Orla magazine.', reward: 1600, time: 140, rep: 10 }
+  { type: 'race', title: 'Corrida Paulista', pt: 'Quatro checkpoints pela cidade. O asfalto decide quem manda.', en: 'Four checkpoints across the city. The asphalt decides.', reward: 2600, time: 120, rep: 20 },
+  { type: 'photo', title: 'Fotógrafo da Cidade', pt: 'Registre três cartões-postais de São Paulo para a revista Orla.', en: 'Capture three São Paulo postcards for São Paulo Magazine.', reward: 1600, time: 140, rep: 10 }
 ];
 
 /* ============================================================
@@ -733,7 +733,7 @@ export class Game {
     this._rebuildStaticMarkers();
     this._snapCamera();
     this.notify(
-      'SANTO MATTEO',
+      'SÃO PAULO',
       this._touchEnabled()
         ? 'Use o analógico para andar, ○ para interagir, L1 para rolar e o touchpad para abrir o mapa.'
         : 'Use WASD para andar, E para interagir e M para o mapa.',
@@ -771,7 +771,7 @@ export class Game {
     this.showHUD();
     this._rebuildStaticMarkers();
     this._snapCamera();
-    this.notify('ROLEPLAY ONLINE', 'Santo Matteo está aberto. Aceite trabalhos pelo mural RP ou pela pausa.', 'rp');
+    this.notify('ROLEPLAY ONLINE', 'São Paulo está aberto. Aceite trabalhos pelo mural RP ou pela pausa.', 'rp');
     this._autosave();
   }
 
@@ -831,7 +831,7 @@ export class Game {
     this._updateCharHUD();
     if (!silent) {
       this.audio.play('switch');
-      this.notify('TROCA DE PERSONAGEM', charId === 'luiza' ? 'Luiza assume. A orla é dela.' : 'Carlos assume. O morro responde.', 'good');
+      this.notify('TROCA DE PERSONAGEM', charId === 'luiza' ? 'Maria assume. A Avenida Paulista é dela.' : 'Felipe assume. A Zona Sul responde.', 'good');
       this._autosave();
     }
   }
@@ -849,17 +849,17 @@ export class Game {
     const isL = this.player.charId === 'luiza';
     const portrait = $('char-portrait');
     if (portrait) portrait.innerHTML = `<svg><use href="#portrait-${isL ? 'luiza' : 'carlos'}"/></svg>`;
-    $('char-name').textContent = isL ? 'LUIZA' : 'CARLOS';
-    $('char-role').textContent = isL ? 'A VOZ DA ORLA' : 'O BRAÇO DO MORRO';
+    $('char-name').textContent = isL ? 'MARIA' : 'FELIPE';
+    $('char-role').textContent = isL ? 'A VOZ DE SÃO PAULO' : 'O BRAÇO DO ZONA SUL';
     const pp = $('pause-char');
     if (pp) pp.innerHTML = `<svg><use href="#portrait-${isL ? 'luiza' : 'carlos'}"/></svg>`;
-    $('pause-char-name').textContent = isL ? 'LUIZA' : 'CARLOS';
-    $('pause-char-role').textContent = isL ? 'A VOZ DA ORLA' : 'O BRAÇO DO MORRO';
+    $('pause-char-name').textContent = isL ? 'MARIA' : 'FELIPE';
+    $('pause-char-role').textContent = isL ? 'A VOZ DE SÃO PAULO' : 'O BRAÇO DO ZONA SUL';
     const rpA = $('rp-avatar'); if (rpA) rpA.innerHTML = `<svg><use href="#portrait-${isL ? 'luiza' : 'carlos'}"/></svg>`;
-    const rpN = $('rp-name'); if (rpN) rpN.textContent = isL ? 'LUIZA ANDRADE' : 'CARLOS MENDES';
-    const pc = $('pause-char-name'); if (pc) pc.textContent = isL ? 'LUIZA' : 'CARLOS';
+    const rpN = $('rp-name'); if (rpN) rpN.textContent = isL ? 'MARIA ANDRADE' : 'FELIPE MENDES';
+    const pc = $('pause-char-name'); if (pc) pc.textContent = isL ? 'MARIA' : 'FELIPE';
     const msChar = $('ms-char'); if (msChar) msChar.innerHTML = `<svg><use href="#portrait-${isL ? 'luiza' : 'carlos'}"/></svg>`;
-    const msName = $('ms-name'); if (msName) msName.textContent = isL ? 'LUIZA' : 'CARLOS';
+    const msName = $('ms-name'); if (msName) msName.textContent = isL ? 'MARIA' : 'FELIPE';
   }
 
   ensureWorldActors() {
@@ -929,9 +929,9 @@ export class Game {
     };
     const st = typeStats[o.type] || typeStats.sedan;
     const modelNames = {
-      sedan: 'SEDAN MATTEO', hatch: 'HATCH ORLA', sports: 'VECTOR GT',
+      sedan: 'SEDAN GTA 7 BR', hatch: 'HATCH ORLA', sports: 'VECTOR GT',
       suv: 'TROLLER 4X4', pickup: 'CARRETA LITORAL', taxi: 'TAXI SOL',
-      police: 'VIATURA', boat: 'MARÉ 01'
+      police: 'VIATURA', boat: 'CENTRAL 01'
     };
     const genericName = !o.name || o.name === 'VEÍCULO';
     const v = {
@@ -1190,7 +1190,7 @@ export class Game {
           <div><kbd>R2</kbd><b>Atirar / Acelerar</b><small>Segure para atirar; no carro acelera</small></div>
           <div><kbd>L2</kbd><b>Mirar / Frear</b><small>No carro, L1 olha para trás</small></div>
           <div><kbd>○</kbd><b>Interagir / Sair</b><small>Entrar em veículos e falar</small></div>
-          <div><kbd>△</kbd><b>Personagem</b><small>Troca Luiza e Carlos</small></div>
+          <div><kbd>△</kbd><b>Personagem</b><small>Troca Maria e Felipe</small></div>
           <div><kbd>▭</kbd><b>Touchpad / Mapa</b><small>Toque no mapa para marcar um ponto</small></div>
           <div><kbd>▽</kbd><b>Recarregar / Buzina</b><small>D-pad para baixo</small></div>
           <div><kbd>R3</kbd><b>Câmera</b><small>Centraliza a visão</small></div>`;
@@ -2018,7 +2018,7 @@ export class Game {
       else if (nearVeh) text = 'Entrar no ' + (nearVeh.isBoat ? 'barco' : nearVeh.name);
       else if (nearNpc) text = 'Conversar';
       else if (dist2(p.pos, LANDMARKS.garage) < 6) text = 'Reparar veículo';
-      else if (dist2(p.pos, LANDMARKS.safehouse) < 6) text = 'Salvar na Casa da Orla';
+      else if (dist2(p.pos, LANDMARKS.safehouse) < 6) text = 'Salvar na Apartamento Paulista';
     }
     if (text) { txt.textContent = text; prompt.classList.remove('hidden'); }
     else prompt.classList.add('hidden');
@@ -2303,7 +2303,7 @@ export class Game {
     this.setWanted(0, true);
     this._placePlayer();
     this._snapCamera();
-    this.notify('HOSPITAL MARÉ', 'Você acordou. Perdeu 10% do dinheiro.', 'bad');
+    this.notify('HOSPITAL CENTRAL', 'Você acordou. Perdeu 10% do dinheiro.', 'bad');
     this._autosave();
   }
 
@@ -2715,7 +2715,7 @@ export class Game {
     if (!el) return;
     $('chapter-kicker').textContent = 'CAPÍTULO ' + def.num;
     $('chapter-title').textContent = def.title.toUpperCase();
-    $('chapter-char').textContent = def.char === 'luiza' ? 'LUIZA' : 'CARLOS';
+    $('chapter-char').textContent = def.char === 'luiza' ? 'MARIA' : 'FELIPE';
     $('chapter-loc').textContent = def.location;
     $('chapter-time').textContent = def.time;
     $('chapter-sub').textContent = def.sub;
@@ -2809,7 +2809,7 @@ export class Game {
   _ensureMissionBoat() {
     if (this._activeBoat && !this._activeBoat.destroyed) return this._activeBoat;
     this._activeBoat = this._makeVehicle({
-      x: 748, z: 12, type: 'boat', color: 0x1f7f8f, angle: -Math.PI / 2, name: 'MARÉ 01'
+      x: 748, z: 12, type: 'boat', color: 0x1f7f8f, angle: -Math.PI / 2, name: 'CENTRAL 01'
     });
     this._activeBoat.pos.set(748, WATER_LEVEL + 0.02, 12);
     this._activeBoat.mesh.position.copy(this._activeBoat.pos);
@@ -2970,7 +2970,7 @@ export class Game {
     this.audio.play('mission');
     this._updateMoneyHUD();
     this._showResult({
-      win: true, title: def.title, text: def.num === 5 ? 'A cidade mudou de dono. Luiza e Carlos venceram.' : 'Objetivo cumprido. Santo Matteo sente o impacto.',
+      win: true, title: def.title, text: def.num === 5 ? 'A cidade mudou de dono. Maria e Felipe venceram.' : 'Objetivo cumprido. São Paulo sente o impacto.',
       stars, money: def.reward, time: total, acc: clamp(acc, 0, 100), kills: m.stats.kills
     });
     this._autosave();
@@ -3428,8 +3428,8 @@ export class Game {
         this._mhGear = gear;
         const g = $('mh-gear'); if (g) g.textContent = gear;
       }
-    } else if (this._mhWeaponName !== 'PISTOLA MATTEO .40') {
-      this._mhWeaponName = 'PISTOLA MATTEO .40';
+    } else if (this._mhWeaponName !== 'PISTOLA GTA 7 BR .40') {
+      this._mhWeaponName = 'PISTOLA GTA 7 BR .40';
       const wn = $('mh-weapon-name'); if (wn) wn.textContent = this._mhWeaponName;
     }
 
@@ -3527,7 +3527,7 @@ export class Game {
     if (!p) return;
     const obj = $('objective-panel');
     if (!obj) return;
-    let kicker = 'MODO LIVRE', title = 'SANTO MATTEO', text = 'Explore a cidade, aceite trabalhos ou inicie a próxima missão.', progress = 0, distText = '';
+    let kicker = 'MODO LIVRE', title = 'SÃO PAULO', text = 'Explore a cidade, aceite trabalhos ou inicie a próxima missão.', progress = 0, distText = '';
     let target = null;
 
     if (this.mission) {
@@ -3572,7 +3572,7 @@ export class Game {
         target = next.start;
       } else if (this.mode === 'story') {
         kicker = 'HISTÓRIA CONCLUÍDA';
-        title = 'SANTO MATTEO É SEU';
+        title = 'SÃO PAULO É SEU';
         text = 'Você terminou as cinco missões. Continue explorando ou viva o Roleplay.';
       }
       const clock = $('mission-clock'); if (clock) clock.classList.add('hidden');
@@ -3589,7 +3589,7 @@ export class Game {
     } else {
       this._objectivePos = null;
     }
-    const od = $('obj-distance'); if (od) od.textContent = distText || (this.mode === 'rp' ? 'SANTO MATTEO' : '—');
+    const od = $('obj-distance'); if (od) od.textContent = distText || (this.mode === 'rp' ? 'SÃO PAULO' : '—');
     const ot = $('obj-timer'); if (ot) ot.textContent = this.rpJob ? this._formatTime(this.rpJob.timer) : '';
   }
 
@@ -3956,8 +3956,8 @@ export class Game {
     const isL = p.charId === 'luiza';
     const pc = $('pause-char');
     if (pc) pc.innerHTML = `<svg><use href="#portrait-${isL ? 'luiza' : 'carlos'}"/></svg>`;
-    $('pause-char-name').textContent = isL ? 'LUIZA' : 'CARLOS';
-    $('pause-char-role').textContent = isL ? 'A VOZ DA ORLA' : 'O BRAÇO DO MORRO';
+    $('pause-char-name').textContent = isL ? 'MARIA' : 'FELIPE';
+    $('pause-char-role').textContent = isL ? 'A VOZ DE SÃO PAULO' : 'O BRAÇO DO ZONA SUL';
     $('pause-money').textContent = 'R$ ' + Math.floor(p.money).toLocaleString('pt-BR');
     $('pause-wanted').textContent = this.wanted ? this.wanted + ' / 6' : 'Limpo';
     $('pause-missions').textContent = this.completed.size + ' / 5';
@@ -3993,7 +3993,7 @@ export class Game {
       c.classList.toggle('active', c.dataset.char === this.player.charId);
     });
     const note = $('switch-note');
-    if (note) note.textContent = this.mission ? 'Escolha Carlos para continuar a missão' : 'Troca instantânea • TAB ou ESC para voltar';
+    if (note) note.textContent = this.mission ? 'Escolha Felipe para continuar a missão' : 'Troca instantânea • TAB ou ESC para voltar';
     this.audio.play('ui');
   }
 
