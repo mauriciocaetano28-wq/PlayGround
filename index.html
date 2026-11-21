@@ -12,7 +12,7 @@
 </style></head>
 <body>
 <div id="boot" class="screen"><div class="xbox"></div><h1>XBOX</h1></div>
-<div id="dashboard" class="screen hidden"><header id="topbar"><div class="brand"><div class="brandball"></div>XBOX</div><div class="topactions"><button class="pill" id="lang">BR</button><button class="pill" id="settings">⚙</button></div></header><main class="content"><div class="storehead"><div><small>MICROSOFT STORE</small><h1>Jogos Grand City</h1></div></div><section class="games" id="games"></section></main></div>
+<div id="dashboard" class="screen hidden"><header id="topbar"><div class="brand"><div class="brandball"></div>XBOX</div><div class="topactions"><button class="pill" id="lang">BR</button><button class="pill" id="settings">⚙</button></div></header><main class="content"><div class="storehead"><div><small>MICROSOFT STORE</small><h1>Jogos Grand City</h1></div><button class="pill" id="radio">♪ Rádio: CIDADE</button></div><section class="games" id="games"></section></main></div>
 <div id="game" class="screen hidden"><canvas id="canvas"></canvas><div class="hud"><div class="money" id="money">$ 2.500</div><div class="wanted">★☆☆☆☆</div></div><div class="missionhud" id="missionhud">Visite o marcador dourado</div><div id="subtitle"></div><div class="controls"><button class="stick" id="ls" aria-label="Mover"></button><button class="stick" id="rs" aria-label="Câmera"></button><div class="dpad"><button class="dup">▲</button><button class="dleft">◀</button><button class="dright">▶</button><button class="ddown">▼</button></div><button class="trigger lt">LT</button><button class="trigger lb">LB</button><button class="trigger rt">RT</button><button class="trigger rb">RB</button><button class="menuButton view" id="view">◧</button><button class="menuButton menu" id="menu">☰</button><div class="abxy"><button id="A">A</button><button id="B">B</button><button id="X">X</button><button id="Y">Y</button></div><button class="xbtn" id="xbox">X</button></div></div>
 <div id="cinematic" class="screen hidden"><div class="cinebar top"></div><canvas id="cinecanvas"></canvas><div class="cinebar bottom"></div><div class="cinecopy"><h2 id="cinetitle"></h2><button id="skipcine">INICIAR MISSÃO</button></div></div>
 <script>
@@ -23,8 +23,27 @@ $('#lang').onclick=()=>{lang=lang==='BR'?'EN':'BR';$('#lang').textContent=lang;s
 $('#settings').onclick=()=>speak(lang==='BR'?'Configurações: áudio e idioma':'Settings: audio and language');
 function speak(text){if(!('speechSynthesis'in window))return; speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang=lang==='BR'?'pt-BR':'en-US';u.rate=.9;speechSynthesis.speak(u)}
 function engineBeep(freq=.08,dur=.08){try{const A=new (AudioContext||webkitAudioContext)(),o=A.createOscillator(),g=A.createGain();o.type='sawtooth';o.frequency.value=55+freq*300;g.gain.setValueAtTime(.025,A.currentTime);g.gain.exponentialRampToValueAtTime(.001,A.currentTime+dur);o.connect(g).connect(A.destination);o.start();o.stop(A.currentTime+dur)}catch(e){}}
-gamesEl.onclick=e=>{const b=e.target.closest('.download');if(!b)return;const i=+b.dataset.i;if(installed.includes(i)){startGame(i)}else if(!downloading){downloading=true;let p=0;const bar=b.parentElement.querySelector('.progress i');b.textContent='BAIXANDO';const t=setInterval(()=>{p+=4+Math.random()*8;if(p>=100){clearInterval(t);p=100;installed.push(i);localStorage.setItem('gcity-installed',JSON.stringify(installed));b.textContent='JOGAR';bar.style.width='100%';downloading=false;renderStore()}else bar.style.width=p+'%'},160)}}};
-const cv=$('#canvas'),ctx=cv.getContext('2d');let W,H,px=500,py=500,angle=0,keys={},mission=false,missionStage=0,vehicle=false,cash=2500,currentGame=0,npcs=[{x:650,y:520,s:'npc'}, {x:300,y:400,s:'npc'}, {x:760,y:300,s:'cop'}],mapX=0,mapY=0;
+gamesEl.onclick=e=>{
+ const b=e.target.closest('.download');
+ if(!b)return;
+ const i=+b.dataset.i;
+ if(installed.includes(i)){startGame(i);return}
+ if(downloading)return;
+ downloading=true;
+ let p=0;
+ const bar=b.parentElement.querySelector('.progress i');
+ b.textContent='BAIXANDO';
+ const t=setInterval(()=>{
+  p+=4+Math.random()*8;
+  if(p>=100){
+   clearInterval(t);p=100;
+   installed.push(i);
+   localStorage.setItem('gcity-installed',JSON.stringify(installed));
+   b.textContent='JOGAR';bar.style.width='100%';downloading=false;renderStore();
+  }else{bar.style.width=p+'%'}
+ },160);
+};
+const cv=$('#canvas'),ctx=cv.getContext('2d');let W,H,px=500,py=500,angle=0,keys={},mission=false,missionStage=0,vehicle=false,cash=2500,currentGame=0,deliveryMode=false,npcs=[{x:650,y:520,s:'npc'}, {x:300,y:400,s:'npc'}, {x:760,y:300,s:'cop'}],mapX=0,mapY=0;
 function resize(){W=cv.width=cv.clientWidth*devicePixelRatio;H=cv.height=cv.clientPixelRatio*devicePixelRatio}window.addEventListener('resize',resize);resize();
 function startGame(i){currentGame=i;$('#dashboard').classList.add('hidden');$('#game').classList.remove('hidden');mission=false;missionStage=0;cash=2500;px=500;py=500;resize();speak(lang==='BR'?'Bem-vindo a Grand City. Vá até o marcador dourado.':'Welcome to Grand City. Go to the golden marker.')}
 function worldToScreen(x,y){return [(x-px)*.9+W/2,(y-py)*.45+H/2]} 
@@ -35,6 +54,7 @@ ctx.fillStyle='#30383a';ctx.fillRect(120,120,800,800);ctx.fillStyle='#b9a87d';ct
 // buildings
 for(let x=180;x<440;x+=120)for(let y=180;y<420;y+=120){ctx.fillStyle='#d8bf8f';ctx.fillRect(x,y,90,90);ctx.fillStyle='#4f7185';ctx.fillRect(x+12,y+12,22,18);ctx.fillRect(x+52,y+12,22,18)}
 for(let x=650;x<900;x+=100)for(let y=620;y<860;y+=100){ctx.fillStyle='#9caab0';ctx.fillRect(x,y,70,70)}
+if(deliveryMode){ctx.fillStyle='rgba(82,255,177,.55)';ctx.beginPath();ctx.arc(820,820,22+Math.sin(Date.now()/160)*4,0,7);ctx.fill();ctx.fillStyle='#5cffb1';ctx.beginPath();ctx.moveTo(820,790);ctx.lineTo(840,820);ctx.lineTo(800,820);ctx.closePath();ctx.fill()}
 // marker
 const pulse=18+Math.sin(Date.now()/180)*5;ctx.fillStyle='rgba(255,202,45,.5)';ctx.beginPath();ctx.arc(530,350,pulse,0,7);ctx.fill();ctx.fillStyle='#ffd54a';ctx.beginPath();ctx.moveTo(530,320);ctx.lineTo(550,350);ctx.lineTo(510,350);ctx.closePath();ctx.fill();
 // NPCs
@@ -43,14 +63,22 @@ npcs.forEach((n,i)=>{ctx.fillStyle=i===2?'#1e65ad':'#d4a14d';ctx.fillRect(n.x-10
 ctx.fillStyle=vehicle?'#f13d42':'#141817';ctx.fillRect(px-18,py-35,36,35);ctx.fillStyle='#a86f50';ctx.beginPath();ctx.arc(px,py-43,12,0,7);ctx.fill();ctx.restore();
 // distance and mission
 if(!mission&&Math.hypot(px-530,py-350)<70){mission=true;missionStage=1;cinematic()}
+if(deliveryMode&&Math.hypot(px-820,py-820)<65){deliveryMode=false;mission=false;missionStage=0;cash+=1500;$('#money').textContent='$ '+cash.toLocaleString();$('#missionhud').textContent=lang==='BR'?'MISSÃO CONCLUÍDA • +$1.500':'MISSION COMPLETE • +$1.500';engineBeep(.5,.4);speak(lang==='BR'?'Missão concluída. Você ganhou mil e cinco cento dólares.':'Mission complete. You earned one thousand five hundred dollars.')}
 if(vehicle)engineBeep(.08,.05);requestAnimationFrame(draw)}requestAnimationFrame(draw);
 function cinematic(){const c=$('#cinematic');c.classList.remove('hidden');const cc=$('#cinecanvas'),x=cc.getContext('2d');cc.width=cc.clientWidth*devicePixelRatio;cc.height=cc.clientHeight*devicePixelRatio;let t=0;const title=lang==='BR'?'ENTREGA DUVIDOSA':'DOUBTFUL DELIVERY';$('#cinetitle').textContent=title;const text=lang==='BR'?'Marco: Preciso que leve este pacote para o outro lado da cidade.':'Marco: Take this package across town.';$('#subtitle').textContent=text;speak(text);function cf(){if(c.classList.contains('hidden'))return;x.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);let w=cc.clientWidth,h=cc.clientHeight;t++;let grad=x.createLinearGradient(0,0,w,h);grad.addColorStop(0,'#d29a66');grad.addColorStop(1,'#31526a');x.fillStyle=grad;x.fillRect(0,0,w,h);x.fillStyle='#20282b';for(let i=0;i<9;i++)x.fillRect(i*w/9,h*.45,w/11,h*.55);x.fillStyle='#6a3d29';x.beginPath();x.arc(w*.38,h*.62,28+Math.sin(t/20)*2,0,7);x.fill();x.fillStyle='#c29a73';x.beginPath();x.arc(w*.62,h*.58,28+Math.sin(t/20)*2,0,7);x.fill();x.strokeStyle='#e9c198';x.lineWidth=8;x.beginPath();x.moveTo(w*.38,h*.72);x.lineTo(w*.38+t%20,h*.58);x.moveTo(w*.62,h*.68);x.lineTo(w*.62-t%20,h*.54);x.stroke();requestAnimationFrame(cf)}cf()}
-$('#skipcine').onclick=()=>{$('#cinematic').classList.add('hidden');$('#subtitle').textContent='';$('#missionhud').textContent=lang==='BR'?'Missão: leve o pacote ao porto':'Mission: deliver the package to the docks';px=530;py=360};
+$('#skipcine').onclick=()=>{$('#cinematic').classList.add('hidden');$('#subtitle').textContent='';$('#missionhud').textContent=lang==='BR'?'Missão: leve o pacote ao porto':'Mission: deliver the package to the docks';px=530;py=360;deliveryMode=true};
 function openMenu(){const txt=lang==='BR'?'Menu: Mapa • Rádio • Idioma BR':'Menu: Map • Radio • Language EN';$('#subtitle').textContent=txt;speak(txt);setTimeout(()=>{if(!$('#cinematic').classList.contains('hidden')){}else $('#subtitle').textContent=''},2200)}
+let radioIndex=0;
+const radioNames=lang==='BR'?['CIDADE','FUNK','PAGODE','SERTANEJO']:['CITY','HIP-HOP','ROCK','POP'];
+function playRadio(){radioIndex=(radioIndex+1)%radioNames.length;$('#radio').textContent='♪ Rádio: '+radioNames[radioIndex];speak(lang==='BR'?`Rádio ${radioNames[radioIndex]} ligado`:`Radio ${radioNames[radioIndex]} on`) }
+$('#radio').onclick=playRadio;
 $('#menu').onclick=openMenu;$('#view').onclick=()=>{speak(lang==='BR'?'Mapa da cidade aberto':'City map open')};$('#xbox').onclick=()=>{$('#game').classList.add('hidden');$('#dashboard').classList.remove('hidden')};
 $('#A').onpointerdown=e=>{e.prevent;vehicle=!vehicle;openMenu()};
 $('#B').onpointerdown=()=>{speak(lang==='BR'?'Ação cancelada':'Action cancelled')};$('#X').onpointerdown=()=>{engineBeep(.2,.15);speak(lang==='BR'?'Atirando':'Shooting')};$('#Y').onpointerdown=()=>{missionStage++;if(missionStage>1){mission=false;cash+=1500;$('#money').textContent='$ '+cash.toLocaleString();$('#missionhud').textContent=lang==='BR'?'Missão concluída • $1.500':'Mission complete • $1.500';speak(lang==='BR'?'Missão concluída':'Mission complete')}};
 ['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','a','s','d'].forEach(k=>{});window.addEventListener('keydown',e=>{keys[e.key]=true;if(e.key==='Escape')openMenu()});window.addEventListener('keyup',e=>{keys[e.key]=false});
-const ls=$('#ls');ls.addEventListener('pointermove',e=>{if(!ls.hasPointerCapture(e.pointerId))return;const r=ls.getBoundingClientRect(),x=e.clientX-(r.left+r.width/2),y=e.clientY-(r.top+r.height/2);keys.ArrowLeft=x<-18;keys.ArrowRight=x>18;keys.ArrowUp=y<-18;keys.ArrowDown=y>18});ls.addEventListener('pointerup',()=>{keys.ArrowLeft=keys.ArrowRight=keys.ArrowUp=keys.ArrowDown=false});ls.setPointerCapture=ls.setPointerCapture;
+const ls=$('#ls');
+ls.addEventListener('pointerdown',e=>{ls.setPointerCapture(e.pointerId)});
+ls.addEventListener('pointermove',e=>{if(!ls.hasPointerCapture(e.pointerId))return;const r=ls.getBoundingClientRect(),x=e.clientX-(r.left+r.width/2),y=e.clientY-(r.top+r.height/2);keys.ArrowLeft=x<-18;keys.ArrowRight=x>18;keys.ArrowUp=y<-18;keys.ArrowDown=y>18});
+ls.addEventListener('pointerup',()=>{keys.ArrowLeft=keys.ArrowRight=keys.ArrowUp=keys.ArrowDown=false});
 </script>
 </body></html>
