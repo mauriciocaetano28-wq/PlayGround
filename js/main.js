@@ -183,7 +183,7 @@ function updateContinueState() {
   const s = loadJSON(SAVE_KEY, null);
   if (s) {
     const ch = s.char === 'carlos' ? 'Felipe' : 'Maria';
-    const mode = s.mode === 'rp' ? 'Roleplay' : `${(s.completed || []).length}/5 missões`;
+    const mode = s.mode === 'rp' ? 'Roleplay' : `${(s.completed || []).length}/10 missões`;
     sub.textContent = `${ch} • ${mode} • ${new Date(s.updated || Date.now()).toLocaleDateString('pt-BR')}`;
     btn.classList.remove('disabled');
   } else {
@@ -526,7 +526,7 @@ function bindMenu() {
       if (action === 'play') openCharSelect('story');
       else if (action === 'rp') openCharSelect('rp');
       else if (action === 'continue') continueGame();
-      else if (action === 'minicraft') window.location.href = './minicraft.html?from=gta';
+      else if (action === 'gta6') window.location.href = './launcher-gta6.html';
       else if (action === 'download') openOverlay('download-modal');
       else if (action === 'settings') openOverlay('settings-modal');
       else if (action === 'credits') openOverlay('credits-modal');
@@ -589,7 +589,7 @@ function bindMenu() {
     game._closeResult();
     const next = game.nextMission();
     if (next) game.notify('PRÓXIMA MISSÃO', next.title + ' disponível em ' + next.location + '.', 'good');
-    else game.notify('HISTÓRIA COMPLETA', 'Você terminou as cinco missões. A cidade é sua.', 'good');
+    else game.notify('HISTÓRIA COMPLETA', 'Você terminou as dez missões. A cidade é sua.', 'good');
   });
   const resultRetry = $('btn-result-retry');
   if (resultRetry) resultRetry.addEventListener('click', () => { if (game) game.restartCheckpoint(); });

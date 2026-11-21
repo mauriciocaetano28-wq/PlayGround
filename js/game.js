@@ -114,24 +114,24 @@ const NPC_LINES = [
 
 const MISSIONS = [
   {
-    id: 'm1', num: 1, title: 'Onda de Calor', char: 'luiza', reward: 2500,
+    id: 'm1', num: 1, title: 'Primeira Fatura', char: 'luiza', reward: 3000,
     location: 'AVENIDA PAULISTA', time: '18:42', start: LANDMARKS.kiosk,
-    sub: 'Toda cidade tem um preço. A Avenida Paulista acabou de cobrar o dela.',
+    sub: 'Maria recebe uma entrega impossível e conhece o pacto secreto que move a cidade.',
     steps: [
-      { type: 'goto', pos: LANDMARKS.kiosk, r: 6, desc: 'Encontre Zeca no Quiosque Paulista', descEn: 'Meet Zeca at the Shore Kiosk', dialogOnArrive: 'm1_1' },
-      { type: 'chase', desc: 'Alcance o entregador e recupere o pacote', descEn: 'Catch the courier and recover the package', dialog: 'm1_2', target: { x: 430, z: 0, type: 'sports', color: 0xff7a59, name: 'ENTREGADOR' } },
-      { type: 'goto', pos: LANDMARKS.pier, r: 7, desc: 'Entregue o pacote no Pinheiros', descEn: 'Deliver the package at Sun Pier', dialogOnArrive: 'm1_4' }
+      { type: 'goto', pos: LANDMARKS.kiosk, r: 7, desc: 'Encontre Zeca no Quiosque Paulista', descEn: 'Meet Zeca at Quiosque Paulista', dialogOnArrive: 'm1_1' },
+      { type: 'chase', desc: 'Recupere o envelope com Felipe', descEn: 'Recover the envelope with Felipe', dialog: 'm1_2', target: { x: 430, z: 0, type: 'sports', color: 0xff7a59, name: 'INTERMEDIÁRIO' } },
+      { type: 'goto', pos: LANDMARKS.pier, r: 8, desc: 'Leve o envelope para Pinheiros', descEn: 'Take the envelope to Pinheiros', dialogOnArrive: 'm1_4' }
     ]
   },
   {
-    id: 'm2', num: 2, title: 'Entrega na Zona Sul', char: 'carlos', reward: 4000,
+    id: 'm2', num: 2, title: 'Caminho da Mooca', char: 'carlos', reward: 4200,
     location: 'PORTO DE SANTOS', time: '19:10', start: LANDMARKS.port,
-    sub: 'A carga é pesada. A cidade inteira está olhando.',
+    sub: 'Felipe transporta uma carga que revela o nome de um operador poderoso.',
     steps: [
-      { type: 'goto', pos: LANDMARKS.port, r: 7, desc: 'Pegue a carga no Porto de Santos', descEn: 'Pick up the cargo at Porto de Santos', dialogOnArrive: 'm2_1' },
-      { type: 'goto', pos: { x: -140, z: 420 }, r: 8, desc: 'Atravesse o Centro com a carga', descEn: 'Cross Downtown with the cargo', dialog: 'm2_2', wanted: 2 },
-      { type: 'goto', pos: { x: -280, z: 140 }, r: 8, desc: 'Siga para a saída da Zona Sul', descEn: 'Head for the hill exit' },
-      { type: 'goto', pos: LANDMARKS.favela, r: 9, desc: 'Entregue a carga no Heliópolis', descEn: 'Deliver the cargo at Heliópolis', dialogOnArrive: 'm2_3', clearWanted: true }
+      { type: 'goto', pos: LANDMARKS.port, r: 8, desc: 'Pegue a carga no Porto de Santos', descEn: 'Pick up the cargo at Porto de Santos', dialogOnArrive: 'm2_1' },
+      { type: 'goto', pos: { x: -140, z: 420 }, r: 8, desc: 'Atravesse o Centro com a carga', descEn: 'Cross Centro Historico with the cargo', dialog: 'm2_2', wanted: 2 },
+      { type: 'goto', pos: LANDMARKS.warehouse, r: 9, desc: 'Entregue no Distrito da Mooca', descEn: 'Deliver in the Mooca district' },
+      { type: 'goto', pos: LANDMARKS.favela, r: 9, desc: 'Escute o informante em Heliópolis', descEn: 'Meet the informant in Heliópolis', dialogOnArrive: 'm2_3', clearWanted: true }
     ]
   },
   {
@@ -141,34 +141,83 @@ const MISSIONS = [
     timeLimit: 220,
     repReward: 18,
     steps: [
-      { type: 'goto', pos: LANDMARKS.kiosk, r: 8, desc: 'Pegue o pedido no Quiosque Paulista', descEn: 'Pick up the order at the Shore Kiosk', dialogOnArrive: 'm3_1' },
-      { type: 'goto', pos: LANDMARKS.pier, r: 8, desc: 'Entregue o pedido no Pinheiros', descEn: 'Deliver the order at Sun Pier', dialogOnArrive: 'm3_2' },
+      { type: 'goto', pos: LANDMARKS.kiosk, r: 8, desc: 'Pegue o pedido no Quiosque Paulista', descEn: 'Pick up the order at Quiosque Paulista', dialogOnArrive: 'm3_1' },
+      { type: 'goto', pos: LANDMARKS.pier, r: 8, desc: 'Entregue o pedido no Pinheiros', descEn: 'Deliver the order in Pinheiros', dialogOnArrive: 'm3_2' },
       { type: 'goto', pos: LANDMARKS.casino, r: 8, desc: 'Entregue o pedido no Cassino Bela Vista', descEn: 'Deliver the order at Cassino Bela Vista' },
-      { type: 'goto', pos: LANDMARKS.park, r: 8, desc: 'Entregue o último pedido no Parque Ibirapuera', descEn: 'Deliver the last order at Aurora Park', dialogOnArrive: 'm3_3' }
+      { type: 'goto', pos: LANDMARKS.park, r: 8, desc: 'Entregue o último pedido no Parque Ibirapuera', descEn: 'Deliver the last order at Ibirapuera Park', dialogOnArrive: 'm3_3' }
     ]
   },
   {
-    id: 'm4', num: 4, title: 'Noite no Cassino', char: 'carlos', reward: 8000,
-    location: 'CENTRO HISTÓRICO', time: '22:05', start: LANDMARKS.casino,
-    sub: 'A casa sempre ganha. Até alguém virar a mesa.',
+    id: 'm4', num: 4, title: 'Sombras no Jardim', char: 'carlos', reward: 5500,
+    location: 'JARDINS', time: '20:30', start: LANDMARKS.safehouse,
+    sub: 'Felipe segue o intermediário pelas ruas nobres e descobre uma rede de corrupção.',
     steps: [
-      { type: 'goto', pos: LANDMARKS.casino, r: 7, desc: 'Vá ao Cassino Bela Vista', descEn: 'Go to Cassino Bela Vista', dialogOnArrive: 'm4_1' },
-      { type: 'goto', pos: LANDMARKS.warehouse, r: 9, desc: 'Siga para o Galpão da Mooca', descEn: 'Head to Warehouse 12', dialogOnArrive: 'm4_2', spawnEnemies: 'gang' },
-      { type: 'combat', desc: 'Elimine os homens do Galpão da Mooca', descEn: 'Take out the Warehouse 12 crew', count: 6, dialogOnDone: 'm4_3', wantedOnDone: 3 },
-      { type: 'goto', pos: LANDMARKS.safehouse, r: 9, desc: 'Chegue à Apartamento Paulista', descEn: 'Reach Apartamento Paulista', dialogOnArrive: 'm4_4' },
-      { type: 'escape', desc: 'Despiste a polícia', descEn: 'Lose the police' }
+      { type: 'goto', pos: { x: 250, z: -620 }, r: 9, desc: 'Vá ao encontro em Jardins', descEn: 'Meet the contact in Jardins' },
+      { type: 'chase', desc: 'Persiga o intermediário', descEn: 'Pursue the intermediary', target: { x: 980, z: -680, type: 'sports', color: 0x1d3557, name: 'EXECUTOR' } },
+      { type: 'goto', pos: LANDMARKS.pinheiros, r: 9, desc: 'Recupere os documentos no Mercado de Pinheiros', descEn: 'Recover the documents at Pinheiros Market', wanted: 2 }
     ]
   },
   {
-    id: 'm5', num: 5, title: 'O Último Pôr do Sol', char: 'luiza', reward: 25000,
-    location: 'MIRANTE DO VALE', time: '17:58', start: LANDMARKS.monument,
-    sub: 'Dois destinos, uma cidade e um asfalto que não espera.',
+    id: 'm5', num: 5, title: 'República do Silêncio', char: 'luiza', reward: 6800,
+    location: 'REPÚBLICA', time: '23:15', start: LANDMARKS.republica,
+    sub: 'Maria invade uma reunião clandestina na Praça da República.',
     steps: [
-      { type: 'goto', pos: LANDMARKS.monument, r: 9, desc: 'Encontre Felipe no Mirante do Vale', descEn: 'Meet Felipe at Sun Overlook', dialogOnArrive: 'm5_1' },
-      { type: 'switch', char: 'carlos', desc: 'Prepare-se para a defesa', descEn: 'Prepare for the defense', dialog: 'm5_2' },
-      { type: 'defend', seconds: 50, desc: 'Defenda Maria no Mirante', descEn: 'Defend Maria at the Overlook', wanted: 4 },
-      { type: 'goto', pos: LANDMARKS.safehouse, r: 9, desc: 'Fuja para a Apartamento Paulista', descEn: 'Escape to Apartamento Paulista', dialogOnArrive: 'm5_4' },
-      { type: 'escape', desc: 'Despiste a polícia e desapareça', descEn: 'Lose the police and disappear' }
+      { type: 'goto', pos: LANDMARKS.republica, r: 9, desc: 'Entre na Praça da República', descEn: 'Enter Praça da República' },
+      { type: 'combat', desc: 'Derrube os seguranças da reunião', descEn: 'Defeat the meeting guards', count: 5, wantedOnDone: 3 },
+      { type: 'goto', pos: LANDMARKS.monument, r: 9, desc: 'Entregue as provas no Mirante do Vale', descEn: 'Deliver evidence to Mirante do Vale', clearWanted: true }
+    ]
+  },
+  {
+    id: 'm6', num: 6, title: 'Trem da Verdade', char: 'carlos', reward: 7000,
+    location: 'TATUAPÉ', time: '06:05', start: LANDMARKS.tatuape,
+    sub: 'A dupla usa o Terminal Tatuapé para interceptar uma mala antes da partida.',
+    steps: [
+      { type: 'goto', pos: LANDMARKS.tatuape, r: 10, desc: 'Chegue ao Terminal Tatuapé', descEn: 'Reach Terminal Tatuapé' },
+      { type: 'chase', desc: 'Intercepte a mala na Linha Leste', descEn: 'Intercept the case in East Line', target: { x: 1380, z: 980, type: 'van', color: 0x4a5560, name: 'CURADOR' } },
+      { type: 'goto', pos: LANDMARKS.warehouse, r: 9, desc: 'Guarde a mala no Galpão da Mooca', descEn: 'Store the case in the Mooca warehouse' }
+    ]
+  },
+  {
+    id: 'm7', num: 7, title: 'Zona Vermelha', char: 'luiza', reward: 9000,
+    location: 'HELIOPÓLIS', time: '21:40', start: LANDMARKS.favela,
+    sub: 'Maria descobre que o governo local financiou a operação que ameaça o bairro.',
+    steps: [
+      { type: 'goto', pos: LANDMARKS.favela, r: 10, desc: 'Fale com a comunidade em Heliópolis', descEn: 'Speak to the community in Heliópolis' },
+      { type: 'defend', seconds: 45, desc: 'Proteja Maria do cerco', descEn: 'Protect Maria from the siege', wanted: 4, spawnEnemies: 'gang' },
+      { type: 'goto', pos: LANDMARKS.hospital, r: 9, desc: 'Leve os feridos ao Hospital Paulista', descEn: 'Take the injured to Hospital Paulista', clearWanted: true }
+    ]
+  },
+  {
+    id: 'm8', num: 8, title: 'Código Aeroporto', char: 'carlos', reward: 10500,
+    location: 'ZONA LESTE', time: '04:20', start: LANDMARKS.aeroporto,
+    sub: 'Felipe precisa impedir que o arquivo mestre saia do país por um voo clandestino.',
+    steps: [
+      { type: 'goto', pos: LANDMARKS.aeroporto, r: 10, desc: 'Infiltre o Aeroporto da Zona Leste', descEn: 'Infiltrate the East Zone Airport' },
+      { type: 'goto', pos: LANDMARKS.ponte, r: 11, desc: 'Interrompa o comboio na Ponte dos Bandeirantes', descEn: 'Stop the convoy on Ponte dos Bandeirantes', wanted: 3 },
+      { type: 'escape', desc: 'Escape da perseguição policial', descEn: 'Lose the police pursuit', clearWanted: true }
+    ]
+  },
+  {
+    id: 'm9', num: 9, title: 'Sete Pontos de Luz', char: 'luiza', reward: 15000,
+    location: 'SÃO PAULO', time: '05:55', start: LANDMARKS.park,
+    sub: 'Maria reúne provas em sete regiões antes do amanhecer e prepara o golpe final.',
+    steps: [
+      { type: 'goto', pos: LANDMARKS.park, r: 9, desc: 'Passe pelo Parque Ibirapuera', descEn: 'Pass through Ibirapuera Park' },
+      { type: 'goto', pos: LANDMARKS.marina, r: 9, desc: 'Transmita o arquivo pela Marina Paulista', descEn: 'Transmit the file at Marina Paulista' },
+      { type: 'goto', pos: LANDMARKS.casino, r: 9, desc: 'Encontre Felipe no Cassino Bela Vista', descEn: 'Meet Felipe at Cassino Bela Vista' },
+      { type: 'switch', char: 'carlos', desc: 'Mude para Felipe', descEn: 'Switch to Felipe', dialog: 'm5_2' }
+    ]
+  },
+  {
+    id: 'm10', num: 10, title: 'A Grande Virada', char: 'luiza', reward: 30000,
+    location: 'MIRANTE DO VALE', time: '18:12', start: LANDMARKS.monument,
+    sub: 'Maria e Felipe derrubam a organização e decidem o futuro da cidade.',
+    steps: [
+      { type: 'goto', pos: LANDMARKS.monument, r: 10, desc: 'Encontre Felipe no Mirante do Vale', descEn: 'Meet Felipe at Mirante do Vale', dialogOnArrive: 'm5_1' },
+      { type: 'switch', char: 'carlos', desc: 'Assuma a defesa do mirante', descEn: 'Take the overlook defense', dialog: 'm5_2' },
+      { type: 'defend', seconds: 55, desc: 'Defenda Maria até a transmissão acabar', descEn: 'Defend Maria until the transmission ends', wanted: 5 },
+      { type: 'goto', pos: LANDMARKS.safehouse, r: 10, desc: 'Fuja para o Apartamento Paulista', descEn: 'Escape to Apartamento Paulista', dialogOnArrive: 'm5_4' },
+      { type: 'escape', desc: 'Desapareça da cidade', descEn: 'Disappear from the city', clearWanted: true }
     ]
   }
 ];
@@ -3573,7 +3622,7 @@ export class Game {
       } else if (this.mode === 'story') {
         kicker = 'HISTÓRIA CONCLUÍDA';
         title = 'SÃO PAULO É SEU';
-        text = 'Você terminou as cinco missões. Continue explorando ou viva o Roleplay.';
+        text = 'Você terminou as dez missões. Continue explorando ou viva o Roleplay.';
       }
       const clock = $('mission-clock'); if (clock) clock.classList.add('hidden');
     }
