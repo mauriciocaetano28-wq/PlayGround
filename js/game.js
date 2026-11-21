@@ -3951,6 +3951,8 @@ export class Game {
   _populatePause() {
     const p = this.player;
     if (!p) return;
+    const adminCompleteButton = $('btn-admin-complete-mission');
+    if (adminCompleteButton) adminCompleteButton.disabled = !this.mission;
     const isL = p.charId === 'luiza';
     const pc = $('pause-char');
     if (pc) pc.innerHTML = `<svg><use href="#portrait-${isL ? 'luiza' : 'carlos'}"/></svg>`;
