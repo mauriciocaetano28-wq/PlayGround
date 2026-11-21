@@ -614,6 +614,11 @@ body.touch-mode .map-touch{display:flex;align-items:center;justify-content:space
 .pause-stats b{font-family:var(--font-display);font-size:21px;letter-spacing:.04em;font-weight:700}
 .pause-progress{margin-top:20px}
 .pause-progress h3{font-size:7px;letter-spacing:.22em;color:#8ba0a4;font-weight:800;margin-bottom:8px}
+.pause-admin{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:18px;padding:14px;background:rgba(255,174,76,.06);border:1px solid rgba(255,174,76,.2);border-radius:6px}
+.pause-admin h3{font-size:8px;letter-spacing:.16em;color:var(--gold);font-weight:800}
+.pause-admin p{margin-top:5px;font-size:9px;line-height:1.4;color:#93a8ab}
+.pause-admin .btn{flex:none;min-height:36px;padding:0 12px;font-size:9px}
+.pause-admin .btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
 .pm-row{display:flex;align-items:center;gap:9px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:9px;color:#b7c7c9}
 .pm-row .pm-dot{width:6px;height:6px;border-radius:50%;background:#42565a;flex:none}
 .pm-row.done .pm-dot{background:var(--green);box-shadow:0 0 6px var(--green)}
@@ -964,6 +969,8 @@ body.touch-mode .map-touch{display:flex;align-items:center;justify-content:space
   .pause-right{padding:18px 16px;overflow:visible}
   .pause-head h2{font-size:26px}
   .pause-stats{grid-template-columns:1fr 1fr}
+  .pause-admin{align-items:stretch;flex-direction:column;gap:10px}
+  .pause-admin .btn{width:100%}
   .pause-progress .pm-row{font-size:8px}
   .map-overlay{padding:10px 12px}
   .map-body{grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) auto}

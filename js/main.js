@@ -575,6 +575,13 @@ function bindMenu() {
     });
   });
 
+  const adminCompleteMission = $('btn-admin-complete-mission');
+  if (adminCompleteMission) adminCompleteMission.addEventListener('click', () => {
+    if (!game || !game.mission) return;
+    game.togglePause(false);
+    game._completeMission();
+  });
+
   const resultNext = $('btn-result-next');
   if (resultNext) resultNext.addEventListener('click', () => {
     if (!game) return;
