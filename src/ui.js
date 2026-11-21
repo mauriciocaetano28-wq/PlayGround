@@ -21,6 +21,8 @@ const DEFAULT_SETTINGS = {
   haptics: true,
   music: .45,
   sfx: .72,
+  voiceEnabled: true,
+  voiceVolume: .92,
   muted: false
 };
 
@@ -40,6 +42,8 @@ const L = {
     shadows: 'Sombras', draw: 'Distância de visão', water: 'Qualidade da água', adaptive: 'Resolução adaptativa', fps: 'Mostrar FPS',
     subtitles: 'Legendas', hints: 'Dicas de controle', sensitivity: 'Sensibilidade', invert: 'Inverter eixo Y', haptics: 'Vibração',
     music: 'Música', sfx: 'Efeitos', muted: 'Mudo', hudSize: 'Tamanho do HUD', hudOpacity: 'Opacidade do HUD',
+    voices: 'Vozes dos personagens', voiceVolume: 'Volume das vozes', voiceTest: 'Testar vozes',
+    voiceFemale: 'Feminina', voiceMale: 'Masculina',
     hudLayout: 'Layout do HUD', forceTouch: 'Mostrar controles de toque', lefty: 'Canhoto', righty: 'Destro',
     low: 'Baixa', medium: 'Média', high: 'Alta', ultra: 'Ultra', performance: 'Desempenho', balanced: 'Equilibrado',
     today: 'Hoje', missionsCount: 'missões concluídas', rpSession: 'SESSÃO RP', freeSession: 'MUNDO LIVRE',
@@ -62,6 +66,8 @@ const L = {
     shadows: 'Shadows', draw: 'View distance', water: 'Water quality', adaptive: 'Adaptive resolution', fps: 'Show FPS',
     subtitles: 'Subtitles', hints: 'Control hints', sensitivity: 'Sensitivity', invert: 'Invert Y axis', haptics: 'Haptics',
     music: 'Music', sfx: 'Effects', muted: 'Mute', hudSize: 'HUD size', hudOpacity: 'HUD opacity',
+    voices: 'Character voices', voiceVolume: 'Voice volume', voiceTest: 'Test voices',
+    voiceFemale: 'Female', voiceMale: 'Male',
     hudLayout: 'HUD layout', forceTouch: 'Show touch controls', lefty: 'Left-handed', righty: 'Right-handed',
     low: 'Low', medium: 'Medium', high: 'High', ultra: 'Ultra', performance: 'Performance', balanced: 'Balanced',
     today: 'Today', missionsCount: 'missions completed', rpSession: 'RP SESSION', freeSession: 'FREE ROAM',
@@ -91,6 +97,12 @@ export class UI {
     this.currentJob = 'taxi';
     this.missionCardTimer = null;
     this.storyMode = 'story';
+    this.voiceTestTimer = null;
+    if (this.game.voice) {
+      this.game.voice.configure(this.settings);
+      this.game.voice.onState = (speaking) => this.setVoiceIndicator(speaking);
+      this.game.voice.onVoices = () => this.refreshVoiceStatus();
+    }
     this.applyCSS();
     this.bindStaticEvents();
     this.buildSettings();
@@ -539,6 +551,7 @@ export class UI {
 
   // ---------------- DIALOGUE ----------------
   speak(lines, onDone) {
+    this.game.voice?.stop();
     if (!lines?.length) { onDone?.(); return; }
     this.dialogueQueue = lines.slice();
     this.dialogueDone = onDone;
@@ -546,9 +559,24 @@ export class UI {
     this.showNextDialogue();
   }
 
+  setVoiceIndicator(speaking) {
+    const el = this.$('#dialogue-voice');
+    if (!el) return;
+    el.classList.toggle('speaking', !!speaking);
+  }
+
+  refreshVoiceStatus() {
+    const el = this.$('#voice-status');
+    if (!el || !this.game.voice) return;
+    const status = this.game.voice.status(this.language);
+    el.textContent = status.label;
+    el.classList.toggle('fallback', status.mode === 'fallback');
+  }
+
   showNextDialogue() {
     if (!this.dialogueQueue.length) {
       this.dialogueActive = false;
+      this.game.voice?.stop();
       this.$('#dialogue').classList.remove('on');
       const cb = this.dialogueDone; this.dialogueDone = null;
       cb?.();
@@ -563,12 +591,26 @@ export class UI {
     this.$('#dialogue-text').textContent = this.language === 'pt' ? line.pt : line.en;
     this.$('#dialogue-lang').textContent = this.language === 'pt' ? 'PT-BR' : 'EN-US';
     this.$('#dialogue-hint').innerHTML = `<kbd>E</kbd> ${this.language === 'pt' ? 'continuar' : 'continue'} <i>${this.dialogueQueue.length}</i>`;
+    const voiceEl = this.$('#dialogue-voice');
+    if (voiceEl) voiceEl.classList.toggle('off', !this.settings.voiceEnabled);
+    this.setVoiceIndicator(false);
+    this.game.voice?.speak(line, this.language);
   }
 
   advanceDialogue() {
     if (!this.dialogueActive || !this.dialogueQueue.length) return;
+    this.game.voice?.stop();
     this.dialogueQueue.shift();
     this.showNextDialogue();
+  }
+
+  clearDialogue() {
+    this.game.voice?.stop();
+    this.dialogueQueue = [];
+    this.dialogueDone = null;
+    this.dialogueActive = false;
+    this.$('#dialogue')?.classList.remove('on');
+    this.setVoiceIndicator(false);
   }
 
   // ---------------- MISSION UI ----------------
@@ -646,6 +688,7 @@ export class UI {
     if (!box) return;
     const s = this.settings;
     const pt = this.language === 'pt';
+    const voiceStatus = this.game.voice?.status(this.language) || { mode: 'fallback', label: pt ? 'Síntese vocal local ativa' : 'Local vocal synth active' };
     const seg = (key, options, value) => `<div class="seg">${options.map(([v, label]) => `<button class="${value === v ? 'active' : ''}" data-set="${key}" data-val="${v}">${label}</button>`).join('')}</div>`;
     const toggle = (key, val) => `<button class="toggle ${val ? 'on' : ''}" data-toggle="${key}" aria-label="${key}"></button>`;
     const qualityOptions = [[ 'performance', pt ? 'Desempenho' : 'Performance'], ['balanced', pt ? 'Equilibrado' : 'Balanced'], ['ultra', 'Ultra']];
@@ -682,6 +725,9 @@ export class UI {
         <div class="settings-grid">
           <div class="setting-row"><div class="setting-label"><b>${this.t('music')}</b><small>${Math.round(s.music * 100)}%</small></div><div class="setting-control"><input type="range" min="0" max="100" step="5" value="${s.music * 100}" data-range="music"><span class="range-val">${Math.round(s.music * 100)}%</span></div></div>
           <div class="setting-row"><div class="setting-label"><b>${this.t('sfx')}</b><small>${Math.round(s.sfx * 100)}%</small></div><div class="setting-control"><input type="range" min="0" max="100" step="5" value="${s.sfx * 100}" data-range="sfx"><span class="range-val">${Math.round(s.sfx * 100)}%</span></div></div>
+          <div class="setting-row voice-row"><div class="setting-label"><b>${this.t('voices')}</b><small id="voice-status" class="voice-status ${voiceStatus.mode}">${voiceStatus.label}</small></div><div class="setting-control">${toggle('voiceEnabled', s.voiceEnabled)}</div></div>
+          <div class="setting-row"><div class="setting-label"><b>${this.t('voiceVolume')}</b><small>${Math.round((s.voiceVolume ?? .92) * 100)}%</small></div><div class="setting-control"><input type="range" min="0" max="100" step="5" value="${(s.voiceVolume ?? .92) * 100}" data-range="voiceVolume"><span class="range-val">${Math.round((s.voiceVolume ?? .92) * 100)}%</span></div></div>
+          <div class="setting-row"><div class="setting-label"><b>${this.t('voiceTest')}</b><small>${pt ? 'IA feminina / masculina' : 'Female / male AI'}</small></div><div class="setting-control voice-test-group"><button type="button" class="voice-test" data-voice-test="female">♀ ${this.t('voiceFemale')}</button><button type="button" class="voice-test" data-voice-test="male">♂ ${this.t('voiceMale')}</button></div></div>
           <div class="setting-row"><div class="setting-label"><b>${this.t('muted')}</b><small>${pt ? 'Silenciar tudo' : 'Mute all'}</small></div><div class="setting-control">${toggle('muted', s.muted)}</div></div>
           <div class="setting-row"><div class="setting-label"><b>${this.t('hints')}</b><small>${pt ? 'Atalhos na tela' : 'On-screen shortcuts'}</small></div><div class="setting-control">${toggle('hints', s.hints)}</div></div>
         </div>
@@ -689,22 +735,29 @@ export class UI {
       </div>`;
     box.querySelectorAll('[data-set]').forEach(btn => btn.addEventListener('click', () => {
       const key = btn.dataset.set; let val = btn.dataset.val;
-      if (['resolutionScale','hudSize','hudOpacity','lookSensitivity','music','sfx'].includes(key)) val = Number(val);
+      if (['resolutionScale','hudSize','hudOpacity','lookSensitivity','music','sfx','voiceVolume'].includes(key)) val = Number(val);
       this.updateSettings({ [key]: val });
     }));
     box.querySelectorAll('[data-toggle]').forEach(btn => btn.addEventListener('click', () => {
       this.updateSettings({ [btn.dataset.toggle]: !this.settings[btn.dataset.toggle] });
     }));
+    box.querySelectorAll('[data-voice-test]').forEach(btn => btn.addEventListener('click', () => {
+      this.game.voice?.test(btn.dataset.voiceTest, this.language);
+      this.$$('[data-voice-test]').forEach(b => b.classList.toggle('playing', b === btn));
+      clearTimeout(this.voiceTestTimer);
+      this.voiceTestTimer = setTimeout(() => this.$$('[data-voice-test]').forEach(b => b.classList.remove('playing')), 3200);
+    }));
     box.querySelectorAll('[data-range]').forEach(input => {
       input.addEventListener('input', () => {
         const key = input.dataset.range;
         let val = Number(input.value);
-        if (['hudSize', 'hudOpacity', 'lookSensitivity', 'music', 'sfx'].includes(key)) val /= 100;
+        if (['hudSize', 'hudOpacity', 'lookSensitivity', 'music', 'sfx', 'voiceVolume'].includes(key)) val /= 100;
         if (key === 'resolutionScale') val /= 100;
         this.settings[key] = val;
         const label = input.parentElement.querySelector('.range-val');
         if (label) label.textContent = key === 'resolutionScale' || key === 'hudSize' || key === 'hudOpacity' ? `${Math.round(val * 100)}%` : key === 'lookSensitivity' ? `${val.toFixed(1)}x` : `${Math.round(val * 100)}%`;
         this.applyCSS();
+        if (key === 'voiceVolume' && this.game.voice) this.game.voice.volume = val;
         if (this.game.applySettings) this.game.applySettings(true);
         this.saveSettings();
       });
@@ -739,6 +792,7 @@ export class UI {
   // ---------------- PAUSE / MAP / PHONE ----------------
   openPause() {
     if (this.game.state !== 'playing') return;
+    this.game.voice?.stop();
     this.pauseOpen = true;
     this.game.state = 'paused';
     this.$('#pause-menu').classList.add('on');
@@ -762,6 +816,7 @@ export class UI {
 
   openMap() {
     if (this.game.state === 'menu' || this.game.state === 'paused') return;
+    this.game.voice?.stop();
     this.mapOpen = true;
     this.game.state = 'map';
     this.$('#map-overlay').classList.add('on');
@@ -777,6 +832,7 @@ export class UI {
 
   openPhone() {
     if (this.game.state !== 'playing') return;
+    this.game.voice?.stop();
     this.phoneOpen = true;
     this.game.state = 'phone';
     this.$('#phone-overlay').classList.add('on');

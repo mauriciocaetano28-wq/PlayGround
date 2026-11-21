@@ -7,6 +7,7 @@ export class AudioManager {
     this.muted = false;
     this.musicVolume = .45;
     this.sfxVolume = .75;
+    this.voiceVolume = .92;
     this.engine = null;
     this.radioTimer = 0;
     this.radioStation = 0;
@@ -28,6 +29,10 @@ export class AudioManager {
     this.sfx = this.ctx.createGain();
     this.sfx.gain.value = this.sfxVolume * .55;
     this.sfx.connect(this.master);
+    // Dedicated bus for character voices, independent from music and SFX.
+    this.voiceBus = this.ctx.createGain();
+    this.voiceBus.gain.value = this.voiceVolume;
+    this.voiceBus.connect(this.master);
     this.buildAmbience();
     this.buildEngine();
     this.started = true;
@@ -42,6 +47,7 @@ export class AudioManager {
   }
   setMusic(v) { this.musicVolume = v; if (this.music) this.music.gain.setTargetAtTime(v * .28, this.ctx.currentTime, .15); }
   setSfx(v) { this.sfxVolume = v; if (this.sfx) this.sfx.gain.setTargetAtTime(v * .55, this.ctx.currentTime, .15); }
+  setVoiceVolume(v) { this.voiceVolume = v; if (this.voiceBus) this.voiceBus.gain.setTargetAtTime(v, this.ctx.currentTime, .1); }
 
   buildAmbience() {
     const ctx = this.ctx;

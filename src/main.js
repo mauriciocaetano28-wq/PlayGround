@@ -8,6 +8,7 @@ import { createWorld } from './world.js';
 import { createLuiza, createCarlos, createRandomNPC } from './character.js';
 import { createVehicle } from './vehicle.js';
 import { AudioManager } from './audio.js';
+import { VoiceDirector } from './voice.js';
 import { UI } from './ui.js';
 import { clamp, lerp, damp, angleLerp, formatMoney, createTracer } from './utils.js';
 
@@ -378,6 +379,7 @@ class MissionManager {
 class Game {
   constructor() {
     this.audio = new AudioManager();
+    this.voice = new VoiceDirector(this.audio);
     this.missions = MISSIONS;
     this.ui = new UI(this);
     this.settings = this.ui.settings;
@@ -668,6 +670,8 @@ class Game {
     this.audio.setMusic(s.music);
     this.audio.setSfx(s.sfx);
     this.audio.setMuted(s.muted);
+    this.audio.setVoiceVolume(s.voiceVolume);
+    this.voice.configure(s);
     document.body.classList.toggle('force-touch', !!s.forceTouch);
     this.ui.applyCSS();
   }
@@ -1722,6 +1726,7 @@ class Game {
       this.audio.click();
       this.ui.speak([{
         name: npc.name.toUpperCase(),
+        gender: npc.char.female ? 'female' : 'male',
         pt: LINES.chatterPT[i],
         en: LINES.chatterEN[i]
       }]);
@@ -1923,6 +1928,7 @@ class Game {
 
   resetRun() {
     this.missionManager?.abort();
+    this.ui.clearDialogue?.();
     for (const h of [...this.hostiles]) h.root.parent?.remove(h.root);
     this.hostiles = [];
     this.clearWanted(true);
@@ -2105,8 +2111,7 @@ class Game {
     this.ui.pauseOpen = false;
     this.ui.mapOpen = false;
     this.ui.phoneOpen = false;
-    this.ui.dialogueActive = false;
-    document.querySelector('#dialogue')?.classList.remove('on');
+    this.ui.clearDialogue?.();
   }
 
   // ---------------- MAP + SAVE ----------------
