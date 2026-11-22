@@ -7,8 +7,8 @@
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23070b14'/%3E%3Ctext x='32' y='43' font-family='Arial,sans-serif' font-size='25' font-weight='bold' fill='%23ffffff' text-anchor='middle'%3EPS5%3C/text%3E%3C/svg%3E" />
     <meta name="description" content="PS5 Emulator Lab — um console 3D interativo com loja, discos físicos e cinco jogos completos." />
     <title>PS5 Emulator Lab</title>
-    <script type="module" crossorigin src="./assets/index-BX1ffgje.js"></script>
-    <link rel="stylesheet" crossorigin href="./assets/index-COMP9ZIc.css">
+    <script type="module" crossorigin src="./assets/index-DyVsHWZl.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-BE4ngyVL.css">
   </head>
   <body>
     <div id="app">
@@ -23,6 +23,9 @@
         <div class="topbar-actions">
           <button class="icon-btn" id="btn-sound" title="Ativar/desativar som" aria-label="Som">
             <svg viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9H4Zm12.5 3a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4Zm-2.5-8v2a6 6 0 0 1 0 12v2a8 8 0 0 0 0-16Z"/></svg>
+          </button>
+          <button class="icon-btn" id="btn-pad" title="Como você joga" aria-label="Como você joga">
+            <svg viewBox="0 0 24 24"><path d="M7.2 7h9.6c2.4 0 4.2 1.9 4.7 4.2l.7 3.4c.3 1.6-.8 3.1-2.4 3.4-1.1.2-2.2-.3-2.8-1.2l-.9-1.3c-.4-.6-1.1-.9-1.8-.9H9.7c-.7 0-1.4.3-1.8.9l-.9 1.3c-.6.9-1.7 1.4-2.8 1.2-1.6-.3-2.7-1.8-2.4-3.4l.7-3.4C3 8.9 4.8 7 7.2 7Z" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8 10v3M6.5 11.5h3M15.5 10.4h.01M17.5 12.4h.01" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg>
           </button>
           <button class="icon-btn" id="btn-fullscreen" title="Tela cheia" aria-label="Tela cheia">
             <svg viewBox="0 0 24 24"><path d="M4 4h6v2H6v4H4V4Zm10 0h6v6h-2V6h-4V4ZM4 14h2v4h4v2H4v-6Zm14 0h2v6h-6v-2h4v-4Z"/></svg>
@@ -110,6 +113,11 @@
               <span class="store-cta-icon">STORE</span>
               <div><b>PS Store</b><small>Ofertas de lançamento</small></div>
               <span>→</span>
+            </button>
+            <button class="side-pad-btn" id="side-pad-btn">
+              <span class="side-pad-icon">◉</span>
+              <span><b>COMO VOCÊ JOGA</b><small>Controle virtual · 3 layouts</small></span>
+              <span class="side-pad-arrow">→</span>
             </button>
           </aside>
         </div>
