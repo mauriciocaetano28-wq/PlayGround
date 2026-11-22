@@ -526,7 +526,7 @@ function bindMenu() {
       if (action === 'play') openCharSelect('story');
       else if (action === 'rp') openCharSelect('rp');
       else if (action === 'continue') continueGame();
-      else if (action === 'gta6') window.location.assign('./index.html');
+      else if (action === 'gta6') continueGame();
       else if (action === 'download') openOverlay('download-modal');
       else if (action === 'settings') openOverlay('settings-modal');
       else if (action === 'credits') openOverlay('credits-modal');
