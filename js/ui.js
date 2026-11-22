@@ -67,6 +67,12 @@ export class GameUI {
     $('#prisonBtn')?.addEventListener('click', () => g.leavePrison());
     $('#qualitySelect')?.addEventListener('change', e => g.applyQuality(e.target.value));
     $('#controlSelect')?.addEventListener('change', e => g.input.setMode(e.target.value));
+    $('#fpsSelect')?.addEventListener('change', e => g.setFpsCap(e.target.value));
+    $('#fpsToggle')?.addEventListener('change', e => g.setShowFps(e.target.checked));
+    $('#resSelect')?.addEventListener('change', e => g.applyResolution(+e.target.value));
+    $('#viewDistSelect')?.addEventListener('change', e => g.setViewDist(e.target.value));
+    $$('#settings-game [data-perf]').forEach(btn => btn.addEventListener('click', () => g.applyPerformance(btn.dataset.perf)));
+    $('#clearCacheBtn')?.addEventListener('click', () => g.clearCache());
     $('#sensRange')?.addEventListener('input', e => { g.sensitivity = +e.target.value / 100; });
     $('#vibrationToggle')?.addEventListener('change', e => { g.settings.vibration = e.target.checked; });
     $('#buttonSizeRange')?.addEventListener('input', e => { g.input.ctrlScale = +e.target.value / 100; g.input.applySize(); });
@@ -174,6 +180,31 @@ export class GameUI {
     else this.updateVehicleHUD(null);
     if (now - this.lastMap > 220) { this.lastMap = now; this.drawMinimap(); }
     this.updateMarker();
+    this.updatePerfHUD();
+  }
+
+  updatePerfHUD() {
+    const g = this.game;
+    const fpsEl = $('#fpsValue');
+    const tempEl = $('#tempValue');
+    const memEl = $('#memValue');
+    const warnEl = $('#perf-warning');
+    const hudEl = $('#perf-hud');
+    if (fpsEl) fpsEl.textContent = String(Math.round(g.fpsEma || 0));
+    if (tempEl) tempEl.textContent = (g.perfTemp ?? 36.5).toFixed(1);
+    let memMb = 0;
+    try { memMb = Math.round((performance.memory?.usedJSHeapSize || 0) / 1048576); } catch {}
+    if (memEl) memEl.textContent = String(memMb);
+    if (hudEl) hudEl.classList.toggle('hidden', !g.showFps);
+    const low = (g.fpsEma || 0) < 20;
+    if (warnEl) warnEl.classList.toggle('hidden', !low);
+    if (low) {
+      warnEl.textContent = '📱 Celular fraco, mudando para MODO CELULAR FRACO';
+      if (g.perfMode === 'auto' || g.perfMode === 'good') {
+        g.applyPerformance('weak');
+        this.toast('📱 Celular fraco, mudando para MODO CELULAR FRACO');
+      }
+    }
   }
 
   updateMarker() {
@@ -378,6 +409,10 @@ export class GameUI {
     this.settingsOpen = true;
     $('#settings-game').classList.remove('hidden');
     $('#qualitySelect').value = this.game.quality;
+    $('#fpsSelect').value = 'show';
+    $('#fpsToggle').checked = !!this.game.showFps;
+    $('#resSelect').value = String(Math.round((this.game.resolution ?? 1) * 100));
+    $('#viewDistSelect').value = this.game.viewDist || 'far';
     $('#controlSelect').value = this.game.input.mode;
     $('#sensRange').value = Math.round(this.game.sensitivity * 100);
     $('#buttonSizeRange').value = Math.round(this.game.input.ctrlScale * 100);

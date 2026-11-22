@@ -20,7 +20,22 @@ export class InputController {
     this.gamepadNotified = false;
     this.stickMove = { x: 0, y: 0 };
     this.stickLook = { x: 0, y: 0 };
+    this._disposeFns = [];
     this.setup();
+  }
+
+  addDisposable(target, type, fn, options) {
+    try {
+      target.addEventListener(type, fn, options);
+      this._disposeFns.push(() => { try { target.removeEventListener(type, fn, options); } catch {} });
+    } catch {}
+  }
+
+  dispose() {
+    const fns = this._disposeFns.splice(0);
+    for (const f of fns) { try { f(); } catch {} }
+    this._disposeFns = [];
+    if (this.game?.input === this) { this.keys = {}; this.moveX = 0; this.moveY = 0; this.moveMag = 0; }
   }
 
   setup() {
@@ -31,7 +46,9 @@ export class InputController {
     this.setupVirtual();
     this.setupGamepad();
     this.setupEditPanel();
-    window.addEventListener('blur', () => { this.keys = {}; this.moveX = this.moveY = 0; });
+    const blur = () => { this.keys = {}; this.moveX = 0; this.moveY = 0; };
+    this.addDisposable(window, 'blur', blur);
+    window.addEventListener('blur', blur);
   }
 
   setMode(mode, silent = false) {
@@ -71,7 +88,7 @@ export class InputController {
   }
 
   setupKeyboard() {
-    addEventListener('keydown', e => {
+    const kd = e => {
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') return;
       if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.code)) e.preventDefault();
       if (this.keys[e.code]) return;
@@ -107,21 +124,28 @@ export class InputController {
       if (e.code === 'KeyS') this.moveY = -1;
       if (e.code === 'KeyA') this.moveX = -1;
       if (e.code === 'KeyD') this.moveX = 1;
-    });
-    addEventListener('keyup', e => {
+    };
+    const ku = e => {
       this.keys[e.code] = false;
       if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') this.sprintKey = false;
       if (e.code === 'KeyW' && !this.keys.KeyS) this.moveY = this.stickMove.y > .05 ? this.stickMove.y : (this.keys.KeyS ? -1 : 0);
       if (e.code === 'KeyS' && !this.keys.KeyW) this.moveY = this.stickMove.y < -.05 ? this.stickMove.y : 0;
       if (e.code === 'KeyA' && !this.keys.KeyD) this.moveX = this.stickMove.x < -.05 ? this.stickMove.x : 0;
       if (e.code === 'KeyD' && !this.keys.KeyA) this.moveX = this.stickMove.x > .05 ? this.stickMove.x : 0;
-    });
+    };
+    this._disposeFns.push(() => { try { window.removeEventListener('keydown', kd); } catch {} });
+    this._disposeFns.push(() => { try { window.removeEventListener('keyup', ku); } catch {} });
+    window.addEventListener('keydown', kd);
+    window.addEventListener('keyup', ku);
+    const blur = () => { this.keys = {}; this.moveX = 0; this.moveY = 0; };
+    this._disposeFns.push(() => { try { window.removeEventListener('blur', blur); } catch {} });
+    window.addEventListener('blur', blur);
   }
 
   setupMouse() {
     const canvas = document.getElementById('game-canvas');
     let lastX = 0, lastY = 0;
-    canvas.addEventListener('pointerdown', e => {
+    const onDown = e => {
       if (e.pointerType === 'mouse' && e.button === 2) { this.aim = true; return; }
       if (e.pointerType === 'mouse' && e.button === 0) {
         this.mouseDown = true; lastX = e.clientX; lastY = e.clientY;
@@ -130,21 +154,23 @@ export class InputController {
         this.mouseDown = true; lastX = e.clientX; lastY = e.clientY;
       }
       canvas.setPointerCapture?.(e.pointerId);
-    });
-    canvas.addEventListener('pointermove', e => {
+    };
+    const onMove = e => {
       if (!this.mouseDown) return;
       const dx = e.clientX - lastX, dy = e.clientY - lastY;
       lastX = e.clientX; lastY = e.clientY;
       this.lookDeltaX += dx;
       this.lookDeltaY += dy;
-    });
-    canvas.addEventListener('pointerup', e => {
-      this.mouseDown = false;
-      if (e.pointerType === 'mouse' && e.button === 2) this.aim = false;
-    });
-    canvas.addEventListener('contextmenu', e => e.preventDefault());
-    canvas.addEventListener('wheel', e => { this.game.camDist = clamp(this.game.camDist + e.deltaY * .005, 2.8, 11); }, { passive: true });
-    addEventListener('pointerup', () => { this.mouseDown = false; });
+    };
+    const onUp = e => { this.mouseDown = false; if (e.pointerType === 'mouse' && e.button === 2) this.aim = false; };
+    const onCtx = e => e.preventDefault();
+    const onWheel = e => { this.game.camDist = clamp(this.game.camDist + e.deltaY * .005, 2.8, 11); };
+    this.addDisposable(canvas, 'pointerdown', onDown);
+    this.addDisposable(canvas, 'pointermove', onMove);
+    this.addDisposable(canvas, 'pointerup', onUp);
+    this.addDisposable(canvas, 'contextmenu', onCtx);
+    this.addDisposable(canvas, 'wheel', onWheel, { passive: true });
+    this.addDisposable(window, 'pointerup', () => { this.mouseDown = false; });
   }
 
   setupVirtual() {
@@ -177,9 +203,14 @@ export class InputController {
         if (isLook) { this.stickLook.x = 0; this.stickLook.y = 0; }
         else { this.stickMove.x = 0; this.stickMove.y = 0; }
       };
-      zone.addEventListener('pointerup', end);
-      zone.addEventListener('pointercancel', end);
-      zone.addEventListener('lostpointercapture', end);
+      this.addDisposable(zone, 'pointerdown', e => {
+        if (this.editMode) return;
+        active = true; id = e.pointerId; zone.setPointerCapture?.(e.pointerId); move(e); e.preventDefault(); e.stopPropagation();
+      });
+      this.addDisposable(zone, 'pointermove', e => { if (active && e.pointerId === id) { move(e); e.preventDefault(); } });
+      this.addDisposable(zone, 'pointerup', end);
+      this.addDisposable(zone, 'pointercancel', end);
+      this.addDisposable(zone, 'lostpointercapture', end);
     });
 
     const btns = [...document.querySelectorAll('#virtual-controls [data-action]')];
@@ -197,9 +228,9 @@ export class InputController {
         btn.classList.remove('active');
         this.pressAction(action, false);
       };
-      btn.addEventListener('pointerdown', down);
-      btn.addEventListener('pointerup', up);
-      btn.addEventListener('pointercancel', up);
+      this.addDisposable(btn, 'pointerdown', down);
+      this.addDisposable(btn, 'pointerup', up);
+      this.addDisposable(btn, 'pointercancel', up);
       btn.addEventListener('pointerleave', e => { if (e.buttons) up(e); });
     });
 
@@ -208,7 +239,6 @@ export class InputController {
       localStorage.setItem('gta5br_tutorial_seen', '1');
       this.game.audio.click();
     });
-
   }
 
   pressAction(action, down) {
@@ -247,18 +277,20 @@ export class InputController {
   }
 
   setupGamepad() {
-    addEventListener('gamepadconnected', e => {
+    const onGCon = e => {
       this.gamepad = e.gamepad;
       document.body.classList.add('gamepad-connected');
-      this.game.notify('Controle DualSense conectado! Controle virtual ocultado.');
+      this.game.notify('Controle DualSense conectado! Controle virtual oculto.');
       this.game.audio.click();
       if (this.game.settings.vibration && navigator.vibrate) navigator.vibrate([30, 60, 30]);
-    });
-    addEventListener('gamepaddisconnected', () => {
+    };
+    const onGDis = () => {
       this.gamepad = null;
       document.body.classList.remove('gamepad-connected');
       this.game.notify('Controle desconectado. Controle virtual reativado.');
-    });
+    };
+    this.addDisposable(window, 'gamepadconnected', onGCon);
+    this.addDisposable(window, 'gamepaddisconnected', onGDis);
   }
 
   updateGamepad() {
@@ -300,15 +332,16 @@ export class InputController {
   }
 
   setupEditPanel() {
-    document.getElementById('ctrlGrow')?.addEventListener('click', () => { this.ctrlScale = clamp(this.ctrlScale + .1, .6, 1.6); this.applySize(); });
-    document.getElementById('ctrlShrink')?.addEventListener('click', () => { this.ctrlScale = clamp(this.ctrlScale - .1, .6, 1.6); this.applySize(); });
-    document.getElementById('ctrlReset')?.addEventListener('click', () => {
+    const click = (id, fn) => { const el = document.getElementById(id); if (!el) return; const h = e => fn(e); this.addDisposable(el, 'click', h); };
+    click('ctrlGrow', () => { this.ctrlScale = clamp(this.ctrlScale + .1, .6, 1.6); this.applySize(); });
+    click('ctrlShrink', () => { this.ctrlScale = clamp(this.ctrlScale - .1, .6, 1.6); this.applySize(); });
+    click('ctrlReset', () => {
       this.ctrlScale = 1; this.applySize();
       document.querySelectorAll('.stick-zone,.action-cluster,.dpad,.mini-actions,.shoulder-row,#dualsense').forEach(el => {
         el.style.left = ''; el.style.right = ''; el.style.top = ''; el.style.bottom = ''; el.style.transform = '';
       });
     });
-    document.getElementById('ctrlEditDone')?.addEventListener('click', () => this.setEditMode(false));
+    click('ctrlEditDone', () => this.setEditMode(false));
     this.makeDraggable();
   }
 

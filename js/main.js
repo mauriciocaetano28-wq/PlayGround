@@ -29,14 +29,13 @@ function startGame(profile) {
   try {
     audio.init();
     audio.setVolume((ps5.settings.volume ?? 65) / 100);
-    if (!game) {
-      game = new Game(audio, ps5, { ...ps5.settings });
-    } else {
-      game.applySettings({ ...ps5.settings });
-    }
+    if (game) { game.dispose(); game = null; }
+    game = new Game(audio, ps5, { ...ps5.settings });
     game.profile = profile || ps5.profile;
     game.enter();
     window.app.game = game;
+    const box = document.getElementById('fatal-error');
+    if (box) box.remove();
   } catch (error) {
     fatal(error);
   } finally {
@@ -64,9 +63,9 @@ addEventListener('gta-settings', event => {
   if (game && event.detail) game.applySettings({ ...event.detail });
 });
 
-// Pequena ajuda de acessibilidade: ESC fecha overlays mesmo antes do jogo existir.
+// Só reporta falhas fatais durante a inicialização; durante o gameplay erros não devem derrubar a UI.
 addEventListener('error', event => {
-  if (!document.getElementById('fatal-error')) fatal(event.error || event.message);
+  if (booting) fatal(event.error || event.message);
 });
 
 window.app = { audio, ps5, game: null };

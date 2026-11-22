@@ -121,6 +121,7 @@ export class MissionSystem {
     this.marker = this.buildMarker();
     this.cooldown = 0;
     this.started = false;
+    this.missionLimit = MISSION_NAMES.length;
   }
 
   buildMarker() {
@@ -141,7 +142,7 @@ export class MissionSystem {
   start(index = null) {
     if (index !== null) this.index = index;
     else this.index++;
-    if (this.index >= MISSION_NAMES.length) {
+    if (this.index >= this.missionLimit) {
       const n = this.index - MISSION_NAMES.length;
       this.index = 49;
       const base = MISSION_NAMES[49];
@@ -163,7 +164,11 @@ export class MissionSystem {
     this.clearEnemies();
     this.marker.visible = true;
     this.marker.position.copy(this.active.target);
-    if (this.active.type === 'combat') this.spawnEnemies(this.active.target, this.index >= 22 ? 6 : 3);
+    if (this.active.type === 'combat') {
+      const lvl = this.game.scaleLevel || 1;
+      const baseCount = this.active.index >= 22 ? 6 : 3;
+      this.spawnEnemies(this.active.target, Math.round(baseCount * (1 + (lvl - 1) * 2)));
+    }
     if (this.active.type === 'chase') { this.game.police.setWanted(Math.max(1, this.game.player.wanted)); }
     this.updateHUD();
     this.game.audio.speak(`${this.active.name}. ${this.active.desc}`);

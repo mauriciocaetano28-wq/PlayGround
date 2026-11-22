@@ -34,13 +34,23 @@ export class Game {
     this.currentTrafficIndex = null;
     this.musicGenres = ['funk', 'rap', 'sertanejo', 'pagode'];
     this.musicIndex = 0;
+    this.currentGameId = 'gta';
+    this.scaleLevel = 1;
+    this.scaleGameId = 'gta';
+    this.perfMode = 'auto';
+    this.fpsCap = 60;
+    this.resolution = 1;
+    this.viewDist = 'far';
+    this.showFps = true;
+    this.fpsEma = 60;
+    this.lowFpsAt = 0;
+    this._lastFrameAt = 0;
 
     const canvas = document.getElementById('game-canvas');
     this.renderer = new THREE.WebGLRenderer({ canvas, antialias: this.quality !== 'low', powerPreference: 'high-performance', alpha: false });
     this.renderer.setSize(innerWidth, innerHeight);
-    this.renderer.setPixelRatio(Math.min(devicePixelRatio || 1, this.quality === 'high' ? 2 : this.quality === 'medium' ? 1.5 : 1));
-    this.renderer.shadowMap.enabled = true;
-    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    this.renderer.shadowMap.enabled = this.quality !== 'low';
+    this.renderer.shadowMap.type = this.quality === 'low' ? THREE.BasicShadowMap : THREE.PCFSoftShadowMap;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
     this.renderer.toneMappingExposure = 1.04;
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -66,18 +76,33 @@ export class Game {
     this.bindExtra();
     this.loadGame();
     this.applyQuality(this.quality, true);
+    this.applyPerformance(this.perfMode);
     this.setupResize();
     this.animate = this.animate.bind(this);
     this.clock = new THREE.Clock();
     this.last = performance.now();
-    requestAnimationFrame(this.animate);
+    this._rafId = requestAnimationFrame(this.animate);
   }
 
   bindExtra() {
-    addEventListener('resize', () => this.resize());
-    window.addEventListener('gta-settings', e => this.applySettings(e.detail));
-    document.addEventListener('visibilitychange', () => { if (document.hidden) this.saveGame(); });
+    const onResize = () => this.resize();
+    const onGS = e => this.applySettings(e.detail);
+    const onVis = () => { if (document.hidden) this.saveGame(); };
+    this._disposeFns = [];
+    const add = (t, ty, fn) => { t.addEventListener(ty, fn); this._disposeFns.push(() => { try { t.removeEventListener(ty, fn); } catch {} }); };
+    add(window, 'resize', onResize);
+    add(window, 'gta-settings', onGS);
+    add(document, 'visibilitychange', onVis);
     this.autosaveInterval = setInterval(() => { if (this.active && !this.dead) this.saveGame(); }, 60000);
+    this._cleanTimer = setInterval(() => { if (this.active) this.cleanupMemory(); }, 60000);
+  }
+
+  dispose() {
+    try { cancelAnimationFrame(this._rafId); } catch {}
+    clearInterval(this.autosaveInterval);
+    clearInterval(this._cleanTimer);
+    const fns = this._disposeFns || [];
+    for (const f of fns.splice(0)) { try { f(); } catch {} }
   }
 
   setupResize() { this.resize(); }
@@ -95,6 +120,11 @@ export class Game {
     this.sensitivity = (s.sensitivity ?? 100) / 100;
     if (this.input && s.controlMode && s.controlMode !== this.input.mode) this.input.setMode(s.controlMode, true);
     if (s.quality && s.quality !== this.quality) this.applyQuality(s.quality, true);
+    if (s.perfMode) this.applyPerformance(s.perfMode);
+    if (s.fpsCap) this.setFpsCap(String(s.fpsCap));
+    if (s.resolution) this.applyResolution(Number(s.resolution));
+    if (s.viewDist) this.setViewDist(s.viewDist);
+    if (typeof s.showFps === 'boolean') this.setShowFps(s.showFps);
     if (this.input) {
       this.input.ctrlScale = (s.buttonSize ?? 100) / 100;
       this.input.applySize();
@@ -105,10 +135,14 @@ export class Game {
     this.active = true;
     this.paused = false;
     this.dead = false;
+    const gDef = this.ps5?.currentGame;
+    this.currentGameId = gDef?.id || this.currentGameId;
+    this.scaleGameId = this.currentGameId;
+    this.loadGame();
     this.audio.init();
     this.audio.setVolume((this.settings.volume ?? 65) / 100);
     this.audio.startMusic();
-    this.audio.setGenre('funk');
+    this.audio.setGenre(gDef?.music || 'funk');
     this.ui.hideDeath();
     this.ui.hidePrison();
     this.ui.toggleMap(false);
@@ -193,16 +227,109 @@ export class Game {
   }
 
   applyQuality(q, silent = false) {
-    this.quality = q;
-    this.renderer.setPixelRatio(Math.min(devicePixelRatio || 1, q === 'high' ? 2 : q === 'medium' ? 1.5 : 1));
-    this.renderer.shadowMap.enabled = q !== 'low';
-    this.world.setQuality(q);
+    const quality = q === 'ultra' ? 'high' : q;
+    this.quality = quality;
+    const pr = quality === 'high' ? 2 : quality === 'medium' ? 1.5 : 1;
+    this.renderer.setPixelRatio(Math.min(devicePixelRatio || 1, pr * (this.resolution || 1)));
+    this.renderer.shadowMap.enabled = quality !== 'low';
+    this.renderer.shadowMap.type = quality === 'low' ? THREE.BasicShadowMap : THREE.PCFSoftShadowMap;
+    this.renderer.toneMappingExposure = quality === 'high' ? (q === 'ultra' ? 1.12 : 1.04) : 0.95;
+    this.world.setQuality(quality);
     this.settings.quality = q;
     if (!silent) {
-      const label = q === 'high' ? 'Alta' : q === 'medium' ? 'Média' : 'Baixa';
+      const label = quality === 'high' ? 'Alta' : quality === 'medium' ? 'Média' : 'Baixa';
       this.notify(`Qualidade gráfica: ${label}`);
       this.ui.toast(`Qualidade ${label}`);
     }
+  }
+
+  detectPerformance() {
+    const touch = matchMedia('(pointer: coarse)').matches || innerWidth < 900;
+    if (!touch) return 'good';
+    const mem = navigator.deviceMemory ? navigator.deviceMemory * 1024 * 1024 : 6 * 1024 * 1024 * 1024;
+    const total = mem > 0 ? mem * 2 : 8 * 1024 * 1024 * 1024;
+    const frac = Math.min(1, mem / total);
+    if (frac > 0.55) return 'good';
+    if (frac > 0.3) return 'medium';
+    return 'weak';
+  }
+
+  applyPerformance(mode = 'auto') {
+    const perf = mode === 'auto' ? this.detectPerformance() : mode;
+    this.perfMode = perf;
+    const q = perf === 'good' ? 'high' : perf === 'medium' ? 'medium' : 'low';
+    this.applyQuality(q, true);
+    this.fpsCap = perf === 'good' ? 60 : 30;
+    this.renderer.shadowMap.enabled = perf !== 'weak';
+    this.renderer.shadowMap.type = perf === 'weak' ? THREE.BasicShadowMap : THREE.PCFSoftShadowMap;
+    this.world.setQuality(perf === 'weak' ? 'low' : perf);
+    this.world.reflections = perf !== 'weak';
+    const density = perf === 'good' ? 1 : perf === 'medium' ? 0.45 : 0.16;
+    this.world.peds.setDensity(density);
+    this.world.traffic.setDensity(perf === 'good' ? 1 : perf === 'medium' ? 0.3 : 0.15);
+    if (this.perfMode !== 'auto') {
+      const label = perf === 'good' ? 'DESEMPENHO BOM' : perf === 'medium' ? 'DESEMPENHO MÉDIO' : 'DESEMPENHO FRACO';
+      this.notify(`Módulo de desempenho: ${label}`);
+    }
+    return perf;
+  }
+
+  applyScale(level, gameId) {
+    this.scaleLevel = level;
+    this.scaleGameId = gameId || this.currentGameId;
+    const mult = [1, 1.5, 2.4][level - 1] || 1;
+    if (this.world?.traffic?.setDensity) this.world.traffic.setDensity(Math.min(1, (this.world.traffic.density || 1) * mult));
+    if (this.world?.peds?.setDensity) this.world.peds.setDensity(Math.min(1, (this.world.peds.density || 1) * mult));
+    const total = [10, 30, 100][level - 1] || 10;
+    if (this.missions) this.missions.missionLimit = total;
+    if (this.ui?.toast) this.ui.toast(`📈 Missões escaladas para o Nível ${level} · ${total} missões disponíveis.`);
+    return level;
+  }
+
+  applyResolution(r = 100) {
+    this.resolution = Math.max(.5, Math.min(1, (r || 100) / 100));
+    const pr = this.quality === 'high' ? 2 : this.quality === 'medium' ? 1.5 : 1;
+    this.renderer.setPixelRatio(Math.min(devicePixelRatio || 1, pr * this.resolution));
+  }
+
+  setFpsCap(v) {
+    const val = String(v);
+    if (val === 'show') { this.showFps = true; return; }
+    this.showFps = true;
+    this.fpsCap = Math.max(15, Math.min(60, parseInt(val, 10) || 30));
+    this.applyPerformance(this.fpsCap >= 60 ? 'good' : 'weak');
+  }
+
+  setShowFps(v) { this.showFps = !!v; }
+
+  setViewDist(v) { this.viewDist = v; }
+
+  cleanupMemory() {
+    if (this.effects && this.effects.length) {
+      for (let i = this.effects.length - 1; i >= 0; i--) {
+        const e = this.effects[i];
+        try { this.scene.remove(e.group); this.scene.remove(e.light); } catch {}
+        if (e.particles) e.particles.forEach(p => { try { p.geo?.dispose?.(); p.mat?.dispose?.(); } catch {} });
+        this.effects.splice(i, 1);
+      }
+    }
+    try {
+      const keep = ['gta5br_save', 'gta5br_custom_profile', 'gta5br_ps5'];
+      Object.keys(localStorage).filter(k => !keep.includes(k)).forEach(k => { try { localStorage.removeItem(k); } catch {} });
+    } catch {}
+  }
+
+  clearCache() {
+    this.cleanupMemory();
+    try { this.renderer.info?.reset?.(); } catch {}
+    this._lastFrameAt = 0;
+    this.notify('Cache limpo e jogo destravado.');
+    this.ui.toast('🧹 Cache limpo e jogo destravado.');
+  }
+
+  get perfTemp() {
+    const over = Math.max(0, 60 - (this.fpsEma || 60));
+    return Math.min(42, 36.5 + over * 0.09);
   }
 
   cycleWeather() {
@@ -493,7 +620,8 @@ export class Game {
     const group = new THREE.Group();
     const particles = [];
     const colors = [0xffca4a, 0xff7a1e, 0xff3b1f, 0x7a4a3a];
-    for (let i = 0; i < (small ? 9 : 22); i++) {
+    const weak = this.perfMode === 'weak';
+    for (let i = 0; i < (small || weak ? 9 : 22); i++) {
       const geo = new THREE.SphereGeometry(rand(.18, .6) * scale, 5, 4);
       const mat = new THREE.MeshBasicMaterial({ color: colors[i % colors.length], transparent: true, opacity: .95 });
       const m = new THREE.Mesh(geo, mat);
@@ -606,6 +734,8 @@ export class Game {
     this.missions.start();
   }
 
+  get saveKey() { return 'gta5br_save_' + (this.currentGameId || 'gta'); }
+
   saveGame(toast = false) {
     if (!this.player) return;
     try {
@@ -615,14 +745,18 @@ export class Game {
         missionIndex: this.missions.index, hour: this.world.hour, barberLevel: this.player.barberLevel, gymLevel: this.player.gymLevel,
         clothes: this.player.clothes
       };
-      localStorage.setItem('gta5br_save', JSON.stringify(data));
+      localStorage.setItem(this.saveKey, JSON.stringify(data));
       if (toast) { this.notify('Jogo salvo com sucesso!'); this.ui.toast('💾 Jogo salvo'); this.audio.cash(); }
     } catch {}
   }
 
   loadGame() {
     try {
-      const raw = localStorage.getItem('gta5br_save');
+      let raw = localStorage.getItem(this.saveKey);
+      if (!raw) {
+        const legacy = localStorage.getItem('gta5br_save');
+        if (legacy) { localStorage.setItem(this.saveKey, legacy); raw = legacy; }
+      }
       if (!raw) return;
       const d = JSON.parse(raw);
       if (typeof d.money === 'number') this.player.money = d.money;
@@ -721,12 +855,27 @@ export class Game {
   }
 
   animate() {
-    requestAnimationFrame(this.animate);
+    this._rafId = requestAnimationFrame(this.animate);
     const now = performance.now();
+    const minFrame = 1000 / (this.fpsCap || 60);
+    if (now - this._lastFrameAt < minFrame - 0.4) { this._lastFrameAt = now; return; }
+    this._lastFrameAt = now;
     let dt = (now - this.last) / 1000;
     this.last = now;
     if (dt > .08) dt = .08;
     if (!this.active) return;
+    const inst = 1 / Math.max(dt, 1 / 240);
+    this.fpsEma = this.fpsEma * .85 + inst * .15;
+    this.lowFpsAt += dt;
+    if (this.fpsEma < 20 && this.lowFpsAt > 3) {
+      this.lowFpsAt = 0;
+      if (this.perfMode === 'auto' || this.perfMode === 'good') {
+        const p = this.applyPerformance('weak');
+        this.notify('📱 Celular fraco, mudando para MODO CELULAR FRACO');
+        if (this.ui?.toast) this.ui.toast('📱 MODO CELULAR FRACO ativado automaticamente.');
+      }
+    } else { this.lowFpsAt = 0; }
+
     if (!this.paused && !this.dead) {
       this.update(dt);
     } else {
