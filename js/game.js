@@ -3381,6 +3381,37 @@ export class Game {
     this.audio.play('ui');
   }
 
+  _cancelDialogueSpeech() {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+    }
+  }
+
+  _getBrazilianVoice() {
+    if (!('speechSynthesis' in window)) return null;
+    const voices = window.speechSynthesis.getVoices() || [];
+    return voices.find(v => /^pt-BR$/i.test(v.lang))
+      || voices.find(v => /^pt(-|$)/i.test(v.lang))
+      || voices.find(v => /portugu/i.test(v.name))
+      || null;
+  }
+
+  _speakDialogue(text, who = '') {
+    if (!text || !('speechSynthesis' in window)) return;
+    this._cancelDialogueSpeech();
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'pt-BR';
+    utterance.voice = this._getBrazilianVoice();
+
+    const voiceLevel = Math.max(0, Math.min(100, Number(this.settings.volVoice ?? 90))) / 100;
+    utterance.volume = voiceLevel * Math.max(0, Math.min(1, Number(this.settings.volMaster ?? 80) / 100));
+    utterance.rate = who && /luiza/i.test(who) ? 1.02 : who && /carlos/i.test(who) ? 0.93 : 1;
+    utterance.pitch = /carlos/i.test(who) ? 0.92 : /luiza/i.test(who) ? 1.08 : 1;
+
+    window.speechSynthesis.speak(utterance);
+  }
+
   _renderDialogueLine() {
     const d = this._dialogue;
     if (!d) return;
@@ -3403,6 +3434,7 @@ export class Game {
     const next = $('dlg-next');
     if (next) next.querySelector('span').textContent = d.index >= d.lines.length - 1 ? 'ENCERRAR' : 'CONTINUAR';
     this.audio.tone(isL ? 420 : isC ? 300 : 340, 0.05, 'sine', 0.025);
+    this._speakDialogue(line.pt, line.who);
   }
 
   _advanceDialogue() {
@@ -3418,6 +3450,7 @@ export class Game {
   }
 
   _closeDialogue() {
+    this._cancelDialogueSpeech();
     const d = this._dialogue;
     this.dialogueActive = false;
     document.body.classList.remove('dialogue-open');
