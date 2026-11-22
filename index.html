@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#050816" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23070d1c'/%3E%3Ctext x='32' y='43' font-family='Arial' font-size='26' font-weight='bold' text-anchor='middle' fill='%2361c9ff'%3EPS5%3C/text%3E%3C/svg%3E" />
+  <title>GTA 5 BR — Edição Caio | PS5</title>
+  <link rel="stylesheet" href="./css/style.css" />
+</head>
+<body>
+  <div id="app">
+    <canvas id="game-canvas"></canvas>
+
+    <!-- ============================ PS5 SYSTEM ============================ -->
+    <div id="ps5-layer">
+      <canvas id="space-bg"></canvas>
+      <div class="ps5-vignette"></div>
+
+      <section id="boot-screen" class="ps5-screen active">
+        <div class="boot-halo"></div>
+        <div class="boot-logo">
+          <svg class="ps-shapes" viewBox="0 0 220 160" aria-hidden="true">
+            <path d="M112 16 L154 39 L154 76 L112 99 L70 76 L70 39 Z" fill="none" stroke="currentColor" stroke-width="4"/>
+            <path d="M112 38 L130 48 L130 68 L112 78 L94 68 L94 48 Z" fill="none" stroke="currentColor" stroke-width="2"/>
+            <path d="M30 118 l20 -8 v12 l-20 8 z" fill="currentColor"/>
+            <path d="M190 118 l-20 -8 v12 l20 8 z" fill="currentColor"/>
+          </svg>
+          <div class="ps5-word">PS5</div>
+          <div class="ps5-sub">PlayStation®5</div>
+        </div>
+        <div class="boot-progress"><i></i></div>
+        <div class="boot-status" id="bootStatus">Pressione <b>X</b> ou toque para ligar</div>
+        <div class="boot-hint">Sistema GTA 5 BR · Mundo aberto · Português BR</div>
+        <button id="powerBtn" class="power-btn" aria-label="Ligar PlayStation 5"><span class="power-icon"></span></button>
+      </section>
+
+      <section id="profile-screen" class="ps5-screen">
+        <div class="profile-head">
+          <div class="ps-badge"><span class="ps-badge-mark">PS</span></div>
+          <h1>Quem está usando o PS5?</h1>
+          <p>Escolha um perfil para começar</p>
+        </div>
+        <div class="profiles" id="profileList">
+          <button class="profile-card" data-profile="caio">
+            <span class="profile-avatar avatar-caio">
+              <svg viewBox="0 0 120 120" aria-hidden="true">
+                <defs><linearGradient id="bgCaio" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ff8a3d"/><stop offset="1" stop-color="#8b2dff"/></linearGradient></defs>
+                <rect width="120" height="120" rx="22" fill="url(#bgCaio)"/>
+                <circle cx="60" cy="46" r="22" fill="#7b4a2c"/>
+                <path d="M36 43c0-20 10-28 24-28s24 8 24 28c-6-10-13-14-24-14S42 33 36 43z" fill="#111"/>
+                <path d="M35 38c1-18 10-27 25-27 16 0 24 9 25 27-8-8-15-12-25-12S43 30 35 38z" fill="#0b0b0b"/>
+                <circle cx="60" cy="47" r="19" fill="#9c5e37"/>
+                <path d="M47 48c3 4 7 6 13 6s10-2 13-6" stroke="#3d2012" stroke-width="2" fill="none"/>
+                <circle cx="52" cy="44" r="2" fill="#161616"/><circle cx="68" cy="44" r="2" fill="#161616"/>
+                <path d="M43 40h13v6H43z" fill="#121212"/><path d="M64 40h13v6H64z" fill="#121212"/>
+                <path d="M25 120c3-25 17-37 35-37s32 12 35 37z" fill="#f4f4f4"/>
+                <path d="M49 83h22l-2 16H51z" fill="#d8d8d8"/>
+                <path d="M33 101c8 5 17 8 27 8s19-3 27-8" stroke="#ffd34d" stroke-width="3" fill="none"/>
+              </svg>
+            </span>
+            <span class="profile-name">CAIO BR</span>
+            <span class="profile-meta">Nível 50 · 100 troféus</span>
+            <span class="profile-tag">JOGADOR 1</span>
+          </button>
+          <button class="profile-card" data-profile="lucas">
+            <span class="profile-avatar avatar-lucas">
+              <svg viewBox="0 0 120 120" aria-hidden="true">
+                <defs><linearGradient id="bgLucas" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#00c6ff"/><stop offset="1" stop-color="#0044aa"/></linearGradient></defs>
+                <rect width="120" height="120" rx="22" fill="url(#bgLucas)"/>
+                <circle cx="60" cy="49" r="20" fill="#d9a273"/>
+                <path d="M39 44c2-16 10-22 21-22s19 6 21 22c-5-7-12-10-21-10s-16 3-21 10z" fill="#2d1b10"/>
+                <circle cx="53" cy="47" r="2" fill="#1a1a1a"/><circle cx="67" cy="47" r="2" fill="#1a1a1a"/>
+                <path d="M52 57c5 4 11 4 16 0" stroke="#7a3e25" stroke-width="2" fill="none"/>
+                <path d="M25 120c3-24 17-36 35-36s32 12 35 36z" fill="#ffd32a"/>
+                <path d="M50 84h20l-2 14H52z" fill="#e3b800"/>
+                <path d="M44 99h32" stroke="#1f7a3a" stroke-width="5"/>
+              </svg>
+            </span>
+            <span class="profile-name">LUCAS</span>
+            <span class="profile-meta">Nível 22 · 34 troféus</span>
+            <span class="profile-tag">JOGADOR 2</span>
+          </button>
+          <button class="profile-card" data-profile="maria">
+            <span class="profile-avatar avatar-maria">
+              <svg viewBox="0 0 120 120" aria-hidden="true">
+                <defs><linearGradient id="bgMaria" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ff4fd8"/><stop offset="1" stop-color="#6f2cff"/></linearGradient></defs>
+                <rect width="120" height="120" rx="22" fill="url(#bgMaria)"/>
+                <path d="M33 61c-4-27 6-40 27-40s31 13 27 40l-7 20H40z" fill="#3b1710"/>
+                <circle cx="60" cy="48" r="20" fill="#c98255"/>
+                <path d="M38 44c1-15 9-22 22-22 12 0 20 7 22 22-6-8-13-11-22-11s-16 3-22 11z" fill="#2b120c"/>
+                <circle cx="53" cy="47" r="2" fill="#191919"/><circle cx="67" cy="47" r="2" fill="#191919"/>
+                <path d="M53 58c4 3 10 3 14 0" stroke="#7f3527" stroke-width="2" fill="none"/>
+                <path d="M25 120c3-24 17-36 35-36s32 12 35 36z" fill="#e33b78"/>
+                <path d="M47 84h26l-3 18H50z" fill="#bd245d"/>
+                <path d="M49 100c4 6 18 6 22 0" stroke="#ffcf5c" stroke-width="2" fill="none"/>
+              </svg>
+            </span>
+            <span class="profile-name">MARIA</span>
+            <span class="profile-meta">Nível 37 · 71 troféus</span>
+            <span class="profile-tag">JOGADOR 3</span>
+          </button>
+          <button class="profile-card create" id="createProfile">
+            <span class="profile-avatar plus">+</span>
+            <span class="profile-name">CRIAR NOVO PERFIL</span>
+            <span class="profile-meta">Foto, nome, idade, time e cidade</span>
+          </button>
+        </div>
+        <div class="profile-footer">
+          <button class="ghost-btn" id="profilePower">⏻ Desligar</button>
+          <span class="connect-hint">Conecte um controle DualSense via Bluetooth para jogar</span>
+        </div>
+      </section>
+
+      <section id="dashboard" class="ps5-screen">
+        <div class="dash-nebula"></div>
+        <div class="dash-particles" id="dashParticles"></div>
+        <header class="dash-top">
+          <div class="dash-user">
+            <span class="dash-avatar" id="dashAvatar">C</span>
+            <div class="dash-user-info">
+              <strong id="dashName">CAIO BR</strong>
+              <span><i class="ps-plus">PS</i> Plus · Nível <b id="dashLevel">50</b></span>
+            </div>
+            <div class="dash-trophy"><span>🏆</span><b id="dashTrophies">100</b></div>
+          </div>
+          <div class="dash-system">
+            <button class="sys-btn" data-open="search" title="Pesquisar">⌕</button>
+            <button class="sys-btn" data-open="settings" title="Configurações">⚙</button>
+            <div class="sys-status"><span id="dashClock">20:45</span><span class="wifi">▮▮▮</span><span class="battery">100%</span><span class="online">● 5</span></div>
+          </div>
+        </header>
+
+        <main class="dash-main">
+          <div class="carousel-wrap">
+            <div class="carousel" id="gameCarousel"></div>
+            <div class="carousel-shadow"></div>
+          </div>
+          <div class="game-info" id="gameInfo">
+            <div class="game-kicker">JOGO EM DESTAQUE · PS5</div>
+            <h2 id="infoTitle">GTA 5 BR</h2>
+            <p id="infoSub">Edição Caio · Mundo aberto brasileiro</p>
+            <div class="game-stats">
+              <span><b id="infoHours">248</b> h jogadas</span>
+              <span><b id="infoProgress">87%</b> concluído</span>
+              <span><b>🏆 100</b></span>
+            </div>
+            <button class="play-btn" id="playGame"><span class="play-tri">▶</span> JOGAR</button>
+            <div class="game-note">Sem telas de carregamento · salvamento automático</div>
+          </div>
+        </main>
+
+        <nav class="dash-menu" id="dashMenu">
+          <button data-menu="jogos"><span class="mi">▦</span>JOGOS</button>
+          <button data-menu="midia"><span class="mi">▷</span>MÍDIA</button>
+          <button data-menu="biblioteca"><span class="mi">▤</span>BIBLIOTECA</button>
+          <button data-menu="loja"><span class="mi">◈</span>LOJA</button>
+          <button data-menu="amigos"><span class="mi">♟</span>AMIGOS</button>
+          <button data-menu="comunidade"><span class="mi">◎</span>COMUNIDADE</button>
+          <button data-menu="trofeus"><span class="mi">🏆</span>TROFÉUS</button>
+          <button data-menu="config"><span class="mi">⚙</span>CONFIGURAÇÕES</button>
+          <button data-menu="desligar"><span class="mi">⏻</span>DESLIGAR</button>
+          <button data-menu="descanso"><span class="mi">☾</span>MODO DESCANSO</button>
+        </nav>
+        <div class="dash-foot">
+          <span><kbd>←</kbd><kbd>→</kbd> navegar</span>
+          <span><kbd>Enter</kbd> selecionar</span>
+          <span class="dash-hint">Toque no controle para jogar · 100% em Português BR</span>
+        </div>
+      </section>
+
+      <div id="ps5-modal" class="ps5-modal">
+        <div class="modal-panel" id="modalPanel">
+          <button class="modal-close" id="modalClose">✕</button>
+          <div id="modalContent"></div>
+        </div>
+      </div>
+      <div id="sleep-screen" class="sleep-screen">
+        <div class="sleep-moon">☾</div>
+        <h2>MODO DESCANSO</h2>
+        <p>O PS5 está em repouso. Pressione o botão PS para acordar.</p>
+        <button id="wakeBtn" class="power-btn small"><span class="power-icon"></span></button>
+      </div>
+    </div>
+
+    <!-- ============================ GAME UI ============================ -->
+    <div id="game-ui" class="hidden">
+      <div id="hud-top">
+        <div class="hud-player">
+          <div class="hud-avatar">C</div>
+          <div class="hud-bars">
+            <div class="bar-row"><span class="bar-ico">♥</span><div class="bar"><i id="healthBar" style="width:100%"></i></div></div>
+            <div class="bar-row"><span class="bar-ico">🍗</span><div class="bar hunger"><i id="hungerBar" style="width:82%"></i></div></div>
+            <div class="bar-row"><span class="bar-ico">💧</span><div class="bar thirst"><i id="thirstBar" style="width:76%"></i></div></div>
+          </div>
+        </div>
+        <div class="hud-center">
+          <div class="hud-clock" id="gameClock">18:24</div>
+          <div class="wanted" id="wantedStars"></div>
+          <div class="hud-money" id="hudMoney">R$ 2.500</div>
+        </div>
+        <div class="hud-actions">
+          <button class="hud-icon" id="btnMap" title="Mapa (M)">▦</button>
+          <button class="hud-icon" id="btnPhone" title="Celular (P)">▯</button>
+          <button class="hud-icon" id="btnCtrlMode" title="Trocar controle">🎮</button>
+          <button class="hud-icon" id="btnQuality" title="Qualidade">◈</button>
+          <button class="hud-icon" id="btnPause" title="Pausar (Esc)">Ⅱ</button>
+        </div>
+        <div class="hud-weather" id="hudWeather">☀ 32°C · TARDE</div>
+      </div>
+
+      <div id="minimap-wrap">
+        <canvas id="minimap" width="220" height="220"></canvas>
+        <div class="mm-n">N</div>
+        <div class="mm-ring"></div>
+        <div class="mm-district" id="mmDistrict">CENTRO</div>
+        <div class="mm-gps">GPS <b id="gpsDist">-- m</b></div>
+      </div>
+
+      <div id="mission-hud">
+        <div class="mission-label" id="missionLabel">MISSÃO 1 · TUTORIAL</div>
+        <div class="mission-name" id="missionName">Aprenda a andar</div>
+        <div class="mission-objective" id="missionObjective">Use o analógico esquerdo para andar</div>
+        <div class="mission-reward" id="missionReward">Recompensa: R$ 250</div>
+      </div>
+
+      <div id="vehicle-hud" class="hidden">
+        <div class="speedo"><b id="carSpeed">0</b><span>km/h</span></div>
+        <div class="gear"><span>MARCHA</span><b id="carGear">N</b></div>
+        <div class="rpm"><i id="rpmFill"></i></div>
+        <div class="fuel"><span>⛽</span><div><i id="fuelFill"></i></div><b id="fuelPct">100%</b></div>
+        <div class="car-name" id="carName">GOL QUADRADO</div>
+      </div>
+
+      <div id="interaction" class="hidden"><kbd>E</kbd><span id="interactionText">Entrar no carro</span></div>
+      <div id="subtitle"></div>
+      <div id="notifications"></div>
+      <div id="toast"></div>
+
+      <div id="mission-marker" class="hidden"><div class="marker-beam"></div><div class="marker-icon">!</div><div class="marker-dist">0 m</div></div>
+
+      <div id="virtual-controls" class="mode-gta">
+        <!-- MODO 1: GTA -->
+        <div class="vc-gta-left vc-gta">
+          <div class="shoulder-row">
+            <button class="vc-pill" data-action="L1">L1</button>
+            <button class="vc-pill trigger" data-action="L2">L2<small>MIRA · FREIA</small></button>
+          </div>
+          <div class="dpad" aria-label="Direcional">
+            <button data-action="up">▲</button><button data-action="left">◀</button><button data-action="right">▶</button><button data-action="down">▼</button>
+          </div>
+          <div class="stick-zone left-stick" id="moveStick">
+            <div class="stick-label">ANDAR</div><div class="stick-ring"></div><div class="stick-knob"></div>
+            <span class="stick-hint">arraste até o fim para correr</span>
+          </div>
+          <div class="mini-actions">
+            <button data-action="health">♥</button><button data-action="map">▦</button><button data-action="mic">🎙</button><button data-action="sound">🔊</button><button data-action="full">⛶</button>
+          </div>
+        </div>
+        <div class="vc-gta-right vc-gta">
+          <div class="shoulder-row right">
+            <button class="vc-pill trigger" data-action="R2">R2<small>ACELERA · ATIRA</small></button>
+            <button class="vc-pill" data-action="R1">R1</button>
+          </div>
+          <div class="action-cluster">
+            <button class="face tri" data-action="triangle">△<small>CARRO</small></button>
+            <button class="face sq" data-action="square">□<small>BATER</small></button>
+            <button class="face cir" data-action="circle">○<small>AGACHAR</small></button>
+            <button class="face cross" data-action="cross">✕<small>PULAR</small></button>
+          </div>
+          <div class="stick-zone right-stick" id="cameraStick">
+            <div class="stick-label">CÂMERA</div><div class="stick-ring"></div><div class="stick-knob"></div>
+            <span class="stick-hint">arraste para girar</span>
+          </div>
+          <div class="mini-actions right">
+            <button data-action="L3">L3</button><button data-action="menu">MENU</button><button data-action="R3">R3</button><button data-action="brake">RÉ<br>FREIO</button><button data-action="run">CORRER</button><button data-action="cut">CORTE</button><button data-action="power">LIGAÇÃO</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="tutorial-overlay">
+        <div class="tutorial-title">MODO SIMPLES · APRENDA A JOGAR</div>
+        <div class="tutorial-step step-1"><b>1</b> ANDAR · ENCOSTE E ARRASTE</div>
+        <div class="tutorial-step step-2"><b>2</b> CÂMERA · ARRASTE PARA OLHAR</div>
+        <div class="tutorial-step step-3"><b>3</b> AÇÕES · PULE, BATA, ENTRE NO CARRO</div>
+        <div class="tutorial-step step-4"><b>4</b> CORRER · SEGURE O ANALÓGICO</div>
+        <button id="tutorialClose">Entendi, começar!</button>
+      </div>
+
+      <div id="dualsense-wrap">
+        <div id="dualsense">
+          <div class="ds-top-row"><button class="ds-btn ds-l1" data-action="L1">L1</button><button class="ds-btn ds-r1" data-action="R1">R1</button></div>
+          <div class="ds-body">
+            <div class="ds-side ds-left">
+              <button class="ds-btn ds-l2" data-action="L2">L2</button>
+              <div class="ds-dpad">
+                <button data-action="up">▲</button><button data-action="left">◀</button><button data-action="right">▶</button><button data-action="down">▼</button>
+              </div>
+              <div class="ds-stick ds-stick-left" data-stick="move"><div class="ds-stick-knob"></div></div>
+              <div class="ds-small"><button data-action="L3">L3</button><button data-action="mute">🎙</button><button data-action="ps">PS</button></div>
+            </div>
+            <div class="ds-middle">
+              <div class="ds-touchpad" data-action="touchpad"><span class="touch-light"></span><small>TOUCHPAD</small></div>
+              <div class="ds-options"><button data-action="options">OPTIONS</button><button data-action="create">CRIAR</button></div>
+            </div>
+            <div class="ds-side ds-right">
+              <button class="ds-btn ds-r2" data-action="R2">R2</button>
+              <div class="ds-faces">
+                <button class="ds-face tri" data-action="triangle">△</button><button class="ds-face sq" data-action="square">□</button><button class="ds-face cir" data-action="circle">○</button><button class="ds-face cross" data-action="cross">✕</button>
+              </div>
+              <div class="ds-stick ds-stick-right" data-stick="camera"><div class="ds-stick-knob"></div></div>
+              <div class="ds-small"><button data-action="R3">R3</button><button data-action="options">≡</button></div>
+            </div>
+          </div>
+          <div class="ds-glow"></div>
+        </div>
+      </div>
+
+      <div id="edit-controls-panel" class="hidden">
+        <b>EDITAR CONTROLE</b>
+        <span>Arraste os botões. Ajuste o tamanho:</span>
+        <div><button id="ctrlShrink">−</button><b id="ctrlSizeLabel">100%</b><button id="ctrlGrow">+</button></div>
+        <button id="ctrlReset">Restaurar</button><button id="ctrlEditDone">Pronto</button>
+      </div>
+
+      <div id="map-screen" class="game-overlay hidden">
+        <div class="map-head"><div><b>MAPA DA CIDADE</b><span>10 bairros · GPS ativo</span></div><button class="overlay-close" data-close="map">✕</button></div>
+        <div class="map-canvas-wrap"><canvas id="bigmap" width="1200" height="1200"></canvas><div class="map-legend"><span><i class="lg player"></i>Você</span><span><i class="lg police"></i>Polícia</span><span><i class="lg mission"></i>Missão</span><span><i class="lg shop"></i>Loja</span><span><i class="lg hospital"></i>Hospital</span><span><i class="lg gas"></i>Posto</span></div></div>
+      </div>
+
+      <div id="pause-screen" class="game-overlay hidden">
+        <div class="pause-card">
+          <div class="pause-logo">GTA <b>5</b> BR</div>
+          <div class="pause-sub">EDIÇÃO CAIO · MUNDO ABERTO</div>
+          <button data-pause="continue" class="menu-btn primary">CONTINUAR</button>
+          <button data-pause="restart" class="menu-btn">REINICIAR</button>
+          <button data-pause="settings" class="menu-btn">CONFIGURAÇÕES</button>
+          <button data-pause="save" class="menu-btn">SALVAR JOGO</button>
+          <button data-pause="controls" class="menu-btn">TROCAR CONTROLE</button>
+          <button data-pause="ps5" class="menu-btn danger">SAIR PARA O PS5</button>
+          <div class="pause-foot">Salvamento automático a cada 60 segundos</div>
+        </div>
+      </div>
+
+      <div id="settings-game" class="game-overlay hidden">
+        <div class="settings-card">
+          <div class="map-head"><div><b>CONFIGURAÇÕES</b><span>Alterações aplicadas na hora</span></div><button class="overlay-close" data-close="settings">✕</button></div>
+          <label>Qualidade gráfica <select id="qualitySelect"><option value="high">Alta</option><option value="medium">Média</option><option value="low">Baixa</option></select></label>
+          <label>Modo de controle <select id="controlSelect"><option value="gta">Completo GTA</option><option value="tutorial">Simples Tutorial</option><option value="dualsense">Controle PS5 na tela</option></select></label>
+          <label>Sensibilidade da câmera <input id="sensRange" type="range" min="20" max="200" value="100"></label>
+          <label>Vibração <input id="vibrationToggle" type="checkbox" checked></label>
+          <label>Tamanho dos botões <input id="buttonSizeRange" type="range" min="70" max="140" value="100"></label>
+          <label>Brilho <input id="brightnessRange" type="range" min="50" max="130" value="100"></label>
+          <label>Volume <input id="volumeRange" type="range" min="0" max="100" value="65"></label>
+          <label>Idioma <select><option>Português (Brasil)</option></select></label>
+          <button class="menu-btn" id="settingsDone">VOLTAR AO JOGO</button>
+        </div>
+      </div>
+
+      <div id="shop-screen" class="game-overlay hidden">
+        <div class="shop-card">
+          <div class="shop-head"><div><span id="shopKicker">LOJA</span><h2 id="shopTitle">LOJA DE ROUPAS</h2><p id="shopSub">Vista o estilo da quebrada</p></div><button class="overlay-close" data-close="shop">✕</button></div>
+          <div class="shop-money">Seu dinheiro: <b id="shopMoney">R$ 2.500</b></div>
+          <div class="shop-grid" id="shopGrid"></div>
+        </div>
+      </div>
+
+      <div id="phone-screen" class="game-overlay hidden">
+        <div class="phone">
+          <div class="phone-top"><span>CAIO BR</span><span>18:24</span><span>▮▮▮</span></div>
+          <div class="phone-apps">
+            <button data-phone="mapa"><span>▦</span>MAPA</button>
+            <button data-phone="missoes"><span>★</span>MISSÕES</button>
+            <button data-phone="banco"><span>R$</span>BANCO</button>
+            <button data-phone="contatos"><span>♟</span>CONTATOS</button>
+            <button data-phone="radio"><span>♫</span>RÁDIO</button>
+            <button data-phone="casa"><span>⌂</span>CASA</button>
+            <button data-phone="loja"><span>◈</span>LOJA</button>
+            <button data-phone="config"><span>⚙</span>CONFIG</button>
+          </div>
+          <div class="phone-home"></div>
+        </div>
+      </div>
+
+      <div id="death-screen" class="game-overlay hidden">
+        <div class="death-card">
+          <div class="death-red">VOCÊ MORREU</div>
+          <p>O hospital cobrou <b>R$ 500</b> pelo atendimento.</p>
+          <button class="menu-btn primary" id="respawnBtn">TENTAR DE NOVO</button>
+          <button class="menu-btn" id="deathPs5">VOLTAR AO PS5</button>
+        </div>
+      </div>
+
+      <div id="prison-screen" class="game-overlay hidden">
+        <div class="prison-card">
+          <div class="prison-bars"></div>
+          <h2>VOCÊ FOI PRESO</h2>
+          <p>As armas foram apreendidas e você perdeu um dia na cadeia.</p>
+          <button class="menu-btn primary" id="prisonBtn">SAIR DA CADEIA</button>
+        </div>
+      </div>
+
+      <div id="mission-complete" class="hidden">
+        <div class="mc-card"><span>MISSÃO CONCLUÍDA</span><h2 id="mcTitle">Tutorial</h2><div class="mc-reward" id="mcReward">+ R$ 250</div><div class="mc-sub">Próxima missão desbloqueada</div></div>
+      </div>
+
+      <div id="rotate-notice">
+        <div>📱</div><b>Gire o celular para a horizontal</b><span>Para uma experiência de PS5 de verdade</span>
+      </div>
+    </div>
+  </div>
+
+  <script type="importmap">
+    { "imports": { "three": "./vendor/three.module.js" } }
+  </script>
+  <script type="module" src="./js/main.js"></script>
+</body>
+</html>
