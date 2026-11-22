@@ -3,12 +3,16 @@ const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 
 const GAMES = [
-  { id: 'gta', title: 'GTA 5 BR', sub: 'Edição Caio · Mundo aberto brasileiro', c1: '#ff7a18', c2: '#56118d', c3: '#ffc32b', hours: 248, progress: 87, rating: '18+', installed: true, owned: true, price: 349.90 },
-  { id: 'cidade', title: 'CAIO: A CIDADE', sub: 'Ação urbana · 10 bairros', c1: '#00c2ff', c2: '#071c52', c3: '#5ef0ff', hours: 62, progress: 54, rating: '16+', installed: true, owned: true, price: 249.90 },
-  { id: 'favela', title: 'FAVELA KINGS', sub: 'Ritmo, estilo e liberdade', c1: '#ff2d8d', c2: '#3b0a4f', c3: '#ffd03d', hours: 31, progress: 42, rating: '16+', installed: true, owned: true, price: 199.90 },
-  { id: 'corrida', title: 'CORRIDA BR', sub: '350 km/h pelas ruas do Brasil', c1: '#28d17c', c2: '#062d36', c3: '#b6ff5c', hours: 19, progress: 28, rating: 'L', installed: false, owned: false, price: 179.90 },
-  { id: 'futebol', title: 'FUTEBOL BRASIL', sub: 'A paixão nacional em 4K', c1: '#ffcf2d', c2: '#064d2e', c3: '#79ff9f', hours: 96, progress: 73, rating: 'L', installed: true, owned: true, price: 299.90 },
-  { id: 'moto', title: 'GRAU MOTO', sub: 'Manobras e adrenalina', c1: '#ff5a2d', c2: '#260b07', c3: '#ffb42d', hours: 8, progress: 12, rating: '12+', installed: false, owned: false, price: 99.90 },
+  { id: 'gta', title: 'GTA 5 BR', sub: 'Edição Caio · Mundo aberto brasileiro', c1: '#ff7a18', c2: '#56118d', c3: '#ffc32b', hours: 248, progress: 87, rating: '18+', installed: true, owned: true, price: 349.9, story: 'Caio sobe no crime na Cidade Caio. 50 missões, 10 bairros, uma cidade pra dominar.', character: 'CAIO BR', city: 'São Paulo · RP', music: 'funk', control: 'GTA', missions: 50, mode: 'open' },
+  { id: 'fifa', title: 'FIFA BR', sub: 'Campeonato da América · Seleção Brasileira', c1: '#ffd23c', c2: '#0a5c2e', c3: '#8dffb0', hours: 96, progress: 62, rating: 'L', installed: true, owned: true, price: 299.9, story: 'Brasileirões em campo. Vence o Hexacampeonato e faz a torcida explodir.', character: 'NEYMAR BR', city: 'Estádio · Rio de Janeiro', music: 'pagode', control: 'fifa', missions: 12, mode: 'futebol' },
+  { id: 'gow', title: 'GOD OF WAR BR', sub: 'Guerra nórdica no Brasil', c1: '#e8e2d8', c2: '#101820', c3: '#c9b38a', hours: 42, progress: 35, rating: '18+', installed: true, owned: true, price: 349.9, story: 'Kratos brasil é o último guerreiro. A maré do titã chega à serra.', character: 'KRATOS BR', city: 'Serra · neve', music: 'rock', control: 'gow', missions: 18, mode: 'acao' },
+  { id: 'sm', title: 'SPIDER-MAN BR', sub: 'Teia urbana em São Paulo', c1: '#ff3b30', c2: '#3d0a24', c3: '#ff9d5c', hours: 54, progress: 41, rating: 'L', installed: true, owned: true, price: 299.9, story: 'Peter Parker pula o Burj no coração da cidade e caça o vilão.', character: 'PETER BR', city: 'São Paulo · arranha-céu', music: 'hiphop', control: 'ar', missions: 15, mode: 'acao' },
+  { id: 'ff', title: 'FREE FIRE BR', sub: 'Battle royale na ilha', c1: '#2dff8f', c2: '#062b1a', c3: '#b6ff5c', hours: 31, progress: 28, rating: '12+', installed: true, owned: true, price: 149.9, story: 'Soldado sobe na ilha. Ser o último em pé com 50 jogadores.', character: 'SOLDADO BR', city: 'Ilha · praia', music: 'funk', control: 'tiro', missions: 20, mode: 'tiro' },
+  { id: 'mc', title: 'MINECRAFT BR', sub: 'Blocos · minerada · noite', c1: '#58c24a', c2: '#12331a', c3: '#a8e06b', hours: 88, progress: 47, rating: 'L', installed: true, owned: true, price: 249.9, story: 'Steve constrói a casa na serra. A noite chega e os zumbis atacam.', character: 'STEVE BR', city: 'Serra · bloco', music: 'samba', control: 'sandbox', missions: 16, mode: 'construcao' },
+  { id: 'forza', title: 'FORZA BR', sub: '350 km/h nas ruas do Brasil', c1: '#28d17c', c2: '#062d36', c3: '#b6ff5c', hours: 19, progress: 28, rating: 'L', installed: true, owned: true, price: 179.9, story: 'Piloto brasileiro domina a pista de arrancar e o drift.', character: 'PILOTO BR', city: 'Pista · Contagem', music: 'rock', control: 'f1', missions: 10, mode: 'carrera' },
+  { id: 'tlou', title: 'THE LAST OF US BR', sub: 'Sobrevivência com o Joel BR', c1: '#9aa5b1', c2: '#0c1218', c3: '#7d9cb8', hours: 64, progress: 52, rating: '18+', installed: true, owned: true, price: 349.9, story: 'Joel e a filha escapam da infecção no sertão.', character: 'JOEL BR', city: 'Sertão · caatinga', music: 'trilha', control: 'survival', missions: 22, mode: 'supervivencia' },
+  { id: 'fn', title: 'FORTNITE BR', sub: 'Ilha colorida · dança e construção', c1: '#7a5cff', c2: '#1c0f4d', c3: '#4fd8ff', hours: 73, progress: 66, rating: '12+', installed: true, owned: true, price: 399.9, story: 'Dançarino brasileiro pega a ilha neon e levanta a vitória.', character: 'DANCANTE BR', city: 'Ilha colorida', music: 'funk', control: 'dança', missions: 25, mode: 'acao' },
+  { id: 'cod', title: 'CALL OF DUTY BR', sub: 'Operação sul-americana', c1: '#8fa3b8', c2: '#101820', c3: '#d7e6f2', hours: 112, progress: 71, rating: '18+', installed: true, owned: true, price: 349.9, story: 'Soldado BR enfrenta a opressão em campo e nas ruas.', character: 'SOLDADO BR', city: 'Campo · Heliponto', music: 'rock', control: 'tps', missions: 30, mode: 'acao' },
 ];
 
 const TROPHIES = [
@@ -44,9 +48,13 @@ export class PS5System {
     this.owned = new Set(GAMES.filter(g => g.owned).map(g => g.id));
     this.downloads = {};
     this.downloadTimer = null;
+    this.currentGameId = GAMES[0].id;
+    this.currentGame = GAMES[0];
+    this.scale = { gameId: GAMES[0].id, level: 1 };
     this.settings = {
       brightness: 100, volume: 65, language: 'Português (Brasil)', playstyle: 'Ação e aventura',
-      buttonSize: 100, sensitivity: 100, vibration: true, quality: 'high', controlMode: 'gta'
+      buttonSize: 100, sensitivity: 100, vibration: true, quality: 'high', controlMode: 'gta',
+      perfMode: 'auto', fpsCap: 60, resolution: 100, viewDist: 'far', showFps: true
     };
     this.stars = [];
     this.particles = [];
@@ -78,6 +86,7 @@ export class PS5System {
         if (data.settings) this.settings = { ...this.settings, ...data.settings };
         if (data.profiles) this.profiles = { ...this.profiles, ...data.profiles };
         if (data.owned) this.owned = new Set(data.owned);
+        if (data.scale) this.scale = { ...this.scale, ...data.scale };
       }
       const custom = localStorage.getItem('gta5br_custom_profile');
       if (custom) {
@@ -90,7 +99,7 @@ export class PS5System {
 
   _saveLocal() {
     try {
-      localStorage.setItem('gta5br_ps5', JSON.stringify({ settings: this.settings, owned: [...this.owned], profiles: this.profiles }));
+      localStorage.setItem('gta5br_ps5', JSON.stringify({ settings: this.settings, owned: [...this.owned], profiles: this.profiles, scale: this.scale }));
     } catch {}
   }
 
@@ -186,6 +195,7 @@ export class PS5System {
         if (Math.abs(dx) > 35) this.selectGame(this.selectedGame + (dx < 0 ? 1 : -1));
       });
     }
+    $$('#gameScale [data-scale]').forEach(b => b.addEventListener('click', () => this.scaleGame(+b.dataset.scale)));
   }
 
   _key(e) {
@@ -282,6 +292,8 @@ export class PS5System {
 
   selectGame(index) {
     this.selectedGame = (index + GAMES.length) % GAMES.length;
+    this.currentGameId = GAMES[this.selectedGame].id;
+    this.currentGame = GAMES[this.selectedGame];
     this._layoutCarousel();
     this._updateGameInfo();
   }
@@ -295,17 +307,39 @@ export class PS5System {
     $('#infoProgress').textContent = g.progress + '%';
     $('#playGame').innerHTML = g.id === 'gta' ? '<span class="play-tri">▶</span> JOGAR' : (this.owned.has(g.id) ? '<span class="play-tri">▶</span> JOGAR' : '<span class="play-tri">◈</span> COMPRAR');
     $('#playGame').dataset.mode = this.owned.has(g.id) ? 'play' : 'buy';
+    const sv = $('#gsValue');
+    if (sv) sv.textContent = `Nível ${this.scale.level} · ${['Pequeno', 'Médio', 'Gigantão'][this.scale.level - 1] || 'Pequeno'} · ${g.title}`;
+  }
+
+  scaleGame(level) {
+    const g = this.currentGame;
+    const target = Math.max(1, Math.min(3, Math.floor(level || 1)));
+    const game = window.app?.game;
+    const weakPhone = game ? (game.perfMode === 'weak' || game.perfMode === 'auto') : false;
+    if (target > 2 && weakPhone) {
+      this.toast('Não dá pra escalar para Gigantão no celular fraco, fica no Médio.');
+      this.scale = { gameId: g.id, level: 2 };
+      this._saveLocal();
+      if (sv) sv.textContent = 'Nível 2 · Médio';
+      return;
+    }
+    this.scale = { gameId: g.id, level: target };
+    this._saveLocal();
+    if (game?.applyScale) game.applyScale(target, g.id);
+    const names = ['Pequeno', 'Médio', 'Gigantão'];
+    if (window.app?.game?.ui?.toast) window.app.game.ui.toast(`📈 ${g.title} escalado: Nível ${target} · ${names[target - 1]}`);
+    this.audio.click();
   }
 
   launchGame() {
     const g = GAMES[this.selectedGame];
     if (g.id !== 'gta' && !this.owned.has(g.id)) { this.openMenu('loja'); return; }
-    if (g.id !== 'gta') {
-      this.toast(`${g.title} ainda está instalando... Abrindo GTA 5 BR.`);
-    }
+    this.currentGameId = g.id;
+    this.currentGame = g;
+    this._saveLocal();
     this.audio.init();
     this.audio.cash();
-    this.audio.speak('Bem-vindo ao GTA 5 BR, edição Caio. A cidade é sua.');
+    this.audio.speak(`Bem-vindo ao ${g.title}, edição ${g.character}. A aventura é sua.`);
     $('#ps5-layer').classList.add('off');
     document.body.classList.add('in-game');
     $('#game-ui').classList.remove('hidden');
@@ -486,7 +520,21 @@ export class PS5System {
         <label>Vibração do controle <input type="checkbox" ${s.vibration ? 'checked' : ''} data-set="vibration"></label>
         <label>Qualidade gráfica <select data-set="quality"><option value="high" ${s.quality === 'high' ? 'selected' : ''}>Alta</option><option value="medium" ${s.quality === 'medium' ? 'selected' : ''}>Média</option><option value="low" ${s.quality === 'low' ? 'selected' : ''}>Baixa</option></select></label>
         <label>Modo de controle <select data-set="controlMode"><option value="gta" ${s.controlMode === 'gta' ? 'selected' : ''}>Completo GTA</option><option value="tutorial" ${s.controlMode === 'tutorial' ? 'selected' : ''}>Simples Tutorial</option><option value="dualsense" ${s.controlMode === 'dualsense' ? 'selected' : ''}>Controle PS5 na tela</option></select></label>
-      </div>`);
+        <div class="perf-block">
+          <div class="perf-title">DESEMPENHO · MÓDULO CELULAR</div>
+          <div class="perf-modes">
+            <button class="menu-btn" data-perf="weak">MODO CELULAR FRACO</button>
+            <button class="menu-btn" data-perf="medium">MODO CELULAR MÉDIO</button>
+            <button class="menu-btn" data-perf="good">MODO CELULAR BOM</button>
+            <button class="menu-btn" data-perf="auto">MODO AUTOMÁTICO</button>
+          </div>
+          <label>Qualidade gráfica <select data-set="quality"><option value="high" ${s.quality === 'high' ? 'selected' : ''}>Alta</option><option value="medium" ${s.quality === 'medium' ? 'selected' : ''}>Média</option><option value="low" ${s.quality === 'low' ? 'selected' : ''}>Baixa</option><option value="ultra" ${s.quality === 'ultra' ? 'selected' : ''}>Ultra</option></select></label>
+          <label>Placa FPS <select data-set="fpsCap"><option value="60" ${Number(s.fpsCap || 60) >= 60 ? 'selected' : ''}>60 FPS</option><option value="30" ${Number(s.fpsCap || 60) < 60 ? 'selected' : ''}>30 FPS</option></select></label>
+          <label>Resolução <select data-set="resolution"><option value="100" ${Number(s.resolution ?? 100) >= 99 ? 'selected' : ''}>100%</option><option value="75" ${Number(s.resolution ?? 100) < 99 ? 'selected' : ''}>75%</option><option value="50" ${Number(s.resolution ?? 100) < 75 ? 'selected' : ''}>50%</option></select></label>
+          <label>Distância de visão <select data-set="viewDist"><option value="far" ${s.viewDist === 'far' ? 'selected' : ''}>Longe</option><option value="mid" ${s.viewDist === 'mid' ? 'selected' : ''}>Médio</option><option value="near" ${s.viewDist === 'near' ? 'selected' : ''}>Perto</option></select></label>
+        </div>
+        </div>`);
+    $$('#ps5-modal [data-perf]').forEach(b => b.addEventListener('click', () => { const g = window.app?.game; if (g?.applyPerformance) g.applyPerformance(b.dataset.perf); else if (this.applyPerformance) this.applyPerformance(b.dataset.perf); }));
     $$('[data-set]').forEach(input => {
       input.addEventListener('input', () => {
         const key = input.dataset.set;
@@ -508,10 +556,61 @@ export class PS5System {
   }
 
   renderMedia() {
-    this.openModal(`${this._header('GALERIA', 'Mídia', 'Capturas e vídeos da sua jornada')}
-      <div class="store-grid">
-        ${['Pôr do sol na praia', 'Corrida na favela', 'Centro à noite', 'Aeroporto', 'Serra com neblina', 'Festa no morro'].map((t, i) => `<div class="store-card"><div class="store-cover" style="--c1:${['#ff8a1e','#ff2d8d','#1b5dff','#35d1ff','#7a8fa8','#ffd23c'][i]};--c2:${['#51148b','#25104d','#030b25','#062a3d','#283543','#8d2b00'][i]}"><b>${t}</b></div><div class="store-body"><h4>${t}</h4><p>Captura em 4K · PS5</p></div></div>`).join('')}
-      </div>`);
+    const ownedCount = this.owned.size;
+    const covers = GAMES.map((g, i) => {
+      const owned = this.owned.has(g.id);
+      return `<div class="phys ${owned ? 'owned' : 'locked'}" data-phys="${g.id}" data-idx="${i}">
+        <div class="phys-front">
+          <div class="phys-art" style="--c1:${g.c1};--c2:${g.c2}"><span class="phys-rating">${g.rating}</span><b>${g.title}</b><span class="phys-price">R$ ${g.price.toFixed(2).replace('.', ',')}</span></div>
+          <div class="phys-barcode"></div>
+          <div class="phys-name">${g.title}</div>
+        </div>
+        <div class="phys-back"><b>${g.title}</b><p>${g.story}</p></div>
+      </div>`;
+    }).join('');
+    this.openModal(`${this._header('MÍDIA FÍSICA', 'Capinhas de PS5', `Capinhas físicas na sua coleção: ${ownedCount}/10`)}
+      <div class="shelf" id="physShelf">
+        ${covers}
+      </div>
+      <div class="phys-actions">
+        <button class="menu-btn" id="physBuy">COMPRAR MÍDIA FÍSICA</button>
+        <button class="menu-btn" id="physCollect">COLECIONAR</button>
+      </div>
+      <div class="phys-count" id="physCount">Coleção: <b>${ownedCount}/10</b> · ${GAMES.length} capinhas PS5 Blue</div>`);
+    $$('#ps5-modal [data-phys]').forEach(card => card.addEventListener('click', (e) => {
+      const g = GAMES[Number(card.dataset.idx)];
+      if (!g || !this.owned.has(g.id)) { this.toast(`${g?.title || 'Jogo'} não está na sua coleção.`); return; }
+      this.audio.click();
+      this.slidePhysical(card, g);
+    }));
+    $('#physBuy')?.addEventListener('click', () => {
+      const g = this.currentGame;
+      this.buyGame(g.id);
+      this.toast(`Capinha física de ${g.title} comprada!`);
+    });
+    $('#physCollect')?.addEventListener('click', () => this.renderCollection());
+  }
+
+  renderCollection() {
+    const ownedCount = this.owned.size;
+    const cards = GAMES.map((g, i) => {
+      const owned = this.owned.has(g.id);
+      const colors = [g.c1, g.c2];
+      return `<div class="store-card ${owned ? '' : 'locked'}"><div class="store-cover" style="--c1:${g.c1};--c2:${g.c2}"><span>${g.rating}</span><b>${g.title}</b></div><div class="store-body"><h4>${g.title}</h4><p>${g.sub}</p><span class="store-price">${owned ? 'Capinha na coleção' : 'R$ ' + g.price.toFixed(2).replace('.', ',')} · falta comprar'}</span><button class="buy-btn ${owned ? 'done' : ''}">${owned ? 'TEM A CAPINHA' : 'COMPRAR'}</button></div></div>`;
+    }).join('');
+    this.openModal(`${this._header('COLEÇÃO', 'Capinhas Físicas PS5', `Você tem ${ownedCount} de ${GAMES.length} capinhas físicas`)}
+      <div class="library-grid">${cards}</div>
+      <div class="phys-count" style="margin-top:18px">Progresso da coleção: <b>${ownedCount}/${GAMES.length}</b></div>`);
+  }
+
+  slidePhysical(card, g) {
+    card.classList.add('out');
+    setTimeout(() => {
+      const idx = GAMES.findIndex(x => x.id === g.id);
+      this.closeModal();
+      this.selectGame(idx);
+      this.launchGame();
+    }, 750);
   }
 
   renderCommunity() {

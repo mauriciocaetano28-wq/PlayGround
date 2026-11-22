@@ -73,7 +73,7 @@ export function makeBuilding(w, x, z, width, depth, height, color, opts = {}) {
     }
   }
 
-  w.addObstacle(x - width / 2, x + width / 2, z - depth / 2, z + depth / 2, height);
+  w.addObstacle(x - width / 2, x + width / 2, z - depth / 2, z + depth / 2, height, mesh);
   return mesh;
 }
 

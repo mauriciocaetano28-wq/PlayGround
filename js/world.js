@@ -73,6 +73,10 @@ export class World {
     this.kites = [];
     this.smokeEmitters = [];
     this.clockTick = 0;
+    this.reflections = true;
+    this.unloadRadius = 1500;
+    this.treeCount = 240;
+    this.viewDist = 'far';
 
     scene.fog = new THREE.Fog(0xb9d6e8, 240, 1500);
     scene.environment = createEnvMap();
@@ -263,8 +267,8 @@ export class World {
     this.scene.add(this.birds);
   }
 
-  addObstacle(minX, maxX, minZ, maxZ, height = 10) {
-    this.obstacles.push({ minX, maxX, minZ, maxZ, height });
+  addObstacle(minX, maxX, minZ, maxZ, height = 10, mesh = null) {
+    this.obstacles.push({ minX, maxX, minZ, maxZ, height, mesh });
   }
 
   buildWindows() {
@@ -479,6 +483,17 @@ export class World {
     this.traffic.update(dt, playerPos);
     this.peds.update(dt, playerPos);
 
+    // LOD da cidade: só mantém visíveis os prédios perto do jogador (carrega por partes).
+    if (this.unloadRadius) {
+      const px = playerPos.x, pz = playerPos.z;
+      for (const o of this.obstacles) {
+        if (!o.mesh) continue;
+        const cx = (o.minX + o.maxX) / 2;
+        const cz = (o.minZ + o.maxZ) / 2;
+        o.mesh.visible = Math.hypot(cx - px, cz - pz) < this.unloadRadius;
+      }
+    }
+
     // fumaça das fábricas
     this.smokeEmitters.forEach(e => {
       e.phase += dt;
@@ -491,7 +506,7 @@ export class World {
   }
 
   updatePuddleReflection() {
-    if (this.weather === 'chuva') {
+    if (this.weather === 'chuva' && this.reflections) {
       this.puddleMat.roughness = .035 + Math.sin(this.animTime * 2) * .008;
     }
   }
@@ -549,6 +564,8 @@ export class World {
       this.sun.shadow.mapSize.set(size, size);
       if (this.sun.shadow.map) { this.sun.shadow.map.dispose(); this.sun.shadow.map = null; }
     }
+    this.unloadRadius = this.viewDist === 'near' ? 420 : this.viewDist === 'mid' ? 830 : (q === 'low' ? 620 : q === 'medium' ? 950 : 1500);
+    this.treeCount = q === 'low' ? 130 : q === 'medium' ? 200 : 240;
     this.rain.visible = q !== 'low' || this.weather === 'chuva';
     this.peds.setDensity(q === 'low' ? .55 : q === 'medium' ? .8 : 1);
     this.traffic.setDensity(q === 'low' ? .55 : q === 'medium' ? .8 : 1);

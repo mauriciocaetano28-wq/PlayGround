@@ -11,7 +11,7 @@ export function buildWorld(w) {
   buildStreetCommerce(w);
   buildZones(w);
   makeLamps(w);
-  makeTreeInstances(w, w.quality === 'low' ? 130 : 240);
+  makeTreeInstances(w, w.treeCount ?? (w.quality === 'low' ? 130 : 240));
   buildTrafficLights(w);
   buildAirplane(w);
   buildBirdsOverCity(w);

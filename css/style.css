@@ -128,6 +128,34 @@ body.brightness-high { filter: brightness(1.16); }
 .play-btn:hover { transform: translateY(-2px) scale(1.02); box-shadow: 0 12px 38px rgba(80, 170, 255, .4); }
 .play-tri { font-size: 10px; }
 .game-note { margin-top: 11px; font-size: 9px; color: #5f789e; letter-spacing: 1px; }
+.game-scale { margin-top: 16px; width: 100%; border: 1px solid rgba(120,170,255,.2); background: rgba(255,255,255,.03); border-radius: 14px; padding: 12px; }
+.gs-label { font-size: 8px; letter-spacing: 2px; color: #7fb7ff; font-weight: 800; margin-bottom: 8px; }
+.gs-bar { display: flex; gap: 6px; }
+.gs-bar button { flex: 1; border: 1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.05); color: #cfdff7; border-radius: 8px; padding: 7px 4px; font-size: 8px; font-weight: 800; letter-spacing: .5px; cursor: pointer; transition: .18s; }
+.gs-bar button:hover { background: rgba(80,160,255,.2); border-color: rgba(100,180,255,.5); }
+.gs-value { margin-top: 8px; font-size: 9px; color: #9cb2d4; letter-spacing: 1px; }
+.shelf { display: flex; gap: 14px; overflow-x: auto; padding: 6px 2px 14px; scrollbar-width: thin; }
+.phys { position: relative; width: 128px; height: 178px; flex: 0 0 auto; perspective: 700px; }
+.phys-front, .phys-back { position: absolute; inset: 0; border-radius: 10px; backface-visibility: hidden; transition: transform .7s cubic-bezier(.2,.8,.2,1); }
+.phys-front { background: linear-gradient(165deg, #1b5fd9, #0a2a6b); border: 3px solid #123; box-shadow: 0 14px 34px rgba(0,0,0,.6); }
+.phys-back { transform: rotateY(180deg); background: linear-gradient(165deg, #0d1b33, #050a16); border: 3px solid #123; display: flex; flex-direction: column; justify-content: center; padding: 10px; }
+.phys.owned .phys-front { border-color: #39b7ff; box-shadow: 0 0 26px rgba(57,183,255,.35), 0 14px 34px rgba(0,0,0,.6); }
+.phys.locked { opacity: .55; }
+.phys.locked .phys-front { border-color: #333; background: linear-gradient(165deg, #222, #0a0a0a); }
+.phys.out { transform: translateX(140%) rotateY(-28deg) !important; opacity: .0; }
+.phys-art { position: absolute; inset: 0; background: linear-gradient(160deg, var(--c1), var(--c2)); display: flex; flex-direction: column; justify-content: flex-end; padding: 8px; }
+.phys-art:before { content: ""; position: absolute; inset: 0; background: radial-gradient(circle at 60% 20%, rgba(255,255,255,.35), transparent 26%), linear-gradient(180deg, transparent 30%, rgba(0,0,0,.88) 100%); }
+.phys-art b { position: relative; font-family: var(--font-display); font-size: 15px; letter-spacing: -0.5px; line-height: .9; text-shadow: 0 2px 10px #000; }
+.phys-rating { position: absolute; top: 6px; right: 6px; font-size: 7px; background: rgba(0,0,0,.55); border: 1px solid rgba(255,255,255,.35); padding: 2px 5px; border-radius: 4px; }
+.phys-price { position: relative; font-size: 8px; color: #ffd34d; font-weight: 700; }
+.phys-barcode { position: absolute; left: 8px; right: 8px; bottom: 22px; height: 10px; background: repeating-linear-gradient(90deg, #fff 0 2px, #111 2px 4px, #fff 4px 6px, #333 6px 7px, #fff 7px 11px, #111 11px 13px); opacity: .85; }
+.phys-name { position: absolute; left: 8px; right: 8px; bottom: 6px; font-size: 8px; letter-spacing: 1px; color: #cfe3ff; }
+.phys-back b { font-size: 11px; color: #cfe3ff; }
+.phys-back p { margin-top: 6px; font-size: 8px; color: #8fa8c8; line-height: 1.35; }
+.phys-actions { display: flex; gap: 10px; justify-content: center; margin-top: 14px; }
+.phys-count { margin-top: 12px; text-align: center; font-size: 11px; color: #9cb2d4; letter-spacing: 1px; }
+.phys-count b { color: #ffd34d; }
+.store-card.locked { opacity: .6; }
 .dash-menu { position: relative; z-index: 5; display: flex; justify-content: center; align-items: stretch; gap: 2px; padding: 0 18px 14px; }
 .dash-menu button { background: transparent; color: #7e94b8; display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 9px; letter-spacing: 1px; font-weight: 600; padding: 9px 13px; border-radius: 10px; transition: .2s; white-space: nowrap; }
 .dash-menu button:hover, .dash-menu button.active { color: #fff; background: rgba(255, 255, 255, .075); transform: translateY(-2px); }
@@ -215,6 +243,14 @@ body.brightness-high { filter: brightness(1.16); }
 .hud-icon { width: 32px; height: 32px; border-radius: 8px; background: rgba(5,10,20,.55); border: 1px solid rgba(255,255,255,.15); color: #d9e7ff; font-size: 13px; backdrop-filter: blur(6px); }
 .hud-icon:hover { background: rgba(60,140,255,.3); }
 .hud-weather { position: absolute; right: 12px; top: 46px; font-size: 9px; letter-spacing: 1px; color: #d6e6ff; background: rgba(5,10,20,.45); border: 1px solid rgba(255,255,255,.1); padding: 4px 8px; border-radius: 20px; }
+#perf-hud { position: absolute; left: 12px; bottom: 12px; z-index: 8; display: flex; gap: 8px; align-items: center; background: rgba(5,10,20,.55); border: 1px solid rgba(120,170,255,.25); padding: 5px 10px; border-radius: 18px; font-size: 9px; letter-spacing: 1px; color: #9fc2e8; pointer-events: none; }
+#perf-hud b { color: #fff; font-size: 10px; }
+#perf-warning { position: absolute; top: 14px; left: 50%; transform: translateX(-50%); z-index: 40; background: rgba(60,10,20,.88); border: 1px solid rgba(255,80,90,.55); color: #ffc9cf; font-size: 10px; letter-spacing: 1px; padding: 8px 14px; border-radius: 20px; pointer-events: none; animation: fadeIn .25s; }
+.perf-block { margin-top: 14px; padding: 14px; border: 1px solid rgba(120,170,255,.18); background: rgba(255,255,255,.03); border-radius: 14px; }
+.perf-title { font-size: 9px; letter-spacing: 2px; color: #7fb7ff; font-weight: 800; margin-bottom: 10px; }
+.perf-modes { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+.perf-check { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,.06); font-size: 11px; color: #c8d8ef; }
+#clearCacheBtn { width: 100%; margin-top: 12px; }
 #minimap-wrap { position: absolute; top: 78px; right: 14px; width: 164px; height: 164px; z-index: 5; }
 #minimap { width: 164px; height: 164px; border-radius: 50%; border: 2px solid rgba(255,255,255,.45); box-shadow: 0 4px 22px rgba(0,0,0,.65), inset 0 0 25px rgba(0,0,0,.5); background: #0a141a; }
 .mm-n { position: absolute; top: -4px; left: 50%; transform: translateX(-50%); background: #fff; color: #111; font-size: 8px; font-weight: 900; width: 15px; height: 15px; border-radius: 50%; display: grid; place-items: center; box-shadow: 0 1px 4px #000; }

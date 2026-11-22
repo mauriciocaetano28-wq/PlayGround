@@ -147,6 +147,15 @@
             </div>
             <button class="play-btn" id="playGame"><span class="play-tri">▶</span> JOGAR</button>
             <div class="game-note">Sem telas de carregamento · salvamento automático</div>
+            <div id="gameScale" class="game-scale">
+              <div class="gs-label">ESCALAR / AUMENTAR JOGO</div>
+              <div class="gs-bar">
+                <button data-scale="1">NÍVEL 1 · PEQUENO</button>
+                <button data-scale="2">NÍVEL 2 · MÉDIO</button>
+                <button data-scale="3">NÍVEL 3 · GIGANTÃO</button>
+              </div>
+              <div id="gsValue" class="gs-value">Nível 1 · Pequeno</div>
+            </div>
           </div>
         </main>
 
@@ -208,6 +217,13 @@
         </div>
         <div class="hud-weather" id="hudWeather">☀ 32°C · TARDE</div>
       </div>
+
+      <div id="perf-hud" class="hidden">
+        <span class="perf-item">FPS <b id="fpsValue">0</b></span>
+        <span class="perf-item">TEMP <b id="tempValue">36,5</b>°C</span>
+        <span class="perf-item">MEM <b id="memValue">0</b>MB</span>
+      </div>
+      <div id="perf-warning" class="hidden">📱 Celular fraco, mudando para MODO CELULAR FRACO</div>
 
       <div id="minimap-wrap">
         <canvas id="minimap" width="220" height="220"></canvas>
@@ -345,7 +361,7 @@
       <div id="settings-game" class="game-overlay hidden">
         <div class="settings-card">
           <div class="map-head"><div><b>CONFIGURAÇÕES</b><span>Alterações aplicadas na hora</span></div><button class="overlay-close" data-close="settings">✕</button></div>
-          <label>Qualidade gráfica <select id="qualitySelect"><option value="high">Alta</option><option value="medium">Média</option><option value="low">Baixa</option></select></label>
+          <label>Qualidade gráfica <select id="qualitySelect"><option value="high">Alta</option><option value="medium">Média</option><option value="low">Baixa</option><option value="ultra">Ultra</option></select></label>
           <label>Modo de controle <select id="controlSelect"><option value="gta">Completo GTA</option><option value="tutorial">Simples Tutorial</option><option value="dualsense">Controle PS5 na tela</option></select></label>
           <label>Sensibilidade da câmera <input id="sensRange" type="range" min="20" max="200" value="100"></label>
           <label>Vibração <input id="vibrationToggle" type="checkbox" checked></label>
@@ -353,6 +369,20 @@
           <label>Brilho <input id="brightnessRange" type="range" min="50" max="130" value="100"></label>
           <label>Volume <input id="volumeRange" type="range" min="0" max="100" value="65"></label>
           <label>Idioma <select><option>Português (Brasil)</option></select></label>
+          <div class="perf-block">
+            <div class="perf-title">DESEMPENHO · MÓDULO CELULAR</div>
+            <div class="perf-modes">
+              <button class="menu-btn" data-perf="weak">MODO CELULAR FRACO</button>
+              <button class="menu-btn" data-perf="medium">MODO CELULAR MÉDIO</button>
+              <button class="menu-btn" data-perf="good">MODO CELULAR BOM</button>
+              <button class="menu-btn" data-perf="auto">MODO AUTOMÁTICO</button>
+            </div>
+            <label>Resolução <select id="resSelect"><option value="50">50%</option><option value="75">75%</option><option value="100">100%</option></select></label>
+            <label>Distância de visão <select id="viewDistSelect"><option value="near">Perto</option><option value="mid">Médio</option><option value="far">Longe</option></select></label>
+            <label>Placa FPS <select id="fpsSelect"><option value="show">Mostrar FPS na tela</option><option value="30">30 FPS</option><option value="60">60 FPS</option></select></label>
+            <label class="perf-check"><input id="fpsToggle" type="checkbox" checked> Mostrar FPS na tela</label>
+            <button class="menu-btn" id="clearCacheBtn">LIMPAR CACHE · DESTRAVAR</button>
+          </div>
           <button class="menu-btn" id="settingsDone">VOLTAR AO JOGO</button>
         </div>
       </div>
