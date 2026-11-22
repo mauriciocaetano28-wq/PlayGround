@@ -255,8 +255,8 @@ export async function mount({ root, game, onExit }) {
   if (touch) {
     bindHold($('[data-touch="jump"]', hud), (v) => { if (v) jump(); });
     bindHold($('[data-touch="run"]', hud), (v) => { touchState.run = v; });
-    bindLook($('.look-zone', hud), (dx, dy) => { camYaw -= dx * 0.004; camPitch = clamp(camPitch + dy * 0.0025, -0.25, 0.75); });
   }
+  bindLook($('.look-zone', hud), (dx, dy) => { camYaw -= dx * 0.004; camPitch = clamp(camPitch + dy * 0.0025, -0.25, 0.75); });
 
   let camYaw = 0;
   let camPitch = 0.18;

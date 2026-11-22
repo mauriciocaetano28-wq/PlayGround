@@ -3,6 +3,7 @@ import { GAMES, GAME_BY_ID, formatBRL } from './data/games.js';
 import { store } from './core/store.js';
 import { audio } from './core/audio.js';
 import { RoomScene } from './core/room.js';
+import { initVirtualPad, attachVirtualPad, detachVirtualPad, openPadSettings, virtualPad } from './core/virtualPad.js';
 
 const $ = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
@@ -421,6 +422,7 @@ async function launchGame(id) {
     toast('Erro no jogo', 'O jogo encontrou um erro inesperado.', '!');
     return;
   }
+  attachVirtualPad(id);
   $('#dashboard').classList.remove('active');
   $('#dashboard').setAttribute('aria-hidden', 'true');
 }
@@ -428,6 +430,7 @@ async function launchGame(id) {
 function exitGame() {
   const seconds = gameStart ? Math.round((Date.now() - gameStart) / 1000) : 0;
   if (currentGameId) store.markPlayed(currentGameId, seconds);
+  detachVirtualPad();
   try { currentGame?.destroy?.(); } catch (err) { console.error(err); }
   currentGame = null;
   currentGameId = null;
@@ -444,6 +447,9 @@ function exitGame() {
 $('#btn-power').addEventListener('click', () => bootConsole(false));
 $('#btn-disc-room').addEventListener('click', () => bootConsole(true));
 $('#dash-power').addEventListener('click', powerOff);
+$('#btn-pad')?.addEventListener('click', openPadSettings);
+$('#dash-pad-btn')?.addEventListener('click', openPadSettings);
+$('#side-pad-btn')?.addEventListener('click', openPadSettings);
 $('#btn-sound').addEventListener('click', () => {
   const muted = audio.toggle();
   $('#btn-sound').classList.toggle('muted', muted);
@@ -516,8 +522,9 @@ store.subscribe(() => {
 
 renderDashboard();
 renderDiscs();
+initVirtualPad();
 setTimeout(() => {
   if (!booted) toast('PS5 Emulator Lab', 'Ligue o console ou insira um disco para começar.', 'PS');
 }, 1600);
 
-window.__ps5 = { store, bootConsole, powerOff, launchGame, openStore, openDisc, openGameDetail, room };
+window.__ps5 = { store, bootConsole, powerOff, launchGame, openStore, openDisc, openGameDetail, room, vpad: virtualPad };

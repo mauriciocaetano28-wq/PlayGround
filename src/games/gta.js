@@ -457,6 +457,7 @@ export async function mount({ root, game, onExit }) {
 
   // Player
   const player = { x: 0, z: 8, y: 0, angle: 0, speed: 0, health: 100, money: 500, inCar: null, punch: 0, damageFlash: 0 };
+  let crouching = false;
   const playerGroup = new THREE.Group();
   const skinMat = new THREE.MeshStandardMaterial({ color: 0xb9825e, roughness: 0.8 });
   const jacketMat = new THREE.MeshStandardMaterial({ color: 0x243c5f, roughness: 0.7 });
@@ -504,8 +505,8 @@ export async function mount({ root, game, onExit }) {
     bindHold($('[data-touch="enter"]', hud), (v) => { if (v) toggleCar(); });
     bindHold($('[data-touch="punch"]', hud), (v) => { if (v) punch(); });
     bindHold($('[data-touch="map"]', hud), (v) => { if (v) toggleMap(); });
-    bindLook($('.look-zone', hud), (dx, dy) => { camYaw -= dx * 0.004; camPitch = clamp(camPitch + dy * 0.002, -0.25, 0.85); camManual = performance.now(); });
   }
+  bindLook($('.look-zone', hud), (dx, dy) => { camYaw -= dx * 0.004; camPitch = clamp(camPitch + dy * 0.002, -0.25, 0.85); camManual = performance.now(); });
 
   let camYaw = Math.PI;
   let camPitch = 0.14;
@@ -696,6 +697,14 @@ export async function mount({ root, game, onExit }) {
     } else {
       note('Nenhum carro por perto.', 'bad');
     }
+  }
+
+  function toggleCrouch() {
+    if (dead || player.inCar) return;
+    crouching = !crouching;
+    playerGroup.scale.y = crouching ? 0.66 : 1;
+    note(crouching ? 'Agachado. Menos visível para a polícia.' : 'Em pé. Cuidado com as estrelas.');
+    audio.click();
   }
 
   function punch() {
@@ -939,7 +948,7 @@ export async function mount({ root, game, onExit }) {
       const ml = Math.hypot(mx, mz);
       mx /= ml; mz /= ml;
       const run = keys.has('ShiftLeft') || touchState.run;
-      const speed = (run ? 24 : 12) * dt;
+      const speed = (run ? 24 : 12) * (crouching ? 0.55 : 1) * dt;
       const nx = player.x + mx * speed;
       const nz = player.z + mz * speed;
       if (!blocked(nx, player.z, 1.1)) player.x = nx;
@@ -1016,6 +1025,7 @@ export async function mount({ root, game, onExit }) {
   }
 
   function updateHud() {
+    window.__ps5Vital = player.health;
     el.wanted.forEach((s, i) => s.classList.toggle('on', i < wanted));
     el.healthFill.style.width = `${clamp(player.health, 0, 100)}%`;
     el.healthNum.textContent = Math.ceil(player.health);
@@ -1027,6 +1037,7 @@ export async function mount({ root, game, onExit }) {
     if (e.code === 'KeyE') { toggleCar(); e.preventDefault(); }
     if (e.code === 'KeyM') { toggleMap(); e.preventDefault(); }
     if (e.code === 'KeyF') { punch(); e.preventDefault(); }
+    if (e.code === 'KeyC') { toggleCrouch(); e.preventDefault(); }
     if (e.code === 'Escape' && mapOpen) { toggleMap(false); }
   }
   function onKeyUp(e) { keys.delete(e.code); }

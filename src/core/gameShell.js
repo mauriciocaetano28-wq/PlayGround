@@ -18,6 +18,7 @@ export function createGameShell({ root, game, controls, onExit, onPauseChange, s
         <p>O jogo está pausado. Continue de onde parou ou volte para a biblioteca do console.</p>
         <div class="pause-actions">
           <button class="pause-btn primary" data-game-resume>Continuar jogando</button>
+          <button class="pause-btn" data-game-pad><span class="pause-pad-icon">◉</span> Como você joga</button>
           <button class="pause-btn" data-game-home>Salvar e sair para o PS5</button>
         </div>
         <div class="pause-controls">${controls || ''}</div>
@@ -33,6 +34,7 @@ export function createGameShell({ root, game, controls, onExit, onPauseChange, s
   const setPaused = (value, silent = false) => {
     paused = value;
     pauseEl.classList.toggle('open', paused);
+    window.dispatchEvent(new CustomEvent('ps5:pause', { detail: { paused } }));
     if (!silent) onPauseChange?.(paused);
   };
 
@@ -46,15 +48,21 @@ export function createGameShell({ root, game, controls, onExit, onPauseChange, s
   root.querySelectorAll('[data-game-pause]').forEach((b) => b.addEventListener('click', () => setPaused(!paused)));
   root.querySelectorAll('[data-game-resume]').forEach((b) => b.addEventListener('click', () => setPaused(false)));
   root.querySelectorAll('[data-game-home]').forEach((b) => b.addEventListener('click', exit));
+  root.querySelectorAll('[data-game-pad]').forEach((b) => b.addEventListener('click', () => {
+    window.dispatchEvent(new CustomEvent('ps5:open-pad-settings'));
+  }));
 
   const onKey = (e) => {
     if (e.code === 'Escape') {
       if (document.pointerLockElement) return;
+      if (document.querySelector('#modal-root.open')) return;
       e.preventDefault();
       setPaused(!paused);
     }
   };
   window.addEventListener('keydown', onKey);
+  const onPadPauseRequest = () => setPaused(true);
+  window.addEventListener('ps5:pause-game', onPadPauseRequest);
 
   return {
     root,
@@ -66,7 +74,9 @@ export function createGameShell({ root, game, controls, onExit, onPauseChange, s
     exit,
     destroy() {
       destroyed = true;
+      clearLook();
       window.removeEventListener('keydown', onKey);
+      window.removeEventListener('ps5:pause-game', onPadPauseRequest);
       root.innerHTML = '';
     },
   };
@@ -131,7 +141,18 @@ export function touchMarkup({ left = true, right = [], look = true } = {}) {
     </div>`;
 }
 
+let activeLook = null;
+
+export function virtualLook(dx, dy) {
+  activeLook?.(dx, dy);
+}
+
+export function clearLook() {
+  activeLook = null;
+}
+
 export function bindLook(el, onDelta) {
+  activeLook = onDelta;
   if (!el) return;
   let id = null;
   let lx = 0, ly = 0;

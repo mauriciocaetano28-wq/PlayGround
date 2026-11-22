@@ -302,12 +302,12 @@ export async function mount({ root, game, onExit }) {
       bindHold($('[data-touch="jump"]', hud), (v) => { touchState.jump = v; });
       bindHold($('[data-touch="dash"]', hud), (v) => { if (v) dash(); });
       bindHold($('[data-touch="reload"]', hud), (v) => { if (v) reload(); });
-      bindLook($('.look-zone', hud), (dx, dy) => {
-        if (!started || shell.paused) return;
-        yaw -= dx * 0.004;
-        pitch = clamp(pitch - dy * 0.003, -0.5, 0.8);
-      });
     }
+    bindLook($('.look-zone', hud), (dx, dy) => {
+      if (!started || shell.paused) return;
+      yaw -= dx * 0.004;
+      pitch = clamp(pitch - dy * 0.003, -0.5, 0.8);
+    });
 
     let yaw = 0;
     let pitch = 0.16;
@@ -441,7 +441,7 @@ export async function mount({ root, game, onExit }) {
       player.dash = Math.max(0, player.dash - dt);
       if (player.reload > 0) { player.reload -= dt; if (player.reload <= 0) { player.reload = 0; player.ammo = 30; } }
       if ((keys.has('KeyR'))) reload();
-      if (touchState.fire || (mouseDown && document.pointerLockElement === canvas)) shoot();
+      if (touchState.fire || window.__ps5VirtualFire || (mouseDown && document.pointerLockElement === canvas)) shoot();
       playerAvatar.group.position.set(player.x, player.y, player.z);
       playerAvatar.group.rotation.y = player.angle;
       playerAvatar.legL.rotation.x = Math.sin(elapsed * 14) * (len > 0.1 ? 0.7 : 0);
@@ -590,7 +590,7 @@ export async function mount({ root, game, onExit }) {
     let mouseDown = false;
     function onMouseDown(e) {
       if (e.target.closest('button')) return;
-      if (!touch && !document.pointerLockElement) canvas.requestPointerLock?.();
+      if (!window.__ps5VirtualInput && !touch && !document.pointerLockElement) canvas.requestPointerLock?.();
       if (e.button === 0) { mouseDown = true; shoot(); }
     }
     function onMouseUp() { mouseDown = false; }

@@ -345,12 +345,12 @@ export async function mount({ root, game, onExit }) {
     bindHold($('[data-touch="jump"]', hud), (v) => { touchState.jump = v; });
     bindHold($('[data-touch="mine"]', hud), (v) => { touchState.mine = v; mining = v; if (v) mineProgress = 0; });
     bindHold($('[data-touch="place"]', hud), (v) => { touchState.place = v; if (v) placeBlock(); });
-    bindLook($('.look-zone', hud), (dx, dy) => {
-      if (craftOpen || shell.paused) return;
-      player.yaw -= dx * 0.004;
-      player.pitch = clamp(player.pitch - dy * 0.003, -1.35, 1.35);
-    });
   }
+  bindLook($('.look-zone', hud), (dx, dy) => {
+    if (craftOpen || shell.paused) return;
+    player.yaw -= dx * 0.004;
+    player.pitch = clamp(player.pitch - dy * 0.003, -1.35, 1.35);
+  });
 
   function renderHotbar() {
     const el = $('#mc-hotbar', hud);
@@ -547,7 +547,7 @@ export async function mount({ root, game, onExit }) {
   function onKeyUp(e) { keys.delete(e.code); }
   function onMouseDown(e) {
     if (craftOpen || shell.paused) return;
-    if (!touch && !document.pointerLockElement) {
+    if (!window.__ps5VirtualInput && !touch && !document.pointerLockElement) {
       canvas.requestPointerLock?.();
     }
     if (e.button === 0) { mining = true; mineProgress = 0; }
