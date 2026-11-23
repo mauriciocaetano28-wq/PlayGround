@@ -351,51 +351,12 @@
 
   </div>
 
-  <div class="touch-controls hidden" id="touch-controls" aria-label="Controle virtual PlayStation 5">
-      <div class="touch-brand">GTA 7 BR <span>DUALSENSE VIRTUAL</span></div>
-      <div class="touch-look-hint" id="touch-look-hint"><span>↔</span> ARRASTE PARA OLHAR</div>
-      <div class="touch-top">
-        <div class="touch-status" aria-hidden="true"><i class="ts-led"></i><b>P1</b><span class="ts-batt"><i></i></span></div>
-        <button class="touch-mini" id="tbtn-create" data-touch="create" title="Criar / Ajuda e controles" aria-label="Criar / Ajuda e controles"><span class="mini-glyph">≡</span></button>
-        <button class="touch-mini" id="tbtn-map" title="Mapa" aria-label="Mapa"><svg><use href="#icon-map"/></svg></button>
-        <button class="touch-mini" id="tbtn-options" data-touch="options" title="Opções / Definições" aria-label="Opções / Definições"><span class="mini-glyph">☰</span></button>
-        <button class="touch-mini" id="tbtn-hud" data-touch="hud" title="Recolher controles" aria-label="Recolher controles"><span class="mini-glyph">◱</span></button>
-        <button class="touch-mini ps-home" id="tbtn-ps" data-touch="ps" title="Menu de pausa" aria-label="Menu de pausa"><span class="ps-mark">PS</span></button>
-      </div>
-
-      <div class="touch-shoulders-left" aria-label="Gatilhos esquerdos">
-        <button class="tbtn shoulder l1" data-touch="dodge" data-label="ROLAR" data-label-vehicle="OLHAR"><span>L1</span><small>ROLAR</small></button>
-        <button class="tbtn shoulder l2" data-touch="aim" data-label="MIRAR" data-label-vehicle="FREIO"><span>L2</span><small>MIRAR</small></button>
-      </div>
-
-      <div class="joystick" id="joystick">
-        <div class="stick-base"></div><div class="stick-knob" id="stick-knob"></div>
-        <button class="stick-click" id="tbtn-l3" data-touch="l3" data-label="OMBRO" data-label-vehicle="OMBRO" title="Trocar ombro da câmera" aria-label="Trocar ombro da câmera"><span>L3</span></button>
-        <span class="stick-label">MOVER</span>
-      </div>
-
-      <div class="touch-dpad" id="touch-dpad" aria-label="Direcional">
-        <button class="dpad-btn up" data-touch="dpad-up" data-label="MISSÕES" data-label-vehicle="MISSÕES" title="Missões" aria-label="Missões">▲<small>MISSÕES</small></button>
-        <button class="dpad-btn left" data-touch="dpad-left" data-label="MARIA" data-label-vehicle="MARIA" title="Jogar como Maria" aria-label="Jogar como Maria">◀<small>MARIA</small></button>
-        <button class="dpad-btn center" data-touch="dpad-center" data-label="MAPA" data-label-vehicle="MAPA" title="Abrir mapa" aria-label="Abrir mapa">▭<small>MAPA</small></button>
-        <button class="dpad-btn right" data-touch="dpad-right" data-label="FELIPE" data-label-vehicle="FELIPE" title="Jogar como Felipe" aria-label="Jogar como Felipe">▶<small>FELIPE</small></button>
-        <button class="dpad-btn down" data-touch="dpad-down" data-label="RECARREGAR" data-label-vehicle="BUZINA" title="Recarregar" aria-label="Recarregar">▼<small>RECARREGAR</small></button>
-      </div>
-
-      <div class="touch-actions" id="touch-actions">
-        <button class="tbtn shoulder r2" data-touch="shoot" data-label="ATIRAR" data-label-vehicle="ACELERAR"><span>R2</span><small>ATIRAR</small></button>
-        <button class="tbtn shoulder r1" data-touch="sprint" data-label="CORRER" data-label-vehicle="TURBO"><span>R1</span><small>CORRER</small></button>
-        <button class="tbtn glyph-tri ps-tri" data-touch="switch" data-label="PERSONAGEM" data-label-vehicle="PERSONAGEM"><svg><use href="#glyph-triangle"/></svg><small>PERSONAGEM</small></button>
-        <button class="tbtn glyph-cir ps-cir" data-touch="interact" data-label="INTERAGIR" data-label-vehicle="SAIR"><svg><use href="#glyph-circle"/></svg><small>INTERAGIR</small></button>
-        <button class="tbtn glyph-sq ps-sq" data-touch="melee" data-label="ATACAR" data-label-vehicle="BUZINA"><svg><use href="#glyph-square"/></svg><small>ATACAR</small></button>
-        <button class="tbtn glyph-cr ps-cr" data-touch="jump" data-label="PULAR" data-label-vehicle="FREIO MÃO"><svg><use href="#glyph-cross"/></svg><small>PULAR</small></button>
-        <button class="tbtn stick-click r3" data-touch="r3" data-label="CÂMERA" data-label-vehicle="CÂMERA" title="Centralizar câmera" aria-label="Centralizar câmera"><span>R3</span><small>CÂMERA</small></button>
-      </div>
-
-      <button class="touch-touchpad" id="tbtn-touchpad" data-touch="touchpad" data-label="MAPA" data-label-vehicle="MAPA" title="Touchpad — abrir mapa" aria-label="Touchpad — abrir mapa">
-        <span>TOUCHPAD</span><small>MAPA</small>
-      </button>
-    </div>
+  <div class="touch-controls hidden" id="touch-controls" aria-label="Controle virtual PlayStation 5"></div>
+  <div class="touch-edit-bar hidden" id="touch-edit-bar">
+    <span><b>MODO EDIÇÃO</b> Arraste os botões para reposicionar</span>
+    <button id="touch-edit-reset" type="button">↺ Redefinir</button>
+    <button id="touch-edit-done" type="button">✓ Concluir</button>
+  </div>
 
   <!-- ============ FULL MAP ============ -->
   <section id="map-overlay" class="overlay map-overlay hidden">
@@ -543,6 +504,15 @@
           </div>
         </div>
         <div class="settings-page" data-page="controls">
+          <div class="setting-group playstyle-group">
+            <h3>COMO VOCÊ JOGA</h3>
+            <button class="playstyle-launch" id="btn-open-playstyle" type="button">
+              <span class="pl-ico">🎮</span>
+              <span class="pl-copy"><b>COMO VOCÊ JOGA</b><small id="playstyle-current">Modo Completo GTA</small></span>
+              <em>ALTERAR ›</em>
+            </button>
+            <p class="playstyle-note">3 layouts de controle virtual. Troque a qualquer momento, sem reiniciar o jogo.</p>
+          </div>
           <div class="setting-group">
             <h3>MIRA E CÂMERA</h3>
             <div class="setting-row"><label>Sensibilidade da câmera</label><div class="range-wrap"><input type="range" id="set-sens" min="20" max="200" step="5" value="100"><output id="out-sens">100%</output></div></div>
@@ -607,6 +577,61 @@
       <button class="btn ghost" id="btn-reset-settings">Restaurar padrões</button>
       <div class="modal-foot-right"><span class="save-note" id="settings-save-note">Alterações salvas automaticamente</span><button class="btn primary" data-close="settings-modal">Aplicar &amp; fechar</button></div>
     </div>
+  </section>
+
+  <!-- ============ COMO VOCÊ JOGA ============ -->
+  <section id="playstyle-modal" class="overlay modal playstyle-modal hidden">
+    <div class="modal-head">
+      <div><small>GTA 7 BR // CONTROLE VIRTUAL</small><h2>COMO VOCÊ JOGA</h2></div>
+      <button class="icon-btn close-overlay" data-close="playstyle-modal"><svg><use href="#icon-close"/></svg></button>
+    </div>
+    <div class="playstyle-body">
+      <p class="playstyle-lead">Escolha o layout do controle virtual. A troca é aplicada na hora, inclusive no meio de uma missão.</p>
+      <div class="playstyle-grid">
+        <button class="playstyle-card active" data-layout="gta" type="button">
+          <span class="pl-preview pl-gta" aria-hidden="true">
+            <i class="pp-stick left"></i><i class="pp-stick right"></i>
+            <i class="pp-dpad"></i><i class="pp-face"></i>
+            <i class="pp-bar top"></i><i class="pp-bar bottom"></i>
+          </span>
+          <span class="pl-tag">1 · COMPLETO</span>
+          <b>MODO COMPLETO GTA</b>
+          <small>Dois analógicos, D-Pad, gatilhos e todos os atalhos. Para jogar sério.</small>
+          <em>RECOMENDADO</em>
+        </button>
+        <button class="playstyle-card" data-layout="simple" type="button">
+          <span class="pl-preview pl-simple" aria-hidden="true">
+            <i class="pp-sun"></i><i class="pp-stick left"></i><i class="pp-stick right"></i>
+            <i class="pp-face"></i><i class="pp-hand">☝</i>
+          </span>
+          <span class="pl-tag">2 · INICIANTE</span>
+          <b>MODO SIMPLES / TUTORIAL</b>
+          <small>Layout limpo com caixas guiadas e números explicando cada parte.</small>
+          <em>TUTORIAL 1–4</em>
+        </button>
+        <button class="playstyle-card" data-layout="dualsense" type="button">
+          <span class="pl-preview pl-ds" aria-hidden="true">
+            <i class="pp-ds-body"></i><i class="pp-ds-pad"></i>
+            <i class="pp-ds-stick left"></i><i class="pp-ds-stick right"></i>
+          </span>
+          <span class="pl-tag">3 · REALISTA</span>
+          <b>CONTROLE PS5 NA TELA</b>
+          <small>DualSense branco e preto inteiro, com 16 botões numerados e clicáveis.</small>
+          <em>DUALSENSE</em>
+        </button>
+      </div>
+      <div class="playstyle-tools">
+        <div class="setting-row"><label>Tamanho dos botões<small>Vale para os 3 layouts</small></label>
+          <div class="range-wrap"><input type="range" id="set-padscale" min="60" max="160" step="5" value="100"><output id="out-padscale">100%</output></div>
+        </div>
+        <div class="playstyle-actions">
+          <button class="btn ghost" id="btn-edit-touch" type="button">✥ Arrastar botões</button>
+          <button class="btn ghost" id="btn-reset-touch" type="button">↺ Redefinir posições</button>
+        </div>
+        <p class="playstyle-hint">Dica: jogue com o celular na horizontal. Se um DualSense real conectar por Bluetooth, o controle virtual desaparece automaticamente. No modo DualSense, arraste o controle inteiro; nos modos 1 e 2, arraste cada bloco.</p>
+      </div>
+    </div>
+    <div class="modal-foot"><span class="save-note">A troca é aplicada na hora</span><button class="btn primary" id="btn-playstyle-close">Voltar ao jogo</button></div>
   </section>
 
   <!-- ============ DOWNLOAD ============ -->

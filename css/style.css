@@ -1075,3 +1075,479 @@ body.touch-mode .map-touch{display:flex;align-items:center;justify-content:space
 @media (prefers-reduced-motion:reduce){
   *,*:before,*:after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important}
 }
+
+/* ============================================================
+   VIRTUAL CONTROLLER — 3 LAYOUTS (GTA / SIMPLE / DUALSENSE)
+   ============================================================ */
+.touch-controls{--pad-scale:1;overflow:hidden}
+.touch-controls .tpad-slot{
+  position:absolute;left:var(--x,50%);top:var(--y,50%);
+  transform:translate(-50%,-50%) scale(var(--pad-scale,1));
+  transform-origin:center;pointer-events:none;z-index:3;
+  transition:filter .12s;
+}
+.touch-controls .tpad-slot.dragging{z-index:30;filter:drop-shadow(0 0 16px rgba(46,230,200,.8))}
+.touch-controls .tpad-btn,
+.touch-controls .tpad-stick,
+.touch-controls .tpad-touchpad{pointer-events:auto}
+
+/* --- base button --- */
+.tpad-btn{
+  position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+  min-width:56px;min-height:56px;padding:6px 9px;border-radius:16px;
+  background:linear-gradient(180deg,rgba(17,32,40,.9),rgba(4,11,16,.84));
+  border:1px solid rgba(255,255,255,.3);color:#eef7f7;
+  font-family:var(--font-ui);font-size:10px;font-weight:800;letter-spacing:.04em;line-height:1.05;
+  box-shadow:0 6px 18px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.12);
+  backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px);
+  touch-action:none;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;
+  transition:transform .06s,background .06s,box-shadow .06s,color .06s;
+}
+.tpad-btn b{font-size:12px;line-height:1;font-weight:900}
+.tpad-btn small{font-size:6.5px;letter-spacing:.05em;opacity:.78;font-weight:800;line-height:1;white-space:nowrap}
+.tpad-btn svg{width:21px;height:21px}
+.tpad-btn.pressed{background:linear-gradient(180deg,#ffd27a,#f6a63a);color:#1b0f03;transform:scale(.93);box-shadow:0 0 22px rgba(255,196,107,.8),inset 0 1px 0 rgba(255,255,255,.45)}
+.tpad-btn.pressed small{opacity:1}
+.tpad-btn.hold::after{content:"";position:absolute;left:50%;bottom:3px;width:12px;height:2px;margin-left:-6px;border-radius:2px;background:rgba(255,255,255,.4)}
+.tpad-btn.pressed.hold::after{background:rgba(0,0,0,.35)}
+.tpad-round{width:64px;height:64px;min-width:64px;min-height:64px;padding:0;border-radius:50%}
+.tpad-round b{font-size:20px;line-height:1}
+.tpad-round small{font-size:6px}
+.tpad-glyph.tri svg{color:#2ee6c8}
+.tpad-glyph.sq svg{color:#f29ac0}
+.tpad-glyph.cir svg{color:#ff7a66}
+.tpad-glyph.cr svg{color:#7fb8ff}
+
+/* --- shoulders --- */
+.tpad-shoulders{display:flex;flex-direction:column;gap:7px}
+.tpad-shoulders.row{flex-direction:row}
+.tpad-shoulder{width:86px;height:48px;min-width:86px;min-height:48px;padding:0;border-radius:13px}
+.tpad-shoulder b{font-size:15px;letter-spacing:.06em}
+.tpad-shoulder small{font-size:6px}
+.tpad-shoulder.trigger{background:linear-gradient(180deg,rgba(22,40,50,.94),rgba(5,13,19,.9));border-color:rgba(46,230,200,.36)}
+
+/* --- d-pad --- */
+.tpad-dpad{position:relative;width:132px;height:132px}
+.tpad-dpad .tpad-btn{position:absolute;width:44px;height:44px;min-width:44px;min-height:44px;padding:0;border-radius:12px}
+.tpad-dpad .tpad-btn small{display:none}
+.tpad-dpad .up{left:44px;top:0}
+.tpad-dpad .left{left:0;top:44px}
+.tpad-dpad .right{left:88px;top:44px}
+.tpad-dpad .down{left:44px;top:88px}
+.tpad-dpad .center{left:44px;top:44px;border-radius:50%;border-color:rgba(46,230,200,.4);color:#bffbf1;background:rgba(4,18,22,.88)}
+.tpad-dpad.mini{width:112px;height:112px}
+.tpad-dpad.mini .tpad-btn{width:37px;height:37px;min-width:37px;min-height:37px}
+.tpad-dpad.mini .up{left:37px;top:0}
+.tpad-dpad.mini .left{left:0;top:37px}
+.tpad-dpad.mini .right{left:74px;top:37px}
+.tpad-dpad.mini .down{left:37px;top:74px}
+.tpad-dpad.mini .center{left:37px;top:37px}
+
+/* --- analog sticks --- */
+.tpad-stick-wrap{position:relative;display:flex;flex-direction:column;align-items:center;gap:7px}
+.tpad-stick{
+  position:relative;width:142px;height:142px;border-radius:50%;
+  background:radial-gradient(circle at 38% 30%,rgba(255,255,255,.17),rgba(4,12,17,.55) 68%);
+  border:1px solid rgba(255,255,255,.34);
+  box-shadow:inset 0 0 30px rgba(0,0,0,.55),0 10px 26px rgba(0,0,0,.45);
+  backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+  touch-action:none;
+}
+.tpad-stick:before,.tpad-stick:after{content:"";position:absolute;background:rgba(255,255,255,.13);pointer-events:none}
+.tpad-stick:before{left:50%;top:10%;bottom:10%;width:1px}
+.tpad-stick:after{top:50%;left:10%;right:10%;height:1px}
+.tpad-stick .knob{
+  position:absolute;left:50%;top:50%;width:58px;height:58px;margin:-29px 0 0 -29px;border-radius:50%;
+  background:radial-gradient(circle at 38% 30%,#fbffff,#b9cbd0 56%,#71878e);
+  box-shadow:0 8px 18px rgba(0,0,0,.55),inset 0 2px 4px rgba(255,255,255,.65),inset 0 -4px 8px rgba(0,0,0,.18);
+  pointer-events:none;transition:transform .05s;
+}
+.tpad-stick .knob:after{content:"";position:absolute;inset:34%;border-radius:50%;border:1px solid rgba(0,0,0,.18)}
+.tpad-cap{font-size:8px;letter-spacing:.15em;font-weight:900;color:rgba(255,255,255,.85);text-shadow:0 1px 5px #000;white-space:nowrap}
+.tpad-stick.big{width:162px;height:162px}
+.tpad-stick.big .knob{width:66px;height:66px;margin:-33px 0 0 -33px}
+
+/* --- face buttons --- */
+.tpad-face{position:relative;width:174px;height:174px}
+.tpad-face .tpad-btn{position:absolute;width:58px;height:58px;min-width:58px;min-height:58px;padding:0;border-radius:50%}
+.tpad-face .tri{left:58px;top:0}
+.tpad-face .sq{left:0;top:58px}
+.tpad-face .cir{left:116px;top:58px}
+.tpad-face .cr{left:58px;top:116px}
+.tpad-face .lbl{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:6px;letter-spacing:.14em;font-weight:800;color:rgba(255,255,255,.35);white-space:nowrap}
+
+/* --- mini + extra rows --- */
+.tpad-mini-row{display:flex;gap:6px}
+.tpad-mini{width:43px;height:43px;min-width:43px;min-height:43px;padding:0;border-radius:12px;font-size:16px}
+.tpad-mini small{font-size:5px}
+.tpad-mini-row .tpad-btn b{font-size:15px}
+.tpad-extra{display:flex;gap:6px;align-items:flex-end}
+.tpad-extra .tpad-btn{min-width:48px;min-height:46px;padding:4px 6px;border-radius:11px;font-size:8px}
+.tpad-extra .tpad-btn b{font-size:9px}
+.tpad-extra .tpad-btn small{font-size:5.5px}
+.tpad-extra .wide{min-width:62px}
+
+/* --- live status strip --- */
+.tpad-status{
+  position:absolute;left:50%;top:calc(7px + env(safe-area-inset-top));
+  transform:translateX(-50%) scale(var(--pad-scale,1));transform-origin:top center;
+  display:flex;gap:10px;align-items:center;pointer-events:none;z-index:6;
+  padding:6px 13px;border-radius:14px;background:rgba(4,11,16,.74);
+  border:1px solid rgba(255,255,255,.18);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  box-shadow:0 6px 18px rgba(0,0,0,.4);white-space:nowrap;
+}
+.tpad-status .st{display:flex;flex-direction:column;align-items:center;gap:1px;min-width:48px}
+.tpad-status .st small{font-size:5.5px;letter-spacing:.12em;color:#8ea2a6;font-weight:800}
+.tpad-status .st b{font-size:13px;color:#f2f8f8;font-family:var(--font-display);letter-spacing:.05em;line-height:1.1}
+.tpad-status .st.money b{color:var(--gold)}
+.tpad-status .st.health b{color:#7dfba7}
+.tpad-status .st .bar{width:54px;height:4px;border-radius:3px;background:rgba(255,255,255,.16);overflow:hidden;margin-top:1px}
+.tpad-status .st .bar i{display:block;height:100%;width:100%;background:linear-gradient(90deg,#7dfba7,#2ee6c8);transition:width .18s}
+.tpad-status .st .bar.armor i{background:linear-gradient(90deg,#7fb8ff,#2e9ce6)}
+.tpad-status .sep{width:1px;height:24px;background:rgba(255,255,255,.14)}
+
+/* --- simple layout ambience + guides --- */
+.touch-controls.layout-simple:before{
+  content:"";position:absolute;inset:0;pointer-events:none;z-index:0;
+  background:
+    radial-gradient(circle at 50% 18%,rgba(255,176,122,.34),transparent 36%),
+    linear-gradient(180deg,rgba(82,30,102,.6),rgba(30,10,52,.24) 46%,rgba(4,8,20,.42));
+}
+.touch-controls.layout-simple:after{
+  content:"";position:absolute;left:50%;top:10%;width:150px;height:150px;margin-left:-75px;border-radius:50%;
+  background:radial-gradient(circle,#ffe2b0 0%,#ff9a63 55%,rgba(255,90,80,0) 72%);
+  opacity:.38;filter:blur(1px);pointer-events:none;z-index:0;
+}
+.tpad-guide{
+  position:relative;padding:13px 15px 19px;border:2px dashed rgba(70,255,175,.78);border-radius:26px;
+  background:rgba(9,32,25,.2);box-shadow:0 0 24px rgba(46,230,160,.14),inset 0 0 20px rgba(46,230,160,.06);
+}
+.tpad-guide.cam{border-color:rgba(196,140,255,.82);background:rgba(34,15,50,.22);box-shadow:0 0 24px rgba(170,110,255,.16),inset 0 0 20px rgba(170,110,255,.06)}
+.tpad-guide .guide-tag{
+  position:absolute;left:14px;top:-12px;padding:2px 8px;border-radius:7px;
+  background:#10261f;border:1px solid rgba(70,255,175,.55);color:#a9ffd9;
+  font-size:7px;letter-spacing:.12em;font-weight:900;white-space:nowrap;
+}
+.tpad-guide.cam .guide-tag{background:#241033;border-color:rgba(196,140,255,.6);color:#e0c4ff}
+.tpad-guide .guide-sub{position:absolute;left:0;right:0;bottom:2px;text-align:center;font-size:6.5px;letter-spacing:.1em;font-weight:800;color:rgba(255,255,255,.62)}
+.tpad-guide .tpad-hand{position:absolute;right:-16px;bottom:14px;font-size:28px;line-height:1;filter:drop-shadow(0 4px 8px rgba(0,0,0,.55));animation:handNudge 1.7s ease-in-out infinite;pointer-events:none}
+.tpad-guide.cam .tpad-hand{left:-16px;right:auto;animation-delay:.4s}
+@keyframes handNudge{0%,100%{transform:rotate(-16deg) translate(0,0)}50%{transform:rotate(-16deg) translate(6px,-7px)}}
+
+/* --- first-run tutorial numbers --- */
+.tpad-tips{position:absolute;inset:0;pointer-events:none;z-index:14}
+.tpad-tip{
+  position:absolute;left:var(--x,4%);top:var(--y,30%);transform:translateY(-50%);
+  display:flex;gap:8px;align-items:flex-start;width:min(208px,31vw);
+  padding:8px 10px;border-radius:12px;background:rgba(6,10,24,.9);
+  border:1px solid rgba(255,255,255,.24);box-shadow:0 8px 24px rgba(0,0,0,.55);pointer-events:auto;
+}
+.tpad-tip.center{transform:translate(-50%,-50%)}
+.tpad-tip .n{
+  flex:none;width:22px;height:22px;border-radius:50%;
+  background:linear-gradient(180deg,#ffd27a,#f6a63a);color:#1b0f03;
+  font-weight:900;display:grid;place-items:center;font-size:12px;
+  box-shadow:0 2px 6px rgba(0,0,0,.4);
+}
+.tpad-tip b{display:block;font-size:8.5px;letter-spacing:.08em;color:#fff;margin-bottom:2px}
+.tpad-tip p{margin:0;font-size:7.5px;line-height:1.45;color:#b9c8cb}
+.tpad-tips .tip-dismiss{
+  position:absolute;left:50%;bottom:calc(10px + env(safe-area-inset-bottom));transform:translateX(-50%);
+  pointer-events:auto;height:38px;padding:0 20px;border-radius:20px;border:1px solid rgba(46,230,200,.6);
+  background:rgba(4,20,22,.92);color:#bffbf1;font-size:9px;letter-spacing:.16em;font-weight:900;
+  box-shadow:0 8px 22px rgba(0,0,0,.5);touch-action:none;
+}
+
+/* --- drag-to-reposition edit mode --- */
+body.touch-edit .touch-controls .tpad-slot{pointer-events:auto;cursor:grab}
+body.touch-edit .touch-controls .tpad-slot:active{cursor:grabbing}
+body.touch-edit .touch-controls .tpad-slot:after{
+  content:"✥";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  font-size:15px;color:rgba(46,230,200,.9);text-shadow:0 1px 4px #000;pointer-events:none;opacity:.85;
+}
+body.touch-edit .touch-controls .tpad-btn,
+body.touch-edit .touch-controls .tpad-stick,
+body.touch-edit .touch-controls .tpad-touchpad{pointer-events:none}
+body.touch-edit .touch-controls .tpad-slot{outline:1px dashed rgba(46,230,200,.55);outline-offset:6px;border-radius:18px}
+.touch-edit-bar{
+  position:fixed;left:50%;top:calc(8px + env(safe-area-inset-top));transform:translateX(-50%);
+  z-index:90;display:flex;align-items:center;gap:10px;padding:8px 10px 8px 16px;border-radius:16px;
+  background:rgba(3,12,16,.94);border:1px solid rgba(46,230,200,.5);
+  box-shadow:0 12px 34px rgba(0,0,0,.6),0 0 24px rgba(46,230,200,.18);
+  color:#cfe0e2;font-size:8px;letter-spacing:.08em;font-weight:700;white-space:nowrap;
+}
+.touch-edit-bar span b{color:#bffbf1;letter-spacing:.14em}
+.touch-edit-bar button{
+  height:34px;padding:0 12px;border-radius:10px;border:1px solid rgba(255,255,255,.22);
+  background:rgba(255,255,255,.06);color:#eaf2f2;font-size:8px;font-weight:800;letter-spacing:.08em;
+}
+.touch-edit-bar button:last-child{background:linear-gradient(180deg,#ffd27a,#f6a63a);color:#1b0f03;border-color:transparent}
+
+/* --- layout 3: full DualSense --- */
+.tpad-dualsense{
+  position:absolute;left:50%;bottom:calc(2px + env(safe-area-inset-bottom));
+  width:min(680px,94vw);aspect-ratio:3.2/1;
+  transform:translateX(-50%) scale(var(--pad-scale,1));transform-origin:bottom center;
+  pointer-events:none;z-index:5;
+}
+.ds-body{
+  position:absolute;inset:0;border-radius:44% 44% 30% 30%/58% 58% 42% 42%;
+  background:
+    radial-gradient(ellipse at 50% -4%,#ffffff 0%,#f2f6f8 38%,#d9e1e5 68%,#b7c2c8 100%);
+  border:1px solid rgba(255,255,255,.7);
+  box-shadow:inset 0 2px 0 #fff,inset 0 -14px 30px rgba(0,0,0,.22),0 18px 38px rgba(0,0,0,.6);
+}
+.ds-body:before,.ds-body:after{
+  content:"";position:absolute;bottom:-10%;width:31%;height:66%;border-radius:48% 48% 44% 44%;
+  background:linear-gradient(180deg,#eef3f5 0%,#cfd8dc 48%,#9aa6ac 100%);
+  box-shadow:inset 0 -12px 22px rgba(0,0,0,.28);z-index:-1;
+}
+.ds-body:before{left:1%;transform:rotate(7deg)}
+.ds-body:after{right:1%;transform:rotate(-7deg)}
+.ds-grip{position:absolute;bottom:0;width:24%;height:44%;border-radius:50% 50% 42% 42%;background:linear-gradient(180deg,#25292d,#0a0c0e);opacity:.92}
+.ds-grip.left{left:5%}
+.ds-grip.right{right:5%}
+.ds-plate{
+  position:absolute;left:29%;right:29%;top:8%;bottom:30%;border-radius:22px;
+  background:linear-gradient(180deg,#2a2f34,#121518);box-shadow:inset 0 1px 0 rgba(255,255,255,.16),inset 0 -6px 16px rgba(0,0,0,.5);
+}
+.ds-touchpad{
+  position:absolute;left:50%;top:13%;transform:translateX(-50%);width:26%;height:24%;
+  border-radius:9px;border:1px solid rgba(255,255,255,.9);
+  background:linear-gradient(180deg,#f7fafb,#cbd5da);
+  box-shadow:0 0 22px rgba(60,160,255,.8),0 0 44px rgba(40,120,255,.35),inset 0 1px 2px #fff;
+  pointer-events:auto;touch-action:none;display:grid;place-items:center;
+}
+.ds-touchpad span{font-size:5.5px;letter-spacing:.16em;font-weight:900;color:rgba(20,50,70,.55)}
+.ds-touchpad.pressed{background:linear-gradient(180deg,#d9f6ff,#8ad8ff);box-shadow:0 0 30px rgba(80,200,255,1),0 0 60px rgba(40,120,255,.6)}
+.ds-btn{
+  position:absolute;display:grid;place-items:center;
+  background:linear-gradient(180deg,#2b3035,#111417);color:#eef6f6;
+  border:1px solid rgba(255,255,255,.2);border-radius:50%;
+  box-shadow:0 3px 7px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.16);
+  font-weight:900;touch-action:none;user-select:none;-webkit-user-select:none;
+  transition:transform .06s,background .06s,box-shadow .06s,color .06s;
+}
+.ds-btn.pressed{background:linear-gradient(180deg,#a6fbff,#2ec8e6);color:#03161b;transform:scale(.92);box-shadow:0 0 20px rgba(46,230,200,.95),inset 0 1px 0 rgba(255,255,255,.6)}
+.ds-face{width:clamp(34px,4.6vw,52px);height:clamp(34px,4.6vw,52px)}
+.ds-face svg{width:52%;height:52%}
+.ds-face.tri{left:82%;top:26%}
+.ds-face.sq{left:75%;top:38%}
+.ds-face.cir{left:89%;top:38%}
+.ds-face.cr{left:82%;top:50%}
+.ds-face.tri svg{color:#2ee6c8}
+.ds-face.sq svg{color:#f29ac0}
+.ds-face.cir svg{color:#ff7a66}
+.ds-face.cr svg{color:#7fb8ff}
+.ds-shoulder{width:11%;height:13%;min-width:58px;min-height:26px;border-radius:10px}
+.ds-shoulder b{font-size:11px;letter-spacing:.05em}
+.ds-shoulder.l2{left:8%;top:3%}
+.ds-shoulder.l1{left:8%;top:17%}
+.ds-shoulder.r2{right:8%;top:3%}
+.ds-shoulder.r1{right:8%;top:17%}
+.ds-shoulder.trigger{background:linear-gradient(180deg,#2a3238,#0e1215)}
+.ds-dpad-btn{
+  position:absolute;width:clamp(24px,3.2vw,36px);height:clamp(24px,3.2vw,36px);
+  border-radius:9px;display:grid;place-items:center;font-size:11px;
+  background:linear-gradient(180deg,#2b3035,#111417);color:#eaf2f2;
+  border:1px solid rgba(255,255,255,.18);box-shadow:0 2px 5px rgba(0,0,0,.5);
+  touch-action:none;user-select:none;
+}
+.ds-dpad-btn.pressed{background:linear-gradient(180deg,#a6fbff,#2ec8e6);color:#03161b;box-shadow:0 0 16px rgba(46,230,200,.9)}
+.ds-dpad-btn.up{left:21%;top:24%}
+.ds-dpad-btn.left{left:15.5%;top:36%}
+.ds-dpad-btn.right{left:26.5%;top:36%}
+.ds-dpad-btn.down{left:21%;top:48%}
+.ds-stick{
+  position:absolute;width:clamp(52px,7vw,78px);height:clamp(52px,7vw,78px);border-radius:50%;
+  background:radial-gradient(circle at 40% 32%,#3a4147,#15191c 70%);
+  border:2px solid #3b4248;box-shadow:0 4px 10px rgba(0,0,0,.55),inset 0 2px 4px rgba(255,255,255,.18);
+  pointer-events:auto;touch-action:none;
+}
+.ds-stick:after{content:"";position:absolute;inset:26%;border-radius:50%;background:radial-gradient(circle at 38% 30%,#596168,#252a2e);border:1px solid rgba(255,255,255,.18)}
+.ds-stick.left{left:15%;top:64%}
+.ds-stick.right{left:70%;top:64%}
+.ds-stick .knob{position:absolute;left:50%;top:50%;width:58%;height:58%;margin:-29% 0 0 -29%;border-radius:50%;background:radial-gradient(circle at 38% 30%,#2f353a,#0d1012);box-shadow:0 2px 6px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.2);pointer-events:none;transition:transform .05s;z-index:1}
+.ds-ps{left:46%;top:54%;width:clamp(26px,3.2vw,38px);height:clamp(26px,3.2vw,38px);background:linear-gradient(180deg,#f4f8f9,#c3ced3);color:#1a2226;border-color:#fff;font-size:9px;letter-spacing:.02em}
+.ds-mute{left:36%;top:66%;width:clamp(30px,4vw,46px);height:clamp(16px,2vw,22px);border-radius:11px;font-size:8px}
+.ds-options{left:63%;top:30%;width:clamp(30px,4vw,46px);height:clamp(16px,2vw,22px);border-radius:9px;font-size:8px}
+.ds-num{
+  position:absolute;top:-7px;right:-7px;min-width:17px;height:17px;padding:0 4px;border-radius:9px;
+  background:linear-gradient(180deg,#ffd27a,#f6a63a);color:#1b0f03;font-size:9px;font-weight:900;
+  display:grid;place-items:center;box-shadow:0 2px 6px rgba(0,0,0,.45);z-index:3;pointer-events:none;
+}
+.ds-hint{
+  position:absolute;left:50%;top:-18px;transform:translateX(-50%);white-space:nowrap;
+  font-size:6px;letter-spacing:.18em;font-weight:900;color:rgba(255,255,255,.5);text-shadow:0 1px 4px #000;
+}
+
+/* ============================================================
+   COMO VOCÊ JOGA — settings card + modal
+   ============================================================ */
+.playstyle-launch{
+  width:100%;display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;
+  background:linear-gradient(135deg,rgba(46,230,200,.1),rgba(255,196,107,.06));
+  border:1px solid rgba(46,230,200,.34);text-align:left;color:#eaf2f2;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.06);transition:border-color .15s,background .15s,transform .1s;
+}
+.playstyle-launch:hover{border-color:rgba(46,230,200,.7);background:linear-gradient(135deg,rgba(46,230,200,.18),rgba(255,196,107,.1))}
+.playstyle-launch:active{transform:scale(.99)}
+.playstyle-launch .pl-ico{font-size:24px;line-height:1;filter:drop-shadow(0 3px 6px rgba(0,0,0,.4))}
+.playstyle-launch .pl-copy{display:flex;flex-direction:column;gap:2px;flex:1}
+.playstyle-launch .pl-copy b{font-size:11px;letter-spacing:.14em;color:#fff}
+.playstyle-launch .pl-copy small{font-size:8px;color:var(--teal);letter-spacing:.06em}
+.playstyle-launch em{font-size:8px;font-style:normal;font-weight:900;letter-spacing:.12em;color:var(--gold);white-space:nowrap}
+.playstyle-note{margin:8px 2px 0;font-size:8px;line-height:1.55;color:#8ea2a6}
+.playstyle-modal{z-index:98}
+.playstyle-body{padding:2px 26px 10px;overflow:auto}
+.playstyle-lead{margin:0 0 14px;font-size:10px;line-height:1.6;color:#b9c8cb;max-width:760px}
+.playstyle-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.playstyle-card{
+  position:relative;display:flex;flex-direction:column;gap:7px;padding:12px;border-radius:16px;
+  background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.14);text-align:left;color:#eaf2f2;
+  transition:border-color .15s,background .15s,transform .12s,box-shadow .15s;overflow:hidden;
+}
+.playstyle-card:hover{border-color:rgba(46,230,200,.45);transform:translateY(-2px)}
+.playstyle-card.active{border-color:rgba(46,230,200,.8);background:linear-gradient(160deg,rgba(46,230,200,.13),rgba(255,196,107,.06));box-shadow:0 0 0 1px rgba(46,230,200,.3),0 12px 28px rgba(0,0,0,.35)}
+.playstyle-card.active:after{content:"✓ ATIVO";position:absolute;right:10px;top:10px;padding:3px 7px;border-radius:6px;background:var(--teal);color:#04191a;font-size:6.5px;font-weight:900;letter-spacing:.1em}
+.playstyle-card .pl-tag{font-size:6.5px;letter-spacing:.16em;font-weight:900;color:var(--gold)}
+.playstyle-card b{font-size:10px;letter-spacing:.06em;color:#fff}
+.playstyle-card small{font-size:8px;line-height:1.5;color:#9fb0b4;min-height:34px}
+.playstyle-card em{font-size:6.5px;font-style:normal;font-weight:900;letter-spacing:.14em;color:rgba(46,230,200,.8)}
+.pl-preview{position:relative;display:block;height:86px;border-radius:11px;overflow:hidden;background:#08131a;border:1px solid rgba(255,255,255,.12);margin-bottom:2px}
+.pl-preview i{position:absolute;display:block;font-style:normal}
+.pl-gta{background:radial-gradient(circle at 60% 30%,rgba(46,230,200,.16),transparent 55%),linear-gradient(160deg,#0a2028,#050b10)}
+.pl-gta .pp-stick{width:28px;height:28px;border-radius:50%;border:2px solid rgba(255,255,255,.45);bottom:9px}
+.pl-gta .pp-stick.left{left:12px}
+.pl-gta .pp-stick.right{right:12px}
+.pl-gta .pp-dpad{left:14px;top:14px;width:20px;height:20px;background:linear-gradient(90deg,transparent 38%,rgba(255,255,255,.55) 38% 62%,transparent 62%),linear-gradient(180deg,transparent 38%,rgba(255,255,255,.55) 38% 62%,transparent 62%)}
+.pl-gta .pp-face{right:14px;top:14px;width:20px;height:20px;border-radius:50%;border:2px solid rgba(255,122,102,.8)}
+.pl-gta .pp-bar{height:4px;border-radius:3px;background:rgba(255,196,107,.7);left:30%;right:30%}
+.pl-gta .pp-bar.top{top:9px}
+.pl-gta .pp-bar.bottom{bottom:6px;background:rgba(46,230,200,.6)}
+.pl-simple{background:linear-gradient(180deg,#5a2a6e,#2a1038 55%,#0d0a1e)}
+.pl-simple .pp-sun{left:50%;top:14px;width:26px;height:26px;margin-left:-13px;border-radius:50%;background:radial-gradient(circle,#ffe2b0,#ff9a63 70%,rgba(255,90,80,0));box-shadow:0 0 18px rgba(255,154,99,.6)}
+.pl-simple .pp-stick{width:26px;height:26px;border-radius:50%;border:2px dashed rgba(70,255,175,.9);bottom:12px}
+.pl-simple .pp-stick.left{left:12px}
+.pl-simple .pp-stick.right{right:12px;border-color:rgba(196,140,255,.9)}
+.pl-simple .pp-face{right:12px;top:12px;width:18px;height:18px;border-radius:50%;border:2px solid rgba(255,122,102,.8)}
+.pl-simple .pp-hand{right:34px;bottom:12px;font-size:15px;filter:drop-shadow(0 2px 3px #000)}
+.pl-ds{background:linear-gradient(180deg,#121a1e,#05090c);display:grid;place-items:center}
+.pl-ds .pp-ds-body{position:absolute;left:9%;right:9%;top:18px;bottom:10px;border-radius:26px 26px 18px 18px;background:linear-gradient(180deg,#f6f9fa,#c3ced3)}
+.pl-ds .pp-ds-pad{position:absolute;left:50%;top:25px;width:34px;height:18px;margin-left:-17px;border-radius:5px;background:#cfe0e8;box-shadow:0 0 10px rgba(60,160,255,.8)}
+.pl-ds .pp-ds-stick{position:absolute;top:48px;width:18px;height:18px;border-radius:50%;background:#14181b;border:2px solid #394248}
+.pl-ds .pp-ds-stick.left{left:22%}
+.pl-ds .pp-ds-stick.right{right:22%}
+.playstyle-tools{margin-top:16px;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.1)}
+.playstyle-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.playstyle-actions .btn{height:38px;font-size:8px;letter-spacing:.08em}
+.playstyle-hint{margin:10px 0 0;font-size:8px;line-height:1.55;color:#8ea2a6}
+
+@media (max-width:860px){
+  .playstyle-grid{grid-template-columns:1fr}
+  .playstyle-card small{min-height:0}
+  .pl-preview{height:70px}
+}
+@media (orientation:landscape) and (max-height:520px){
+  .touch-edit-bar{font-size:7px;padding:6px 8px 6px 12px}
+  .touch-edit-bar button{height:30px}
+  .tpad-stick{width:120px;height:120px}
+  .tpad-stick.big{width:136px;height:136px}
+  .tpad-stick .knob{width:50px;height:50px;margin:-25px 0 0 -25px}
+  .tpad-dpad{width:116px;height:116px}
+  .tpad-dpad .tpad-btn{width:39px;height:39px;min-width:39px;min-height:39px}
+  .tpad-dpad .up{left:39px}
+  .tpad-dpad .left{top:39px}
+  .tpad-dpad .right{left:77px;top:39px}
+  .tpad-dpad .down{left:39px;top:77px}
+  .tpad-dpad .center{left:39px;top:39px}
+  .tpad-face{width:150px;height:150px}
+  .tpad-face .tpad-btn{width:50px;height:50px;min-width:50px;min-height:50px}
+  .tpad-face .tri{left:50px}
+  .tpad-face .sq{top:50px}
+  .tpad-face .cir{left:100px;top:50px}
+  .tpad-face .cr{left:50px;top:100px}
+}
+
+/* Edit mode must be usable even from the main menu */
+body.touch-edit .touch-controls{display:block !important;opacity:1 !important}
+body.touch-edit .tpad-tips{display:none !important}
+body.touch-edit .touch-controls .tpad-slot{pointer-events:auto}
+
+/* Layout-specific refinements */
+.tpad-status.slim{padding:3px 10px;gap:0}
+.tpad-status.slim .st{min-width:44px}
+.tpad-status.slim .st b{font-size:11px}
+.tpad-status.slim .st small{font-size:5px}
+.tpad-center-top{display:flex;align-items:center;gap:6px}
+.tpad-center-top .tpad-btn{min-width:46px;min-height:46px;padding:4px 6px;border-radius:11px;font-size:8px}
+.tpad-center-top .tpad-btn b{font-size:9px}
+.tpad-center-top .tpad-btn small{font-size:5px}
+.tpad-face.compact{width:150px;height:150px}
+.tpad-face.compact .tpad-btn{width:50px;height:50px;min-width:50px;min-height:50px}
+.tpad-face.compact .tri{left:50px;top:0}
+.tpad-face.compact .sq{left:0;top:50px}
+.tpad-face.compact .cir{left:100px;top:50px}
+.tpad-face.compact .cr{left:50px;top:100px}
+.layout-gta .tpad-stick{width:132px;height:132px}
+.layout-gta .tpad-stick .knob{width:54px;height:54px;margin:-27px 0 0 -27px}
+.layout-gta .tpad-shoulder{width:82px;height:42px;min-width:82px;min-height:42px}
+.layout-simple .tpad-stick.big{width:146px;height:146px}
+.layout-simple .tpad-stick.big .knob{width:60px;height:60px;margin:-30px 0 0 -30px}
+.layout-simple .tpad-guide{padding:11px 13px 17px}
+.tpad-guide-run{margin-top:7px;width:100%;min-width:0;height:42px;border-radius:11px}
+.tpad-guide-run b{font-size:10px}
+.tpad-guide-run small{font-size:5.5px}
+
+@media (orientation:landscape) and (max-height:540px){
+  .tpad-dualsense{width:min(500px,84vw);aspect-ratio:3.2/1}
+  .tpad-dualsense .ds-hint{top:-14px;font-size:5.5px}
+}
+
+body.touch-edit .touch-controls{z-index:88}
+body.touch-edit .touch-edit-bar{z-index:92}
+
+/* DualSense whole-controller drag (layout 3) */
+.tpad-dualsense.custom{
+  left:var(--x,50%);top:var(--y,84%);bottom:auto;
+  transform:translate(-50%,-50%) scale(var(--pad-scale,1));
+  transform-origin:center;
+}
+body.touch-edit .tpad-dualsense{pointer-events:auto;cursor:grab;outline:1px dashed rgba(46,230,200,.55);outline-offset:8px;border-radius:34px}
+body.touch-edit .tpad-dualsense:active{cursor:grabbing}
+body.touch-edit .tpad-dualsense *{pointer-events:none!important}
+body.touch-edit .tpad-dualsense:before{
+  content:"✥ ARRASTE O CONTROLE";position:absolute;left:50%;top:-26px;transform:translateX(-50%);
+  font-size:7px;letter-spacing:.16em;font-weight:900;color:#bffbf1;white-space:nowrap;text-shadow:0 1px 4px #000;
+}
+
+body.touch-edit .tpad-status{display:none}
+
+/* Keep the mission panel clear of the virtual controller */
+body.touch-mode.tl-gta .hud-top-right,
+body.touch-mode.tl-dualsense .hud-top-right{
+  top:calc(52px + env(safe-area-inset-top));
+  right:auto;left:50%;
+  transform:translateX(-50%) scale(.9);
+  transform-origin:top center;
+  align-items:center;
+}
+body.touch-mode.tl-gta .objective-panel,
+body.touch-mode.tl-dualsense .objective-panel{
+  width:min(300px,54vw);padding:6px 10px;
+}
+body.touch-mode.tl-gta .obj-text,
+body.touch-mode.tl-dualsense .obj-text{display:none}
+body.touch-mode.tl-gta .obj-title,
+body.touch-mode.tl-dualsense .obj-title{font-size:13px}
+
+body.touch-mode.tl-simple .hud-top-right{
+  top:auto;bottom:calc(6px + env(safe-area-inset-bottom));
+  right:auto;left:50%;
+  transform:translateX(-50%) scale(.82);
+  transform-origin:bottom center;
+  align-items:center;
+}
+body.touch-mode.tl-simple .objective-panel{width:min(240px,46vw);padding:5px 9px}
+body.touch-mode.tl-simple .obj-text{display:none}
+body.touch-mode.tl-simple .obj-title{font-size:12px}

@@ -631,13 +631,22 @@ export class Game {
     this.markers = [];
     this.keys = {};
     this.input = {
-      x: 0, y: 0, joyX: 0, joyY: 0,
+      x: 0, y: 0, joyX: 0, joyY: 0, camX: 0, camY: 0, stickSprint: false,
       sprint: false, aim: false, shoot: false,
       brake: false, throttle: false, handbrake: false, boost: false,
       lookBack: false, lookDX: 0, lookDY: 0
     };
     this.mouse = { down: false, right: false, lastX: 0, lastY: 0 };
-    this.touch = { lookId: null, joyId: null, lastX: 0, lastY: 0 };
+    this.touch = { lookId: null, joyId: null, lastX: 0, lastY: 0, stickIds: { left: null, right: null } };
+    this.touchLayout = this.settings.touchLayout || 'gta';
+    this.touchEdit = false;
+    this._realPad = null;
+    this._padPrev = [];
+    this._padName = '';
+    this.pad = { x: 0, y: 0, sprint: false };
+    this._voiceMuted = false;
+    this._simpleTipsSeen = false;
+    try { this._simpleTipsSeen = localStorage.getItem('matteo5.touchTips.v1') === '1'; } catch (_) {}
     this.clockMinutes = 18 * 60 + 42;
     this.playtime = this.save.playtime || 0;
     this.lastSaveAt = 0;
@@ -765,6 +774,8 @@ export class Game {
     this.input.sprint = false; this.input.aim = false; this.input.shoot = false;
     this.input.brake = false; this.input.throttle = false; this.input.handbrake = false;
     this.input.boost = false; this.input.lookBack = false;
+    this.input.camX = 0; this.input.camY = 0; this.input.stickSprint = false;
+    this.input.joyX = 0; this.input.joyY = 0;
     this._hideAllOverlays();
     this.hideHUD();
     this._clearMissionEntities();
@@ -793,6 +804,7 @@ export class Game {
     this.player.health = 100; this.player.armor = saveState?.armor ?? (fresh ? 40 : 40);
     this.player.stamina = 100;
     this.player.dead = false;
+    this.player.crouching = false;
     this.player.inVehicle = null;
     this.player.weapon.mag = 12; this.player.weapon.reserve = 48;
     this.setWanted(0, true);
@@ -840,6 +852,7 @@ export class Game {
     this.ensureWorldActors();
     this.player.money = saveState?.money ?? this.save.money ?? 2450;
     this.player.health = 100; this.player.armor = 40;
+    this.player.crouching = false;
     this.rp = saveState?.rp || this.save.rp || { rep: 0, done: 0 };
     this.waypoint = saveState?.waypoint || this.save.waypoint || null;
     this.setWanted(0, true);
@@ -874,7 +887,7 @@ export class Game {
       money: saveState?.money ?? 2450,
       weapon: { mag: 12, reserve: 48, magSize: 12, fireRate: 0.26, damage: 34, reloadTime: 1.25 },
       reloading: 0, fireCooldown: 0,
-      inVehicle: null, aim: false, sprinting: false, swimming: false,
+      inVehicle: null, aim: false, sprinting: false, swimming: false, crouching: false,
       lastDamage: -99, kills: 0, shots: 0, hits: 0, package: false,
       dead: false, deadTimer: 0, busted: false,
       meleeCooldown: 0, meleeTime: 0, interactCooldown: 0,
@@ -1160,6 +1173,11 @@ export class Game {
   applySettings(s) {
     this.settings = { ...this.settings, ...s };
     const st = this.settings;
+    if (st.touchLayout && st.touchLayout !== this.touchLayout) {
+      this.touchLayout = st.touchLayout;
+      this._renderTouchLayout();
+      this._bindTouchButtons();
+    }
     this._applyRenderScale();
     this.renderer.setSize(window.innerWidth, window.innerHeight, false);
     if (this.camera) {
@@ -1213,16 +1231,25 @@ export class Game {
 
   _syncTouchMode() {
     const on = this._touchEnabled();
+    const realPad = this._realPad != null;
     document.body.classList.toggle('touch-mode', on);
+    document.body.classList.toggle('real-pad', realPad);
+    document.body.classList.toggle('tl-gta', on && this.touchLayout === 'gta');
+    document.body.classList.toggle('tl-simple', on && this.touchLayout === 'simple');
+    document.body.classList.toggle('tl-dualsense', on && this.touchLayout === 'dualsense');
     const menu = this.mode === 'attract';
     document.body.classList.toggle('menu-mode', on && menu);
     const tc = $('touch-controls');
     const hud = $('hud');
     const hudVisible = hud && !hud.classList.contains('hidden');
-    const visible = on && !menu && hudVisible;
+    const visible = on && !menu && hudVisible && !realPad;
     if (tc) {
       tc.classList.toggle('hidden', !visible);
-      tc.style.setProperty('--touch-scale', ((this.settings.touchScale ?? 100) / 100).toString());
+      tc.classList.remove('layout-gta', 'layout-simple', 'layout-dualsense');
+      tc.classList.add('layout-' + (this.touchLayout || 'gta'));
+      const scale = ((this.settings.touchScale ?? 100) / 100).toString();
+      tc.style.setProperty('--touch-scale', scale);
+      tc.style.setProperty('--pad-scale', scale);
     }
   }
 
@@ -1435,37 +1462,33 @@ export class Game {
   }
 
   _bindTouch() {
-    const joy = $('joystick');
-    const knob = $('stick-knob');
-    if (joy) {
-      const move = (e) => {
-        if (this.touch.joyId !== e.pointerId) return;
-        const r = joy.getBoundingClientRect();
-        let dx = (e.clientX - (r.left + r.width / 2)) / (r.width / 2);
-        let dy = (e.clientY - (r.top + r.height / 2)) / (r.height / 2);
-        const len = Math.hypot(dx, dy);
-        if (len > 1) { dx /= len; dy /= len; }
-        this.input.joyX = dx; this.input.joyY = dy;
-        if (knob) knob.style.transform = `translate(${dx * 28}px,${dy * 28}px)`;
-      };
-      joy.addEventListener('pointerdown', (e) => {
-        this.touch.joyId = e.pointerId;
-        try { joy.setPointerCapture(e.pointerId); } catch (_) {}
-        move(e);
-      });
-      joy.addEventListener('pointermove', move);
-      const end = (e) => {
-        if (this.touch.joyId !== e.pointerId) return;
-        this.touch.joyId = null; this.input.joyX = 0; this.input.joyY = 0;
-        if (knob) knob.style.transform = 'translate(0,0)';
-      };
-      joy.addEventListener('pointerup', end);
-      joy.addEventListener('pointercancel', end);
-    }
+    this._renderTouchLayout();
+    this._bindTouchButtons();
+    this._bindTouchLook();
+    this._initGamepad();
 
-    // Look area: right side of the screen
+    // Mobile HUD quick actions.
+    const mhReload = $('mh-reload');
+    if (mhReload) mhReload.addEventListener('pointerdown', (e) => {
+      e.preventDefault(); e.stopPropagation();
+      if (this.paused || this.dialogueActive) return;
+      this._reload(); this._haptic(8);
+    });
+    const mhHorn = $('mh-horn');
+    if (mhHorn) mhHorn.addEventListener('pointerdown', (e) => {
+      e.preventDefault(); e.stopPropagation();
+      if (this.paused || this.dialogueActive) return;
+      this.audio.play('horn'); this._haptic(10);
+    });
+
+    this._updateTouchLabels();
+    this._touchHint = $('touch-look-hint');
+  }
+
+  _bindTouchLook() {
+    // Look area: drag directly on the world canvas.
     this.canvas.addEventListener('pointerdown', (e) => {
-      if (!this._touchEnabled() || this.mode === 'attract' || this.paused || this.mapOpen) return;
+      if (!this._touchEnabled() || this.mode === 'attract' || this.paused || this.mapOpen || this.touchEdit) return;
       if (e.pointerType === 'mouse') return;
       if (e.clientX < window.innerWidth * 0.42) return;
       if (this._touchHint) this._touchHint.classList.add('hide');
@@ -1485,101 +1508,544 @@ export class Game {
     const endLook = (e) => { if (this.touch.lookId === e.pointerId) this.touch.lookId = null; };
     this.canvas.addEventListener('pointerup', endLook);
     this.canvas.addEventListener('pointercancel', endLook);
+  }
 
-    document.querySelectorAll('[data-touch]').forEach((btn) => {
-      const action = btn.dataset.touch;
-      const stopFire = () => {
-        if (this._touchFireTimer) { clearInterval(this._touchFireTimer); this._touchFireTimer = null; }
+  /* ---------- virtual controller: layout rendering ---------- */
+  _touchPos(key, dx, dy) {
+    const store = (this.settings.touchPositions || {})[this.touchLayout] || {};
+    const p = store[key];
+    return p && Number.isFinite(p.x) && Number.isFinite(p.y) ? { x: p.x, y: p.y } : { x: dx, y: dy };
+  }
+
+  _touchSlot(key, x, y, content, extra = '') {
+    const p = this._touchPos(key, x, y);
+    return `<div class="tpad-slot ${extra}" data-slot="${key}" style="--x:${p.x}%;--y:${p.y}%">${content}</div>`;
+  }
+
+  _touchStatusHTML() {
+    return `<div class="tpad-status" id="tpad-status">
+      <div class="st"><small>TEMPO</small><b id="tpad-time">18:42</b></div>
+      <span class="sep"></span>
+      <div class="st money"><small>DINHEIRO</small><b id="tpad-money">2.450</b></div>
+      <span class="sep"></span>
+      <div class="st health"><small>VIDA</small><b id="tpad-health">100</b><span class="bar"><i id="tpad-health-bar"></i></span></div>
+    </div>`;
+  }
+
+  _dpadHTML(mini = false) {
+    return `<div class="tpad-dpad${mini ? ' mini' : ''}">
+      <button class="tpad-btn up" data-touch="dpad-up" data-label="MISSÕES" data-label-vehicle="MISSÕES" type="button" aria-label="Missões">▲</button>
+      <button class="tpad-btn left" data-touch="dpad-left" data-label="MARIA" data-label-vehicle="MARIA" type="button" aria-label="Jogar como Maria">◀</button>
+      <button class="tpad-btn right" data-touch="dpad-right" data-label="FELIPE" data-label-vehicle="FELIPE" type="button" aria-label="Jogar como Felipe">▶</button>
+      <button class="tpad-btn down" data-touch="dpad-down" data-label="RECARREGAR" data-label-vehicle="BUZINA" type="button" aria-label="Recarregar">▼</button>
+      <button class="tpad-btn center" data-touch="dpad-center" type="button" aria-label="Abrir mapa">▭</button>
+    </div>`;
+  }
+
+  _faceHTML(compact = false) {
+    return `<div class="tpad-face${compact ? ' compact' : ''}">
+      <button class="tpad-btn tpad-round tpad-glyph tri" data-touch="interact" data-label="ENTRAR" data-label-vehicle="SAIR" type="button" aria-label="Entrar / interagir"><svg><use href="#glyph-triangle"/></svg><small>ENTRAR</small></button>
+      <button class="tpad-btn tpad-round tpad-glyph sq" data-touch="melee" data-label="BATER" data-label-vehicle="BUZINA" type="button" aria-label="Bater"><svg><use href="#glyph-square"/></svg><small>BATER</small></button>
+      <button class="tpad-btn tpad-round tpad-glyph cir" data-touch="crouch" data-label="AGACHAR" data-label-vehicle="SAIR" type="button" aria-label="Agachar"><svg><use href="#glyph-circle"/></svg><small>AGACHAR</small></button>
+      <button class="tpad-btn tpad-round tpad-glyph cr" data-touch="jump" data-label="PULAR" data-label-vehicle="FREIO MÃO" type="button" aria-label="Pular"><svg><use href="#glyph-cross"/></svg><small>PULAR</small></button>
+      <span class="lbl">AÇÕES</span>
+    </div>`;
+  }
+
+  _stickHTML(which, label, big = false) {
+    return `<div class="tpad-stick-wrap">
+      <div class="tpad-stick${big ? ' big' : ''}" data-stick="${which}"><div class="knob"></div></div>
+      <span class="tpad-cap">${label}</span>
+    </div>`;
+  }
+
+  _touchTimerHTML() {
+    return `<div class="tpad-status slim"><div class="st"><small>TEMPO</small><b id="tpad-time">18:42</b></div></div>`;
+  }
+
+  _renderGTA() {
+    return [
+      this._touchStatusHTML(),
+      this._touchSlot('gta.l1l2', 18, 15, `<div class="tpad-shoulders">
+        <button class="tpad-btn tpad-shoulder" data-touch="dodge" data-label="ROLAR" data-label-vehicle="OLHAR" type="button"><b>L1</b><small>ROLAR</small></button>
+        <button class="tpad-btn tpad-shoulder trigger" data-touch="aim" data-label="MIRAR" data-label-vehicle="FREIA" type="button"><b>L2</b><small>MIRA • FREIA</small></button>
+      </div>`),
+      this._touchSlot('gta.dpad', 10, 38, this._dpadHTML(false)),
+      this._touchSlot('gta.stickL', 19, 70, this._stickHTML('left', 'ANDAR')),
+      this._touchSlot('gta.mini', 16, 92, `<div class="tpad-mini-row">
+        <button class="tpad-btn tpad-mini" data-touch="health" type="button" aria-label="Vida">❤<small>VIDA</small></button>
+        <button class="tpad-btn tpad-mini" data-touch="touchpad" type="button" aria-label="Mapa">▭<small>MAPA</small></button>
+        <button class="tpad-btn tpad-mini" data-touch="mic" type="button" aria-label="Microfone">🎙<small>MIC</small></button>
+        <button class="tpad-btn tpad-mini" data-touch="sound" type="button" aria-label="Som">🔊<small>SOM</small></button>
+        <button class="tpad-btn tpad-mini" data-touch="fullscreen" type="button" aria-label="Tela cheia">⛶<small>TELA</small></button>
+      </div>`),
+      this._touchSlot('gta.r1r2', 93, 13, `<div class="tpad-shoulders">
+        <button class="tpad-btn tpad-shoulder" data-touch="sprint" data-label="CORRER" data-label-vehicle="TURBO" type="button"><b>R1</b><small>CORRE • TURBO</small></button>
+        <button class="tpad-btn tpad-shoulder trigger" data-touch="shoot" data-label="ATIRAR" data-label-vehicle="ACELERA" type="button"><b>R2</b><small>ACELERA • ATIRA</small></button>
+      </div>`),
+      this._touchSlot('gta.face', 87, 45, this._faceHTML()),
+      this._touchSlot('gta.stickR', 81, 73, this._stickHTML('right', 'CÂMERA')),
+      this._touchSlot('gta.extra', 54, 92, `<div class="tpad-extra">
+        <button class="tpad-btn" data-touch="l3" type="button"><b>L3</b><small>OMBRO</small></button>
+        <button class="tpad-btn" data-touch="ps" type="button"><b>MENU</b><small>PAUSA</small></button>
+        <button class="tpad-btn" data-touch="r3" type="button"><b>R3</b><small>CÂMERA</small></button>
+        <button class="tpad-btn hold wide" data-touch="brake" type="button"><b>RÉ</b><small>FREIO</small></button>
+        <button class="tpad-btn hold" data-touch="sprint" type="button"><b>CORRER</b></button>
+        <button class="tpad-btn" data-touch="cut" type="button"><b>CORTE</b><small>GOLPE</small></button>
+      </div>`)
+    ].join('');
+  }
+
+  _renderSimple() {
+    return [
+      this._touchSlot('simple.l1l2', 18, 15, `<div class="tpad-shoulders">
+        <button class="tpad-btn tpad-shoulder" data-touch="dodge" data-label="ROLAR" data-label-vehicle="OLHAR" type="button"><b>L1</b><small>ROLAR</small></button>
+        <button class="tpad-btn tpad-shoulder trigger" data-touch="aim" data-label="MIRAR" data-label-vehicle="FREIA" type="button"><b>L2</b><small>MIRAR</small></button>
+      </div>`),
+      this._touchSlot('simple.r1r2', 94, 15, `<div class="tpad-shoulders">
+        <button class="tpad-btn tpad-shoulder" data-touch="sprint" data-label="CORRER" data-label-vehicle="TURBO" type="button"><b>R1</b><small>CORRER</small></button>
+        <button class="tpad-btn tpad-shoulder hold" data-touch="brake" type="button"><b>RÉ</b><small>FREIO</small></button>
+        <button class="tpad-btn tpad-shoulder trigger" data-touch="shoot" data-label="ATIRAR" data-label-vehicle="ACELERA" type="button"><b>R2</b><small>ATIRAR</small></button>
+      </div>`),
+      this._touchSlot('simple.center', 50, 10, `<div class="tpad-center-top">
+        ${this._touchTimerHTML()}
+        <button class="tpad-btn" data-touch="l3" type="button"><b>L3</b><small>OMBRO</small></button>
+        <button class="tpad-btn" data-touch="ps" type="button"><b>MENU</b><small>PAUSA</small></button>
+        <button class="tpad-btn" data-touch="r3" type="button"><b>R3</b><small>CÂMERA</small></button>
+      </div>`),
+      this._touchSlot('simple.dpad', 50, 30, this._dpadHTML(true)),
+      this._touchSlot('simple.stickL', 30, 66, `<div class="tpad-guide">
+        <span class="guide-tag">1 · ANDAR</span>
+        ${this._stickHTML('left', 'ANDAR — ENCOSTE E ARRASTE', true)}
+        <span class="tpad-hand">☝</span>
+        <span class="guide-sub">Empurre até o fim para correr</span>
+      </div>`),
+      this._touchSlot('simple.stickR', 70, 66, `<div class="tpad-guide cam">
+        <span class="guide-tag">2 · CÂMERA</span>
+        ${this._stickHTML('right', 'CÂMERA — ARRASTE', true)}
+        <span class="tpad-hand">☝</span>
+        <button class="tpad-btn tpad-shoulder hold tpad-guide-run" data-touch="sprint" data-label="CORRER" data-label-vehicle="TURBO" type="button"><b>CORRER</b><small>SEGURE</small></button>
+      </div>`),
+      this._touchSlot('simple.face', 91, 55, this._faceHTML(true)),
+      this._simpleTipsHTML()
+    ].join('');
+  }
+
+  _simpleTipsHTML() {
+    if (this._simpleTipsSeen) return '';
+    return `<div class="tpad-tips" id="tpad-tips">
+      <div class="tpad-tip" style="--x:3%;--y:31%"><span class="n">1</span><div><b>ANDAR</b><p>Encoste e arraste o analógico esquerdo. Empurre até o fim para correr.</p></div></div>
+      <div class="tpad-tip" style="left:auto;right:3%;top:31%"><span class="n">2</span><div><b>CÂMERA</b><p>Arraste o analógico direito para girar a visão. R3 centraliza.</p></div></div>
+      <div class="tpad-tip" style="left:auto;right:3%;top:57%"><span class="n">3</span><div><b>AÇÕES</b><p>△ entrar · □ bater · ○ agachar · ✕ pular.</p></div></div>
+      <div class="tpad-tip center" style="left:50%;top:9%"><span class="n">4</span><div><b>GATILHOS &amp; MENU</b><p>L1/L2 e R1/R2 nas laterais. MENU pausa. D-Pad troca personagem e abre missões.</p></div></div>
+      <button class="tip-dismiss" type="button">ENTENDI</button>
+    </div>`;
+  }
+
+  _renderDualsense() {
+    const pos = (this.settings.touchPositions || {}).dualsense || {};
+    const hasPos = pos.body && Number.isFinite(pos.body.x) && Number.isFinite(pos.body.y);
+    const style = hasPos ? ` style="--x:${pos.body.x}%;--y:${pos.body.y}%"` : '';
+    return [
+      this._touchStatusHTML(),
+      `<div class="tpad-dualsense${hasPos ? ' custom' : ''}" data-slot="body"${style}>
+        <span class="ds-hint">DUALSENSE VIRTUAL • TOQUE NOS BOTÕES</span>
+        <div class="ds-body">
+          <div class="ds-grip left"></div><div class="ds-grip right"></div>
+          <div class="ds-plate"></div>
+          <button class="ds-touchpad" data-touch="touchpad" type="button" aria-label="Touchpad — mapa"><span>TOUCHPAD</span><i class="ds-num">7</i></button>
+          <button class="ds-btn ds-shoulder l2 trigger" data-touch="aim" type="button" aria-label="L2 mirar"><b>L2</b><i class="ds-num">2</i></button>
+          <button class="ds-btn ds-shoulder l1" data-touch="dodge" type="button" aria-label="L1 rolar"><b>L1</b><i class="ds-num">1</i></button>
+          <button class="ds-btn ds-shoulder r2 trigger" data-touch="shoot" type="button" aria-label="R2 atirar"><b>R2</b><i class="ds-num">9</i></button>
+          <button class="ds-btn ds-shoulder r1" data-touch="sprint" type="button" aria-label="R1 correr"><b>R1</b><i class="ds-num">8</i></button>
+          <button class="ds-dpad-btn up" data-touch="dpad-up" type="button" aria-label="D-Pad cima">▲<i class="ds-num">3</i></button>
+          <button class="ds-dpad-btn left" data-touch="dpad-left" type="button" aria-label="D-Pad esquerda">◀<i class="ds-num">4</i></button>
+          <button class="ds-dpad-btn right" data-touch="dpad-right" type="button" aria-label="D-Pad direita">▶</button>
+          <button class="ds-dpad-btn down" data-touch="dpad-down" type="button" aria-label="D-Pad baixo">▼</button>
+          <div class="ds-stick left" data-stick="left"><div class="knob"></div><i class="ds-num">5</i></div>
+          <div class="ds-stick right" data-stick="right"><div class="knob"></div><i class="ds-num">15</i></div>
+          <button class="ds-btn ds-face tri" data-touch="interact" type="button" aria-label="Triângulo entrar"><svg><use href="#glyph-triangle"/></svg><i class="ds-num">10</i></button>
+          <button class="ds-btn ds-face sq" data-touch="melee" type="button" aria-label="Quadrado bater"><svg><use href="#glyph-square"/></svg><i class="ds-num">11</i></button>
+          <button class="ds-btn ds-face cir" data-touch="crouch" type="button" aria-label="Círculo agachar"><svg><use href="#glyph-circle"/></svg><i class="ds-num">12</i></button>
+          <button class="ds-btn ds-face cr" data-touch="jump" type="button" aria-label="X pular"><svg><use href="#glyph-cross"/></svg><i class="ds-num">13</i></button>
+          <button class="ds-btn ds-ps" data-touch="ps" type="button" aria-label="Botão PS / menu">PS<i class="ds-num">6</i></button>
+          <button class="ds-btn ds-mute" data-touch="mic" type="button" aria-label="Mudo do microfone">🎙<i class="ds-num">14</i></button>
+          <button class="ds-btn ds-options" data-touch="options" type="button" aria-label="Options / definições">≡<i class="ds-num">16</i></button>
+        </div>
+      </div>`
+    ].join('');
+  }
+
+  _renderTouchLayout() {
+    const root = $('touch-controls');
+    if (!root) return;
+    root.classList.remove('layout-gta', 'layout-simple', 'layout-dualsense');
+    const layout = this.touchLayout || 'gta';
+    root.classList.add('layout-' + layout);
+    if (layout === 'simple') root.innerHTML = this._renderSimple();
+    else if (layout === 'dualsense') root.innerHTML = this._renderDualsense();
+    else root.innerHTML = this._renderGTA();
+    const dismiss = root.querySelector('.tip-dismiss');
+    if (dismiss) dismiss.addEventListener('pointerdown', (e) => {
+      e.preventDefault(); e.stopPropagation();
+      this._dismissSimpleTips();
+    });
+  }
+
+  _bindTouchButtons() {
+    const root = $('touch-controls');
+    if (!root) return;
+
+    root.querySelectorAll('[data-stick]').forEach((stick) => {
+      const which = stick.dataset.stick === 'right' ? 'right' : 'left';
+      const knob = stick.querySelector('.knob');
+      const move = (e) => {
+        if (this.touch.stickIds[which] !== e.pointerId) return;
+        const r = stick.getBoundingClientRect();
+        let dx = (e.clientX - (r.left + r.width / 2)) / (r.width / 2);
+        let dy = (e.clientY - (r.top + r.height / 2)) / (r.height / 2);
+        const len = Math.hypot(dx, dy);
+        if (len > 1) { dx /= len; dy /= len; }
+        const radius = r.width * 0.28;
+        if (knob) knob.style.transform = `translate(${dx * radius}px,${dy * radius}px)`;
+        if (which === 'left') {
+          this.input.joyX = dx; this.input.joyY = dy;
+          this.input.stickSprint = Math.hypot(dx, dy) > 0.92;
+        } else {
+          this.input.camX = dx; this.input.camY = dy;
+        }
       };
+      stick.addEventListener('pointerdown', (e) => {
+        if (this.touchEdit) return;
+        e.preventDefault(); e.stopPropagation();
+        this.touch.stickIds[which] = e.pointerId;
+        try { stick.setPointerCapture(e.pointerId); } catch (_) {}
+        move(e);
+      });
+      stick.addEventListener('pointermove', move);
+      const end = (e) => {
+        if (this.touch.stickIds[which] !== e.pointerId) return;
+        this.touch.stickIds[which] = null;
+        if (knob) knob.style.transform = 'translate(0,0)';
+        if (which === 'left') { this.input.joyX = 0; this.input.joyY = 0; this.input.stickSprint = false; }
+        else { this.input.camX = 0; this.input.camY = 0; }
+      };
+      stick.addEventListener('pointerup', end);
+      stick.addEventListener('pointercancel', end);
+      stick.addEventListener('lostpointercapture', end);
+    });
+
+    root.querySelectorAll('[data-touch]').forEach((btn) => {
+      const action = btn.dataset.touch;
       btn.addEventListener('pointerdown', (e) => {
+        if (this.touchEdit) return;
         e.preventDefault(); e.stopPropagation();
         try { btn.setPointerCapture(e.pointerId); } catch (_) {}
         btn.classList.add('pressed');
         if (this.paused || this.dialogueActive) return;
-        const p = this.player;
-        const driving = !!(p && p.inVehicle);
-        if (action === 'aim') {
-          if (driving) { this.input.brake = true; this._haptic(8); return; }
-          this.input.aim = true; this._haptic(8); return;
-        }
-        if (action === 'shoot') {
-          if (driving) { this.input.throttle = true; this._haptic(10); return; }
-          this.input.aim = true;
-          this._shoot();
-          this._haptic(14);
-          stopFire();
-          const rate = Math.max(90, (this.player?.weapon?.fireRate || 0.26) * 1000);
-          this._touchFireTimer = setInterval(() => {
-            if (!this.paused && !this.dialogueActive && this.mode !== 'attract') this._shoot();
-          }, rate);
-          return;
-        }
-        if (action === 'sprint') {
-          if (driving) { this.input.boost = true; this._haptic(10); return; }
-          this.input.sprint = true; this._haptic(6); return;
-        }
-        if (action === 'dodge') {
-          if (driving) this.input.lookBack = true;
-          else this._dodge();
-          this._haptic(8);
-          return;
-        }
-        if (action === 'interact') { this._interact(); this._haptic(8); }
-        if (action === 'melee') {
-          if (driving) { this.audio.play('horn'); this._haptic(10); return; }
-          this._melee(); this._haptic(12);
-        }
-        if (action === 'jump') {
-          if (driving) { this.input.handbrake = true; this._haptic(8); return; }
-          this._jump(); this._haptic(8);
-        }
-        if (action === 'switch') { this.openSwitch(); this._haptic(8); }
-        if (action === 'l3') { this._shoulderSwap(); this._haptic(6); return; }
-        if (action === 'r3') { this._resetCamera(); this._haptic(6); return; }
-        if (action === 'dpad-up') { this._quickMissions(); this._haptic(8); return; }
-        if (action === 'dpad-down') {
-          if (driving) this.audio.play('horn');
-          else this._reload();
-          this._haptic(8);
-          return;
-        }
-        if (action === 'dpad-left') { this._switchTo('luiza'); this._haptic(8); return; }
-        if (action === 'dpad-right') { this._switchTo('carlos'); this._haptic(8); return; }
-        if (action === 'dpad-center') { this.openMap(); this._haptic(8); return; }
-        if (action === 'create') { this._toggleTutorial(); this._haptic(6); return; }
-        if (action === 'options') { this._openSettings(); this._haptic(6); return; }
-        if (action === 'ps') { this.togglePause(true); this._haptic(8); return; }
-        if (action === 'touchpad') { this.openMap(); this._haptic(8); return; }
-        if (action === 'hud') { this._toggleTouchHud(); this._haptic(6); return; }
+        this._touchAction(action, true);
       });
       const release = () => {
         btn.classList.remove('pressed');
-        if (action === 'aim') { this.input.aim = false; this.input.brake = false; }
-        if (action === 'shoot') { stopFire(); this.input.aim = false; this.input.throttle = false; }
-        if (action === 'sprint') { this.input.sprint = false; this.input.boost = false; }
-        if (action === 'jump') this.input.handbrake = false;
-        if (action === 'dodge') this.input.lookBack = false;
+        this._touchAction(action, false);
       };
       btn.addEventListener('pointerup', release);
       btn.addEventListener('pointercancel', release);
       btn.addEventListener('lostpointercapture', release);
     });
-    // Mobile HUD quick actions.
-    const mhReload = $('mh-reload');
-    if (mhReload) mhReload.addEventListener('pointerdown', (e) => {
-      e.preventDefault(); e.stopPropagation();
-      if (this.paused || this.dialogueActive) return;
-      this._reload(); this._haptic(8);
-    });
-    const mhHorn = $('mh-horn');
-    if (mhHorn) mhHorn.addEventListener('pointerdown', (e) => {
-      e.preventDefault(); e.stopPropagation();
-      if (this.paused || this.dialogueActive) return;
-      this.audio.play('horn'); this._haptic(10);
-    });
 
-    this._updateTouchLabels();
-    this._touchHint = $('touch-look-hint');
+    root.querySelectorAll('[data-slot]').forEach((slot) => this._bindSlotDrag(slot));
+  }
+
+  _stopTouchFire() {
+    if (this._touchFireTimer) { clearInterval(this._touchFireTimer); this._touchFireTimer = null; }
+  }
+
+  _touchAction(action, down) {
+    const p = this.player;
+    const driving = !!(p && p.inVehicle);
+
+    if (!down) {
+      if (action === 'aim') { this.input.aim = false; this.input.brake = false; }
+      if (action === 'shoot') { this._stopTouchFire(); this.input.aim = false; this.input.throttle = false; }
+      if (action === 'sprint') { this.input.sprint = false; this.input.boost = false; }
+      if (action === 'brake') { this.input.brake = false; this.input.handbrake = false; }
+      if (action === 'dodge') this.input.lookBack = false;
+      if (action === 'jump') this.input.handbrake = false;
+      return;
+    }
+
+    if (action === 'aim') {
+      if (driving) { this.input.brake = true; this._haptic(8); return; }
+      this.input.aim = true; this._haptic(8); return;
+    }
+    if (action === 'shoot') {
+      if (driving) { this.input.throttle = true; this._haptic(10); return; }
+      this.input.aim = true;
+      this._shoot();
+      this._haptic(14);
+      this._stopTouchFire();
+      const rate = Math.max(90, (this.player?.weapon?.fireRate || 0.26) * 1000);
+      this._touchFireTimer = setInterval(() => {
+        if (!this.paused && !this.dialogueActive && this.mode !== 'attract') this._shoot();
+      }, rate);
+      return;
+    }
+    if (action === 'sprint') {
+      if (driving) { this.input.boost = true; this._haptic(10); return; }
+      this.input.sprint = true; this._haptic(6); return;
+    }
+    if (action === 'brake') {
+      this.input.brake = true;
+      if (driving) this.input.handbrake = true;
+      this._haptic(8);
+      return;
+    }
+    if (action === 'dodge') {
+      if (driving) this.input.lookBack = true;
+      else this._dodge();
+      this._haptic(8);
+      return;
+    }
+    if (action === 'interact') { this._interact(); this._haptic(8); return; }
+    if (action === 'melee' || action === 'cut') {
+      if (driving) { this.audio.play('horn'); this._haptic(10); return; }
+      this._melee(); this._haptic(12);
+      return;
+    }
+    if (action === 'jump') {
+      if (driving) { this.input.handbrake = true; this._haptic(8); return; }
+      this._jump(); this._haptic(8); return;
+    }
+    if (action === 'crouch') { this._toggleCrouch(); this._haptic(8); return; }
+    if (action === 'switch') { this.openSwitch(); this._haptic(8); return; }
+    if (action === 'l3') { this._shoulderSwap(); this._haptic(6); return; }
+    if (action === 'r3') { this._resetCamera(); this._haptic(6); return; }
+    if (action === 'dpad-up') { this._quickMissions(); this._haptic(8); return; }
+    if (action === 'dpad-down') {
+      if (driving) this.audio.play('horn');
+      else this._reload();
+      this._haptic(8);
+      return;
+    }
+    if (action === 'dpad-left') { this._switchTo('luiza'); this._haptic(8); return; }
+    if (action === 'dpad-right') { this._switchTo('carlos'); this._haptic(8); return; }
+    if (action === 'dpad-center') { this.openMap(); this._haptic(8); return; }
+    if (action === 'create') { this._toggleTutorial(); this._haptic(6); return; }
+    if (action === 'options') { this._openSettings(); this._haptic(6); return; }
+    if (action === 'ps' || action === 'menu') { this.togglePause(true); this._haptic(8); return; }
+    if (action === 'touchpad' || action === 'map') { this.openMap(); this._haptic(8); return; }
+    if (action === 'hud') { this._toggleTouchHud(); this._haptic(6); return; }
+    if (action === 'health') {
+      this.notify('VIDA', `Vida ${Math.round(p?.health ?? 0)}% • Colete ${Math.round(p?.armor ?? 0)}%`, 'good');
+      this._haptic(6); return;
+    }
+    if (action === 'mic') {
+      this._voiceMuted = !this._voiceMuted;
+      if (this._voiceMuted) this._cancelDialogueSpeech();
+      this.notify('MICROFONE', this._voiceMuted ? 'Dublagem silenciada.' : 'Dublagem ativada.', 'good');
+      this._haptic(6); return;
+    }
+    if (action === 'sound') {
+      const muted = this.audio.toggleMute();
+      this.notify('SOM', muted ? 'Áudio silenciado.' : 'Áudio ativado.', 'good');
+      this._haptic(6); return;
+    }
+    if (action === 'fullscreen') {
+      try {
+        if (document.fullscreenElement) document.exitFullscreen();
+        else document.documentElement.requestFullscreen();
+      } catch (_) {}
+      this._haptic(6);
+    }
+  }
+
+  _bindSlotDrag(slot) {
+    slot.addEventListener('pointerdown', (e) => {
+      if (!this.touchEdit) return;
+      e.preventDefault(); e.stopPropagation();
+      const root = $('touch-controls');
+      if (!root) return;
+      const rr = root.getBoundingClientRect();
+      slot.classList.add('dragging');
+      try { slot.setPointerCapture(e.pointerId); } catch (_) {}
+      const move = (ev) => {
+        const x = clamp((ev.clientX - rr.left) / rr.width * 100, 2, 98);
+        const y = clamp((ev.clientY - rr.top) / rr.height * 100, 2, 98);
+        if (slot.classList.contains('tpad-dualsense')) slot.classList.add('custom');
+        slot.style.setProperty('--x', x.toFixed(2) + '%');
+        slot.style.setProperty('--y', y.toFixed(2) + '%');
+        slot._dragPos = { x: Math.round(x * 10) / 10, y: Math.round(y * 10) / 10 };
+      };
+      const end = () => {
+        slot.classList.remove('dragging');
+        slot.removeEventListener('pointermove', move);
+        slot.removeEventListener('pointerup', end);
+        slot.removeEventListener('pointercancel', end);
+        if (!slot._dragPos) return;
+        this.settings.touchPositions = this.settings.touchPositions || {};
+        const layout = this.touchLayout || 'gta';
+        this.settings.touchPositions[layout] = this.settings.touchPositions[layout] || {};
+        this.settings.touchPositions[layout][slot.dataset.slot] = slot._dragPos;
+        if (this.callbacks.onSettingsChange) this.callbacks.onSettingsChange(this.settings);
+      };
+      slot.addEventListener('pointermove', move);
+      slot.addEventListener('pointerup', end);
+      slot.addEventListener('pointercancel', end);
+    });
+  }
+
+  _dismissSimpleTips() {
+    this._simpleTipsSeen = true;
+    try { localStorage.setItem('matteo5.touchTips.v1', '1'); } catch (_) {}
+    const tips = $('tpad-tips');
+    if (tips) tips.remove();
+  }
+
+  setTouchLayout(layout, opts = {}) {
+    if (!['gta', 'simple', 'dualsense'].includes(layout)) return;
+    this.touchLayout = layout;
+    this.settings.touchLayout = layout;
+    this._renderTouchLayout();
+    this._bindTouchButtons();
+    this._syncTouchMode();
+    if (!opts.silent && this.mode !== 'attract') {
+      const names = { gta: 'Modo Completo GTA', simple: 'Modo Simples / Tutorial', dualsense: 'Controle PS5 na tela' };
+      this.notify('COMO VOCÊ JOGA', names[layout] + ' ativado.', 'good');
+    }
+  }
+
+  setTouchEdit(on) {
+    this.touchEdit = !!on;
+    document.body.classList.toggle('touch-edit', this.touchEdit);
+    const bar = $('touch-edit-bar');
+    if (bar) bar.classList.toggle('hidden', !this.touchEdit);
+    this._renderTouchLayout();
+    this._bindTouchButtons();
+    this._syncTouchMode();
+    if (this.touchEdit && this.mode === 'attract') {
+      // Allow layout editing from the main menu too.
+      const tc = $('touch-controls');
+      if (tc) tc.classList.remove('hidden');
+    }
+  }
+
+  resetTouchPositions() {
+    const layout = this.touchLayout || 'gta';
+    if (this.settings.touchPositions) delete this.settings.touchPositions[layout];
+    this._renderTouchLayout();
+    this._bindTouchButtons();
+    if (this.callbacks.onSettingsChange) this.callbacks.onSettingsChange(this.settings);
+    this.notify('LAYOUT', 'Posições restauradas para o padrão.', 'good');
+  }
+
+  /* ---------- real PS5 controller (Bluetooth) ---------- */
+  _isPlayStationPad(gp) {
+    if (!gp) return false;
+    const id = (gp.id || '').toLowerCase();
+    return /dualsense|dualshock|playstation|sony|054c/.test(id);
+  }
+
+  _initGamepad() {
+    const connect = (gp) => {
+      if (!this._isPlayStationPad(gp)) return;
+      this._realPad = gp.index;
+      this._padName = gp.id || 'DualSense';
+      this._padPrev = [];
+      this._syncTouchMode();
+      this.notify('CONTROLE PS5 CONECTADO', 'Controle virtual desativado automaticamente. Use o DualSense.', 'good');
+      this._haptic(18);
+    };
+    const disconnect = (gp) => {
+      if (this._realPad !== gp.index) return;
+      this._realPad = null;
+      this._padName = '';
+      this._padPrev = [];
+      this._resetPadInput();
+      this._syncTouchMode();
+      this.notify('CONTROLE DESCONECTADO', 'Controle virtual reativado.', 'good');
+    };
+    window.addEventListener('gamepadconnected', (e) => connect(e.gamepad));
+    window.addEventListener('gamepaddisconnected', (e) => disconnect(e.gamepad));
+    const scan = () => {
+      if (!navigator.getGamepads) return;
+      const pads = navigator.getGamepads();
+      for (const gp of pads) if (gp && gp.connected && this._isPlayStationPad(gp)) { connect(gp); break; }
+    };
+    setTimeout(scan, 350);
+    setTimeout(scan, 1400);
+  }
+
+  _resetPadInput() {
+    this.pad.x = 0; this.pad.y = 0; this.pad.sprint = false;
+    this.input.sprint = false; this.input.aim = false;
+    this.input.throttle = false; this.input.brake = false;
+    this.input.handbrake = false; this.input.boost = false;
+    this.input.lookBack = false;
+    this._stopTouchFire();
+  }
+
+  _pollGamepad(dt) {
+    if (this._realPad == null) return;
+    if (!navigator.getGamepads) return;
+    const pads = navigator.getGamepads();
+    let gp = null;
+    for (const p of pads) if (p && p.connected && p.index === this._realPad) { gp = p; break; }
+    if (!gp) return;
+
+    const btn = (i) => gp.buttons[i] || { pressed: false, value: 0 };
+    const pressed = (i) => !!btn(i).pressed;
+    const edge = (i) => pressed(i) && !this._padPrev[i];
+    const driving = !!(this.player && this.player.inVehicle);
+    const active = this.mode !== 'attract' && !this.paused && !this.mapOpen && !this.resultOpen && !this.dialogueActive;
+
+    // Left stick movement / right stick camera.
+    const dead = 0.16;
+    const ax = Math.abs(gp.axes[0] || 0) > dead ? gp.axes[0] : 0;
+    const ay = Math.abs(gp.axes[1] || 0) > dead ? gp.axes[1] : 0;
+    this.pad.x = ax; this.pad.y = ay;
+    this.pad.sprint = Math.hypot(ax, ay) > 0.92;
+
+    if (active) {
+      const lx = Math.abs(gp.axes[2] || 0) > dead ? gp.axes[2] : 0;
+      const ly = Math.abs(gp.axes[3] || 0) > dead ? gp.axes[3] : 0;
+      if (lx || ly) {
+        const sens = (this.settings.sens ?? 100) / 100;
+        this._camYaw -= lx * dt * 2.9 * sens;
+        this._camPitch = clamp(this._camPitch + ly * dt * 1.9 * sens * (this.settings.invert ? -1 : 1), -0.42, 1.02);
+        this._lastLookAt = performance.now();
+      }
+      this.input.aim = pressed(6);
+      this.input.sprint = pressed(5);
+      this.input.throttle = pressed(7);
+      this.input.brake = pressed(6);
+      this.input.handbrake = pressed(0) && driving;
+      this.input.boost = pressed(5) && driving;
+      this.input.lookBack = pressed(4) && driving;
+      if (pressed(7) && !driving && this.player && this.player.fireCooldown <= 0) this._shoot();
+
+      if (edge(0)) this._jump();
+      if (edge(1)) this._interact();
+      if (edge(2)) this._melee();
+      if (edge(3)) this.openSwitch();
+      if (edge(4) && !driving) this._dodge();
+      if (edge(10)) this._shoulderSwap();
+      if (edge(11)) this._resetCamera();
+      if (edge(8)) this._toggleTutorial();
+      if (edge(9)) this._openSettings();
+      if (edge(12)) this._quickMissions();
+      if (edge(13)) { if (driving) this.audio.play('horn'); else this._reload(); }
+      if (edge(14)) this._switchTo('luiza');
+      if (edge(15)) this._switchTo('carlos');
+    }
+
+    if (this.dialogueActive && (edge(0) || edge(1) || edge(9))) this._advanceDialogue();
+    if (edge(16) && this.mode !== 'attract') {
+      if (this.paused) this.togglePause(false);
+      else if (!this.dialogueActive && !this.mapOpen) this.togglePause(true);
+    }
+
+    this._padPrev = gp.buttons.map((b) => !!(b && b.pressed));
   }
 
   _updateTouchLabels() {
@@ -1695,6 +2161,7 @@ export class Game {
     const dtRaw = (t - this._last) / 1000;
     this._last = t;
     const dt = clamp(dtRaw || 0.016, 0.0001, 0.05);
+    if (this.mode !== 'attract') this._pollGamepad(dt);
     this.frameCount++;
     this._fpsAccum += dtRaw; this._fpsFrames++;
     if (this._fpsAccum > 0.5) {
@@ -1807,6 +2274,14 @@ export class Game {
   _updateCamera(dt, snap = false) {
     const p = this.player;
     if (!p) return;
+    const camX = this.input.camX || 0;
+    const camY = this.input.camY || 0;
+    if (camX || camY) {
+      const sens = (this.settings.sens ?? 100) / 100;
+      this._camYaw -= camX * dt * 2.7 * sens;
+      this._camPitch = clamp(this._camPitch + camY * dt * 1.8 * sens * (this.settings.invert ? -1 : 1), -0.42, 1.02);
+      this._lastLookAt = performance.now();
+    }
     const v = p.inVehicle;
     const target = this._camTarget;
     let baseYaw = this._camYaw;
@@ -1844,6 +2319,10 @@ export class Game {
     const look = this._camLook.copy(target).addScaledVector(right, (aiming ? 0.5 : 0.35) * this._camSide);
     if (aiming) { look.addScaledVector(fwd, 7); look.y += 0.18; }
     else look.addScaledVector(fwd, 2.1);
+    // Keep the character above the full DualSense overlay on layout 3.
+    if (this._touchEnabled() && this.touchLayout === 'dualsense') {
+      look.y -= window.innerHeight < 560 ? 1.5 : 0.9;
+    }
 
     if (this._camShake > 0.001) {
       this._camShake = Math.max(0, this._camShake - dt * 2.4);
@@ -1870,6 +2349,19 @@ export class Game {
     this.audio.play('ui');
   }
 
+  _toggleCrouch() {
+    const p = this.player;
+    if (!p || p.inVehicle || p.dead || this.dialogueActive) return;
+    p.crouching = !p.crouching;
+    if (p.crouching) p.sprinting = false;
+    this.audio.play('ui');
+    this.notify(
+      p.crouching ? 'AGACHADO' : 'EM PÉ',
+      p.crouching ? 'Alvo menor e movimento mais silencioso.' : 'Você voltou a ficar em pé.',
+      'good'
+    );
+  }
+
   _dodge() {
     const p = this.player;
     if (!p || p.inVehicle || p.dead || this.dialogueActive) return;
@@ -1878,8 +2370,8 @@ export class Game {
     let dx, dz;
     if (axes.len > 0.1) {
       const cy = this._camYaw;
-      dx = Math.sin(cy) * axes.y + Math.cos(cy) * axes.x;
-      dz = Math.cos(cy) * axes.y - Math.sin(cy) * axes.x;
+      dx = Math.sin(cy) * axes.y - Math.cos(cy) * axes.x;
+      dz = Math.cos(cy) * axes.y + Math.sin(cy) * axes.x;
       const len = Math.hypot(dx, dz) || 1;
       dx /= len; dz /= len;
     } else {
@@ -1951,8 +2443,8 @@ export class Game {
   _moveAxes() {
     let x = (this.keys.KeyD || this.keys.ArrowRight ? 1 : 0) - (this.keys.KeyA || this.keys.ArrowLeft ? 1 : 0);
     let y = (this.keys.KeyW || this.keys.ArrowUp ? 1 : 0) - (this.keys.KeyS || this.keys.ArrowDown ? 1 : 0);
-    x += this.input.joyX;
-    y -= this.input.joyY;
+    x += this.input.joyX + this.pad.x;
+    y -= this.input.joyY + this.pad.y;
     const len = Math.hypot(x, y);
     if (len > 1) { x /= len; y /= len; }
     return { x, y, len: Math.min(1, len) };
@@ -1985,6 +2477,7 @@ export class Game {
       return;
     }
     if (p.inVehicle) {
+      p.crouching = false;
       p.model.group.visible = false;
       if (p.shadow) p.shadow.visible = false;
       p.pos.set(p.inVehicle.pos.x, p.inVehicle.pos.y, p.inVehicle.pos.z);
@@ -1998,7 +2491,8 @@ export class Game {
 
     const axes = blocked ? { x: 0, y: 0, len: 0 } : this._moveAxes();
     const moving = axes.len > 0.05;
-    const wantSprint = (this.keys.ShiftLeft || this.keys.ShiftRight || this.input.sprint) && moving && p.stamina > 2;
+    const wantSprint = (this.keys.ShiftLeft || this.keys.ShiftRight || this.input.sprint || this.input.stickSprint || this.pad.sprint) && moving && p.stamina > 2;
+    if (wantSprint) p.crouching = false;
     p.sprinting = wantSprint;
     p.aim = !blocked && (this.input.aim || this.mouse.right);
 
@@ -2008,7 +2502,7 @@ export class Game {
     const water = this.world.isWater(p.pos.x, p.pos.z) && !this._onDock(p.pos.x, p.pos.z);
     p.swimming = water;
 
-    let speed = p.swimming ? 2.5 : p.aim ? 2.4 : p.sprinting ? 8.6 : 4.3;
+    let speed = p.swimming ? 2.5 : p.crouching ? 2.0 : p.aim ? 2.4 : p.sprinting ? 8.6 : 4.3;
     if (p.sprinting && p.stamina <= 0) speed = 4.0;
 
     let dx = 0, dz = 0;
@@ -2021,7 +2515,7 @@ export class Game {
     } else if (moving) {
       const cy = this._camYaw;
       const fx = Math.sin(cy), fz = Math.cos(cy);
-      const rx = Math.cos(cy), rz = -Math.sin(cy);
+      const rx = -Math.cos(cy), rz = Math.sin(cy);
       dx = fx * axes.y + rx * axes.x;
       dz = fz * axes.y + rz * axes.x;
       const l = Math.hypot(dx, dz) || 1;
@@ -2060,6 +2554,10 @@ export class Game {
 
     p.model.group.position.set(p.pos.x, p.pos.y, p.pos.z);
     p.model.group.rotation.y = p.yaw;
+    const crouchScale = p.crouching ? 0.8 : 1;
+    if (Math.abs(p.model.group.scale.y - crouchScale) > 0.001) {
+      p.model.group.scale.y += (crouchScale - p.model.group.scale.y) * Math.min(1, dt * 11);
+    }
     if (p.shadow) p.shadow.position.set(p.pos.x, Math.max(0.02, gh + 0.02), p.pos.z);
     const animState = p.meleeTime > 0 ? 'melee' : p.aim ? 'aim' : 'idle';
     p.model.update(dt, moving || dodging ? speed : 0, animState);
@@ -2377,6 +2875,7 @@ export class Game {
     p.dead = false;
     p.health = 100;
     p.armor = 0;
+    p.crouching = false;
     p.money = Math.max(0, Math.floor(p.money * 0.9));
     p.pos.set(LANDMARKS.hospital.x, 0, LANDMARKS.hospital.z);
     p.vy = 0; p.onGround = true;
@@ -3397,7 +3896,7 @@ export class Game {
   }
 
   _speakDialogue(text, who = '') {
-    if (!text || !('speechSynthesis' in window)) return;
+    if (!text || !('speechSynthesis' in window) || this._voiceMuted) return;
     this._cancelDialogueSpeech();
 
     const utterance = new SpeechSynthesisUtterance(text);
@@ -3617,6 +4116,10 @@ export class Game {
     const clockStr = String(clock).padStart(2, '0') + ':' + String(mins).padStart(2, '0');
     const hc = $('hud-clock'); if (hc) hc.textContent = clockStr;
     const mc = $('menu-clock'); if (mc) mc.textContent = clockStr;
+    const tt = $('tpad-time'); if (tt) tt.textContent = clockStr;
+    const tm = $('tpad-money'); if (tm) tm.textContent = Math.floor(p.money).toLocaleString('pt-BR');
+    const th = $('tpad-health'); if (th) th.textContent = Math.round(p.health);
+    const thb = $('tpad-health-bar'); if (thb) thb.style.width = clamp(p.health, 0, 100) + '%';
 
     const dist = this.world.districtAt(p.pos.x, p.pos.z);
     if (dist !== this._district) {
