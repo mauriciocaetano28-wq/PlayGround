@@ -15,7 +15,7 @@ const DEFAULT_SETTINGS = {
   quality: 'high', resScale: 100, fps: 60, shadows: true, distance: 80,
   tod: 'golden', water: 'medium', vignette: true, grain: true,
   sens: 100, invert: false, aimassist: 'high', vibration: true,
-  touch: 'auto', touchScale: 100,
+  touch: 'auto', touchScale: 100, touchLayout: 'gta', touchPositions: {},
   volMaster: 80, volMusic: 55, volSfx: 80, volEngine: 65, volVoice: 90, spatial: true,
   hudScale: 100, showFps: false, subtitles: true, minimap: 'normal',
   reduceMotion: false, contrast: false, language: 'pt', autoQuality: true
@@ -28,7 +28,7 @@ const QUALITY_PRESETS = {
   ultra:  { resScale: 100, shadows: true,  water: 'high',   distance: 100 }
 };
 
-const MODALS = ['settings-modal', 'missions-modal', 'rp-modal', 'download-modal', 'credits-modal', 'char-select'];
+const MODALS = ['settings-modal', 'playstyle-modal', 'missions-modal', 'rp-modal', 'download-modal', 'credits-modal', 'char-select'];
 
 let settings = loadJSON(SETTINGS_KEY, {});
 settings = { ...DEFAULT_SETTINGS, ...settings };
@@ -112,7 +112,14 @@ function initGame() {
         },
         onOpenRP: () => openRPModal(),
         onOpenMissions: () => openMissionsModal(),
-        onOpenSettings: () => openOverlay('settings-modal')
+        onOpenSettings: () => openOverlay('settings-modal'),
+        onSettingsChange: (s) => {
+          if (s) {
+            settings.touchPositions = s.touchPositions || settings.touchPositions;
+            settings.touchLayout = s.touchLayout || settings.touchLayout;
+          }
+          persistSettings();
+        }
       }
     });
     game.applySettings(settings);
@@ -344,6 +351,7 @@ function syncSettingsUI() {
   set('set-vibration', settings.vibration, 'checked');
   set('set-touch', settings.touch);
   set('set-touchscale', settings.touchScale);
+  set('set-padscale', settings.touchScale);
   set('set-volmaster', settings.volMaster);
   set('set-volmusic', settings.volMusic);
   set('set-volsfx', settings.volSfx);
@@ -359,6 +367,7 @@ function syncSettingsUI() {
   const outs = {
     'out-res': settings.resScale + '%', 'out-distance': settings.distance + '%',
     'out-sens': settings.sens + '%', 'out-touchscale': settings.touchScale + '%',
+    'out-padscale': settings.touchScale + '%',
     'out-volmaster': settings.volMaster + '%', 'out-volmusic': settings.volMusic + '%',
     'out-volsfx': settings.volSfx + '%', 'out-volengine': settings.volEngine + '%',
     'out-volvoice': settings.volVoice + '%', 'out-hudscale': settings.hudScale + '%'
@@ -369,7 +378,27 @@ function syncSettingsUI() {
   if (res) res.textContent = (settings.resScale || 100) + '%';
   const q = $('perf-quality');
   if (q) q.textContent = (settings.quality || 'high').toUpperCase();
+  syncPlaystyleUI();
   applyUIFlags();
+}
+
+const PLAYSTYLE_NAMES = {
+  gta: 'Modo Completo GTA',
+  simple: 'Modo Simples / Tutorial',
+  dualsense: 'Controle PS5 na tela'
+};
+
+function syncPlaystyleUI() {
+  const layout = settings.touchLayout || 'gta';
+  const current = $('playstyle-current');
+  if (current) current.textContent = PLAYSTYLE_NAMES[layout] || PLAYSTYLE_NAMES.gta;
+  qsa('.playstyle-card').forEach((card) => {
+    card.classList.toggle('active', card.dataset.layout === layout);
+  });
+  const scale = $('set-padscale');
+  if (scale) scale.value = settings.touchScale;
+  const out = $('out-padscale');
+  if (out) out.textContent = settings.touchScale + '%';
 }
 
 function applyUIFlags() {
@@ -384,6 +413,7 @@ function applyUIFlags() {
 
 function commitSettings(reapply = true) {
   persistSettings();
+  syncPlaystyleUI();
   applyUIFlags();
   if (game && reapply) game.applySettings(settings);
   const note = $('settings-save-note');
@@ -399,9 +429,16 @@ function bindSettings() {
       settings[key] = type === 'checked' ? el.checked : el.type === 'range' ? Number(el.value) : el.value;
       if (extra) extra(el);
       if (id === 'set-res' || id === 'set-distance' || id === 'set-sens' || id === 'set-hudscale' ||
-          id.startsWith('set-vol') || id === 'set-touchscale') {
+          id.startsWith('set-vol') || id === 'set-touchscale' || id === 'set-padscale') {
         const out = $('out-' + id.slice(4));
         if (out) out.textContent = el.value + '%';
+      }
+      if (id === 'set-touchscale' || id === 'set-padscale') {
+        const twinId = id === 'set-touchscale' ? 'set-padscale' : 'set-touchscale';
+        const twin = $(twinId);
+        if (twin) twin.value = el.value;
+        const twinOut = $('out-' + twinId.slice(4));
+        if (twinOut) twinOut.textContent = el.value + '%';
       }
       if (settings.quality !== 'custom' && ['set-res', 'set-shadows', 'set-distance', 'set-water'].includes(id)) {
         settings.quality = 'custom';
@@ -425,6 +462,7 @@ function bindSettings() {
   bind('set-vibration', 'vibration', 'checked');
   bind('set-touch', 'touch');
   bind('set-touchscale', 'touchScale');
+  bind('set-padscale', 'touchScale');
   bind('set-volmaster', 'volMaster');
   bind('set-volmusic', 'volMusic');
   bind('set-volsfx', 'volSfx');
@@ -459,7 +497,7 @@ function bindSettings() {
 
   const reset = $('btn-reset-settings');
   if (reset) reset.addEventListener('click', () => {
-    settings = { ...DEFAULT_SETTINGS };
+    settings = { ...DEFAULT_SETTINGS, touchPositions: {} };
     syncSettingsUI();
     commitSettings();
   });
@@ -469,6 +507,58 @@ function bindSettings() {
       qsa('#settings-tabs button').forEach((t) => t.classList.toggle('active', t === tab));
       qsa('.settings-page').forEach((p) => p.classList.toggle('active', p.dataset.page === tab.dataset.tab));
     });
+  });
+}
+
+/* ---------- como você joga ---------- */
+function bindPlaystyle() {
+  const open = $('btn-open-playstyle');
+  if (open) open.addEventListener('click', () => {
+    syncPlaystyleUI();
+    openOverlay('playstyle-modal');
+  });
+
+  qsa('.playstyle-card').forEach((card) => {
+    card.addEventListener('click', () => {
+      const layout = card.dataset.layout;
+      settings.touchLayout = layout;
+      if (game) game.setTouchLayout(layout);
+      syncPlaystyleUI();
+      commitSettings();
+    });
+  });
+
+  const edit = $('btn-edit-touch');
+  if (edit) edit.addEventListener('click', () => {
+    closeOverlay('playstyle-modal');
+    closeOverlay('settings-modal');
+    if (!game) return;
+    game.setTouchEdit(true);
+    if (game.mode !== 'attract') {
+      game.notify('MODO EDIÇÃO', 'Arraste os botões para reposicionar. Toque em CONCLUIR quando terminar.', 'good');
+    }
+  });
+
+  const reset = $('btn-reset-touch');
+  if (reset) reset.addEventListener('click', () => {
+    if (game) game.resetTouchPositions();
+  });
+
+  const done = $('touch-edit-done');
+  if (done) done.addEventListener('click', () => {
+    if (game) game.setTouchEdit(false);
+  });
+
+  const close = $('btn-playstyle-close');
+  if (close) close.addEventListener('click', () => {
+    closeOverlay('playstyle-modal');
+    closeOverlay('settings-modal');
+    if (game && game.mode !== 'attract' && game.paused) game.togglePause(false);
+  });
+
+  const editReset = $('touch-edit-reset');
+  if (editReset) editReset.addEventListener('click', () => {
+    if (game) game.resetTouchPositions();
   });
 }
 
@@ -638,6 +728,7 @@ function bindLivePanels() {
 /* ---------- start ---------- */
 function start() {
   bindSettings();
+  bindPlaystyle();
   bindDownload();
   bindMenu();
   bindLivePanels();
