@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { World, LANDMARKS, ROADS_X, ROADS_Z, WATER_LEVEL, SHORE_X, WORLD_BOUNDS, DISTRICTS } from './world.js';
+import { MISSIONS, CATEGORIES, vehicleType } from './missions.js';
 import { AudioSystem } from './audio.js';
 
 const _domCache = new Map();
@@ -112,116 +113,6 @@ const NPC_LINES = [
   { pt: 'A Parque Trianon tá mais bonita hoje.', en: 'The Sun Wheel is prettier today.' }
 ];
 
-const MISSIONS = [
-  {
-    id: 'm1', num: 1, title: 'Primeira Fatura', char: 'luiza', reward: 3000,
-    location: 'AVENIDA PAULISTA', time: '18:42', start: LANDMARKS.kiosk,
-    sub: 'Maria recebe uma entrega impossível e conhece o pacto secreto que move a cidade.',
-    steps: [
-      { type: 'goto', pos: LANDMARKS.kiosk, r: 7, desc: 'Encontre Zeca no Quiosque Paulista', descEn: 'Meet Zeca at Quiosque Paulista', dialogOnArrive: 'm1_1' },
-      { type: 'chase', desc: 'Recupere o envelope com Felipe', descEn: 'Recover the envelope with Felipe', dialog: 'm1_2', target: { x: 430, z: 0, type: 'sports', color: 0xff7a59, name: 'INTERMEDIÁRIO' } },
-      { type: 'goto', pos: LANDMARKS.pier, r: 8, desc: 'Leve o envelope para Pinheiros', descEn: 'Take the envelope to Pinheiros', dialogOnArrive: 'm1_4' }
-    ]
-  },
-  {
-    id: 'm2', num: 2, title: 'Caminho da Mooca', char: 'carlos', reward: 4200,
-    location: 'PORTO DE SANTOS', time: '19:10', start: LANDMARKS.port,
-    sub: 'Felipe transporta uma carga que revela o nome de um operador poderoso.',
-    steps: [
-      { type: 'goto', pos: LANDMARKS.port, r: 8, desc: 'Pegue a carga no Porto de Santos', descEn: 'Pick up the cargo at Porto de Santos', dialogOnArrive: 'm2_1' },
-      { type: 'goto', pos: { x: -140, z: 420 }, r: 8, desc: 'Atravesse o Centro com a carga', descEn: 'Cross Centro Historico with the cargo', dialog: 'm2_2', wanted: 2 },
-      { type: 'goto', pos: LANDMARKS.warehouse, r: 9, desc: 'Entregue no Distrito da Mooca', descEn: 'Deliver in the Mooca district' },
-      { type: 'goto', pos: LANDMARKS.favela, r: 9, desc: 'Escute o informante em Heliópolis', descEn: 'Meet the informant in Heliópolis', dialogOnArrive: 'm2_3', clearWanted: true }
-    ]
-  },
-  {
-    id: 'm3', num: 3, title: 'Entrega iFood', char: 'luiza', reward: 3200,
-    location: 'QUIOSQUE PAULISTA', time: '12:40', start: LANDMARKS.kiosk,
-    sub: 'Pegue o pedido e faça três entregas pela cidade.',
-    timeLimit: 220,
-    repReward: 18,
-    steps: [
-      { type: 'goto', pos: LANDMARKS.kiosk, r: 8, desc: 'Pegue o pedido no Quiosque Paulista', descEn: 'Pick up the order at Quiosque Paulista', dialogOnArrive: 'm3_1' },
-      { type: 'goto', pos: LANDMARKS.pier, r: 8, desc: 'Entregue o pedido no Pinheiros', descEn: 'Deliver the order in Pinheiros', dialogOnArrive: 'm3_2' },
-      { type: 'goto', pos: LANDMARKS.casino, r: 8, desc: 'Entregue o pedido no Cassino Bela Vista', descEn: 'Deliver the order at Cassino Bela Vista' },
-      { type: 'goto', pos: LANDMARKS.park, r: 8, desc: 'Entregue o último pedido no Parque Ibirapuera', descEn: 'Deliver the last order at Ibirapuera Park', dialogOnArrive: 'm3_3' }
-    ]
-  },
-  {
-    id: 'm4', num: 4, title: 'Sombras no Jardim', char: 'carlos', reward: 5500,
-    location: 'JARDINS', time: '20:30', start: LANDMARKS.safehouse,
-    sub: 'Felipe segue o intermediário pelas ruas nobres e descobre uma rede de corrupção.',
-    steps: [
-      { type: 'goto', pos: { x: 250, z: -620 }, r: 9, desc: 'Vá ao encontro em Jardins', descEn: 'Meet the contact in Jardins' },
-      { type: 'chase', desc: 'Persiga o intermediário', descEn: 'Pursue the intermediary', target: { x: 980, z: -680, type: 'sports', color: 0x1d3557, name: 'EXECUTOR' } },
-      { type: 'goto', pos: LANDMARKS.pinheiros, r: 9, desc: 'Recupere os documentos no Mercado de Pinheiros', descEn: 'Recover the documents at Pinheiros Market', wanted: 2 }
-    ]
-  },
-  {
-    id: 'm5', num: 5, title: 'República do Silêncio', char: 'luiza', reward: 6800,
-    location: 'REPÚBLICA', time: '23:15', start: LANDMARKS.republica,
-    sub: 'Maria invade uma reunião clandestina na Praça da República.',
-    steps: [
-      { type: 'goto', pos: LANDMARKS.republica, r: 9, desc: 'Entre na Praça da República', descEn: 'Enter Praça da República' },
-      { type: 'combat', desc: 'Derrube os seguranças da reunião', descEn: 'Defeat the meeting guards', count: 5, wantedOnDone: 3 },
-      { type: 'goto', pos: LANDMARKS.monument, r: 9, desc: 'Entregue as provas no Mirante do Vale', descEn: 'Deliver evidence to Mirante do Vale', clearWanted: true }
-    ]
-  },
-  {
-    id: 'm6', num: 6, title: 'Trem da Verdade', char: 'carlos', reward: 7000,
-    location: 'TATUAPÉ', time: '06:05', start: LANDMARKS.tatuape,
-    sub: 'A dupla usa o Terminal Tatuapé para interceptar uma mala antes da partida.',
-    steps: [
-      { type: 'goto', pos: LANDMARKS.tatuape, r: 10, desc: 'Chegue ao Terminal Tatuapé', descEn: 'Reach Terminal Tatuapé' },
-      { type: 'chase', desc: 'Intercepte a mala na Linha Leste', descEn: 'Intercept the case in East Line', target: { x: 1380, z: 980, type: 'van', color: 0x4a5560, name: 'CURADOR' } },
-      { type: 'goto', pos: LANDMARKS.warehouse, r: 9, desc: 'Guarde a mala no Galpão da Mooca', descEn: 'Store the case in the Mooca warehouse' }
-    ]
-  },
-  {
-    id: 'm7', num: 7, title: 'Zona Vermelha', char: 'luiza', reward: 9000,
-    location: 'HELIOPÓLIS', time: '21:40', start: LANDMARKS.favela,
-    sub: 'Maria descobre que o governo local financiou a operação que ameaça o bairro.',
-    steps: [
-      { type: 'goto', pos: LANDMARKS.favela, r: 10, desc: 'Fale com a comunidade em Heliópolis', descEn: 'Speak to the community in Heliópolis' },
-      { type: 'defend', seconds: 45, desc: 'Proteja Maria do cerco', descEn: 'Protect Maria from the siege', wanted: 4, spawnEnemies: 'gang' },
-      { type: 'goto', pos: LANDMARKS.hospital, r: 9, desc: 'Leve os feridos ao Hospital Paulista', descEn: 'Take the injured to Hospital Paulista', clearWanted: true }
-    ]
-  },
-  {
-    id: 'm8', num: 8, title: 'Código Aeroporto', char: 'carlos', reward: 10500,
-    location: 'ZONA LESTE', time: '04:20', start: LANDMARKS.aeroporto,
-    sub: 'Felipe precisa impedir que o arquivo mestre saia do país por um voo clandestino.',
-    steps: [
-      { type: 'goto', pos: LANDMARKS.aeroporto, r: 10, desc: 'Infiltre o Aeroporto da Zona Leste', descEn: 'Infiltrate the East Zone Airport' },
-      { type: 'goto', pos: LANDMARKS.ponte, r: 11, desc: 'Interrompa o comboio na Ponte dos Bandeirantes', descEn: 'Stop the convoy on Ponte dos Bandeirantes', wanted: 3 },
-      { type: 'escape', desc: 'Escape da perseguição policial', descEn: 'Lose the police pursuit', clearWanted: true }
-    ]
-  },
-  {
-    id: 'm9', num: 9, title: 'Sete Pontos de Luz', char: 'luiza', reward: 15000,
-    location: 'SÃO PAULO', time: '05:55', start: LANDMARKS.park,
-    sub: 'Maria reúne provas em sete regiões antes do amanhecer e prepara o golpe final.',
-    steps: [
-      { type: 'goto', pos: LANDMARKS.park, r: 9, desc: 'Passe pelo Parque Ibirapuera', descEn: 'Pass through Ibirapuera Park' },
-      { type: 'goto', pos: LANDMARKS.marina, r: 9, desc: 'Transmita o arquivo pela Marina Paulista', descEn: 'Transmit the file at Marina Paulista' },
-      { type: 'goto', pos: LANDMARKS.casino, r: 9, desc: 'Encontre Felipe no Cassino Bela Vista', descEn: 'Meet Felipe at Cassino Bela Vista' },
-      { type: 'switch', char: 'carlos', desc: 'Mude para Felipe', descEn: 'Switch to Felipe', dialog: 'm5_2' }
-    ]
-  },
-  {
-    id: 'm10', num: 10, title: 'A Grande Virada', char: 'luiza', reward: 30000,
-    location: 'MIRANTE DO VALE', time: '18:12', start: LANDMARKS.monument,
-    sub: 'Maria e Felipe derrubam a organização e decidem o futuro da cidade.',
-    steps: [
-      { type: 'goto', pos: LANDMARKS.monument, r: 10, desc: 'Encontre Felipe no Mirante do Vale', descEn: 'Meet Felipe at Mirante do Vale', dialogOnArrive: 'm5_1' },
-      { type: 'switch', char: 'carlos', desc: 'Assuma a defesa do mirante', descEn: 'Take the overlook defense', dialog: 'm5_2' },
-      { type: 'defend', seconds: 55, desc: 'Defenda Maria até a transmissão acabar', descEn: 'Defend Maria until the transmission ends', wanted: 5 },
-      { type: 'goto', pos: LANDMARKS.safehouse, r: 10, desc: 'Fuja para o Apartamento Paulista', descEn: 'Escape to Apartamento Paulista', dialogOnArrive: 'm5_4' },
-      { type: 'escape', desc: 'Desapareça da cidade', descEn: 'Disappear from the city', clearWanted: true }
-    ]
-  }
-];
-
 const RP_JOB_DEFS = [
   { type: 'delivery', title: 'Entrega Expressa', pt: 'Leve o pacote ao destino antes que o cliente perca a paciência.', en: 'Deliver the package before the client loses patience.', reward: 1800, time: 150, rep: 12 },
   { type: 'security', title: 'Segurança de Rua', pt: 'Três valentões estão causando no point. Resolva a situação.', en: 'Three troublemakers are causing a scene. Handle it.', reward: 2200, time: 180, rep: 18 },
@@ -254,15 +145,16 @@ class CharacterModel {
 
   _build(opts) {
     const luiza = this.charId === 'luiza';
-    const skin = this.cop ? 0xb9815a : this.gang ? 0x9b6a45 : luiza ? 0xa86a44 : 0xb87c50;
-    const shirt = this.cop ? 0x1f3550 : this.gang ? (opts.color || 0x2a2c30) : luiza ? 0x14b8a6 : 0xe85d45;
-    const pants = this.cop ? 0x17222f : this.gang ? 0x23252a : luiza ? 0xe8e2d2 : 0x27313a;
-    const shoe = this.cop ? 0x10161c : 0x1b1f23;
+    const caio = this.charId === 'caio';
+    const skin = this.cop ? 0xb9815a : this.gang ? 0x9b6a45 : luiza ? 0xa86a44 : caio ? 0xb87c50 : 0xb87c50;
+    const shirt = this.cop ? 0x1f3550 : this.gang ? (opts.color || 0x2a2c30) : luiza ? 0x14b8a6 : caio ? 0xffd166 : 0xe85d45;
+    const pants = this.cop ? 0x17222f : this.gang ? 0x23252a : luiza ? 0xe8e2d2 : caio ? 0x1f2937 : 0x27313a;
+    const shoe = this.cop ? 0x10161c : caio ? 0xf1eee2 : 0x1b1f23;
     const skinMat = this._mat(skin, 0.72);
     const shirtMat = this._mat(shirt, 0.85);
     const pantsMat = this._mat(pants, 0.9);
     const shoeMat = this._mat(shoe, 0.8);
-    const hairMat = this._mat(this.cop ? 0x17120f : luiza ? 0x191210 : 0x24160f, 0.9);
+    const hairMat = this._mat(this.cop ? 0x17120f : luiza ? 0x191210 : caio ? 0x15100c : 0x24160f, 0.9);
 
     if (this.simple) {
       const torso = new THREE.Mesh(new THREE.BoxGeometry(0.52, 0.72, 0.3), shirtMat);
@@ -332,13 +224,15 @@ class CharacterModel {
     } else {
       const hair = new THREE.Mesh(new THREE.SphereGeometry(0.212, 10, 8), hairMat);
       hair.position.set(0, 1.8, -0.085); hair.scale.set(1.02, 0.85, 0.9); this.group.add(hair);
-      const capMat = this._mat(0x1c2a2e, 0.75);
+      const capMat = this._mat(caio ? 0x0f1d22 : 0x1c2a2e, 0.75);
       const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.21, 0.12, 10), capMat);
       cap.position.set(0, 1.94, 0.01); this.group.add(cap);
-      const brim = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.035, 0.2), capMat);
+      const brim = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.035, 0.2), caio ? this._mat(0xffd166, 0.6) : capMat);
       brim.position.set(0, 1.9, 0.19); this.group.add(brim);
-      const beard = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.1, 0.08), this._mat(0x1d130e, 0.9));
-      beard.position.set(0, 1.63, 0.16); this.group.add(beard);
+      if (!caio) {
+        const beard = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.1, 0.08), this._mat(0x1d130e, 0.9));
+        beard.position.set(0, 1.63, 0.16); this.group.add(beard);
+      }
       const chain = new THREE.Mesh(new THREE.TorusGeometry(0.08, 0.012, 4, 10), this._mat(0xffd27a, 0.3, 0.8));
       chain.position.set(0, 1.48, 0.15); chain.rotation.x = Math.PI / 2; this.group.add(chain);
     }
@@ -358,6 +252,15 @@ class CharacterModel {
     };
     const armL = mkArm(-0.36), armR = mkArm(0.36);
     this.parts.armL = armL; this.parts.armR = armR;
+    if (caio) {
+      const ink = this._mat(0x0f6f74, 0.55);
+      for (let i = 0; i < 3; i++) {
+        const t = new THREE.Mesh(new THREE.TorusGeometry(0.078 - i * 0.006, 0.011, 4, 12), ink);
+        t.position.set(0, -0.3 - i * 0.075, 0);
+        t.rotation.x = Math.PI / 2;
+        armL.add(t);
+      }
+    }
     // legs — tapered pants, ankle and sculpted sneaker silhouette
     const mkLeg = (x) => {
       const pivot = new THREE.Group(); pivot.position.set(x, 0.92, 0); this.group.add(pivot);
@@ -478,6 +381,10 @@ function buildCarMesh(type, color, name) {
   if (type === 'pickup') { L = 5.0; W = 2.0; H = 0.72; }
   if (type === 'taxi') { L = 4.4; W = 1.9; H = 0.62; }
   if (type === 'police') { L = 4.6; W = 1.95; H = 0.64; }
+  if (type === 'luxury') { L = 4.8; W = 2.05; H = 0.5; }
+  if (type === 'ambulance') { L = 5.3; W = 2.15; H = 1.0; }
+  if (type === 'truck') { L = 6.4; W = 2.3; H = 1.05; }
+  if (type === 'bus') { L = 8.2; W = 2.45; H = 1.25; }
 
   const bodyShape = new THREE.Shape();
   bodyShape.moveTo(-W * 0.5, -H * 0.45);
@@ -516,6 +423,22 @@ function buildCarMesh(type, color, name) {
   if (type === 'taxi') {
     const sign = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.22, 0.3), new THREE.MeshStandardMaterial({ color: 0xffd166, emissive: 0xffc46b, emissiveIntensity: 0.5 }));
     sign.position.set(0, 0.58 + H + 0.7, -L * 0.02); g.add(sign);
+  }
+  if (type === 'ambulance') {
+    const stripe = new THREE.Mesh(new THREE.BoxGeometry(W * 1.01, 0.22, L * 0.7), mat(0xff3b2f, 0.5));
+    stripe.position.set(0, 0.58 + H * 0.5, 0); g.add(stripe);
+    const crossMat = new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xffffff, emissiveIntensity: 0.4 });
+    for (const r of [0, Math.PI / 2]) {
+      const bar = new THREE.Mesh(new THREE.BoxGeometry(r ? 0.12 : 0.55, 0.12, r ? 0.55 : 0.12), crossMat);
+      bar.position.set(0, 0.58 + H + 0.62, L * 0.18); bar.rotation.y = r; g.add(bar);
+    }
+  }
+  if (type === 'bus' || type === 'truck') {
+    const sideMat = new THREE.MeshStandardMaterial({ color: 0x1b2b33, roughness: 0.15, metalness: 0.5 });
+    for (const sx of [-1, 1]) {
+      const win = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.5, L * 0.72), sideMat);
+      win.position.set(sx * (W * 0.51), 0.58 + H + 0.28, 0); g.add(win);
+    }
   }
   if (type === 'police') {
     const bar = new THREE.Mesh(new THREE.BoxGeometry(W * 0.7, 0.16, 0.32), darkMat);
@@ -568,6 +491,91 @@ function buildCarMesh(type, color, name) {
   return g;
 }
 
+function buildMotoMesh(color) {
+  const g = new THREE.Group();
+  const bodyMat = new THREE.MeshStandardMaterial({ color, roughness: 0.35, metalness: 0.4 });
+  const dark = new THREE.MeshStandardMaterial({ color: 0x12181c, roughness: 0.6, metalness: 0.3 });
+  const chrome = new THREE.MeshStandardMaterial({ color: 0xb9c6c9, roughness: 0.2, metalness: 0.9 });
+  const wheels = [];
+  const tank = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.42, 1.0), bodyMat);
+  tank.position.set(0, 1.02, 0.05); g.add(tank);
+  const seat = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.16, 0.72), dark);
+  seat.position.set(0, 1.18, -0.48); g.add(seat);
+  const frame = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.5, 1.5), dark);
+  frame.position.set(0, 0.72, 0); frame.rotation.x = 0.16; g.add(frame);
+  const fork = new THREE.Mesh(new THREE.BoxGeometry(0.1, 1.05, 0.1), chrome);
+  fork.position.set(0, 0.82, 0.86); fork.rotation.x = -0.28; g.add(fork);
+  const bar = new THREE.Mesh(new THREE.BoxGeometry(0.95, 0.07, 0.07), chrome);
+  bar.position.set(0, 1.28, 0.72); g.add(bar);
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.15, 8, 6), new THREE.MeshStandardMaterial({ color: 0xfff2c8, emissive: 0xffe0a0, emissiveIntensity: 1 }));
+  head.position.set(0, 1.16, 0.92); g.add(head);
+  const wheelGeo = new THREE.CylinderGeometry(0.42, 0.42, 0.16, 16);
+  wheelGeo.rotateZ(Math.PI / 2);
+  for (const z of [0.82, -0.82]) {
+    const w = new THREE.Mesh(wheelGeo, dark);
+    w.position.set(0, 0.42, z); g.add(w); wheels.push(w);
+    const hub = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.16, 0.18, 10), chrome);
+    hub.rotation.z = Math.PI / 2; hub.position.copy(w.position); g.add(hub);
+  }
+  const exhaust = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.07, 0.9, 8), chrome);
+  exhaust.rotation.x = Math.PI / 2; exhaust.position.set(0.22, 0.7, -0.7); g.add(exhaust);
+  const shadow = new THREE.Mesh(new THREE.PlaneGeometry(1.2, 2.8), new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.3, depthWrite: false }));
+  shadow.rotation.x = -Math.PI / 2; shadow.position.y = 0.03; g.add(shadow);
+  g.userData.wheels = wheels;
+  return g;
+}
+
+function buildJetskiMesh(color) {
+  const g = new THREE.Group();
+  const body = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.65, 3.0), new THREE.MeshStandardMaterial({ color, roughness: 0.3, metalness: 0.25 }));
+  body.position.y = 0.4; g.add(body);
+  const nose = new THREE.Mesh(new THREE.ConeGeometry(0.7, 1.2, 4), new THREE.MeshStandardMaterial({ color, roughness: 0.3 }));
+  nose.rotation.x = Math.PI / 2; nose.rotation.z = Math.PI / 4; nose.position.set(0, 0.4, 1.9); nose.scale.x = 0.7; g.add(nose);
+  const seat = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.28, 1.3), new THREE.MeshStandardMaterial({ color: 0x14181c, roughness: 0.7 }));
+  seat.position.set(0, 0.82, -0.2); g.add(seat);
+  const bar = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.08, 0.08), new THREE.MeshStandardMaterial({ color: 0xc9d4d6, metalness: 0.8, roughness: 0.2 }));
+  bar.position.set(0, 1.05, 0.85); g.add(bar);
+  const shadow = new THREE.Mesh(new THREE.PlaneGeometry(2, 3.6), new THREE.MeshBasicMaterial({ color: 0x001018, transparent: true, opacity: 0.22, depthWrite: false }));
+  shadow.rotation.x = -Math.PI / 2; shadow.position.y = 0.02; g.add(shadow);
+  return g;
+}
+
+function buildHeliMesh(color) {
+  const g = new THREE.Group();
+  const bodyMat = new THREE.MeshStandardMaterial({ color, roughness: 0.3, metalness: 0.35 });
+  const dark = new THREE.MeshStandardMaterial({ color: 0x12181c, roughness: 0.5, metalness: 0.4 });
+  const glass = new THREE.MeshStandardMaterial({ color: 0x17303a, roughness: 0.1, metalness: 0.6 });
+  const body = new THREE.Mesh(new THREE.SphereGeometry(1.5, 14, 10), bodyMat);
+  body.scale.set(1.15, 0.85, 1.7); body.position.y = 1.9; g.add(body);
+  const cockpit = new THREE.Mesh(new THREE.SphereGeometry(1.2, 12, 9), glass);
+  cockpit.scale.set(1.02, 0.72, 0.95); cockpit.position.set(0, 2.02, 1.55); g.add(cockpit);
+  const tail = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.42, 4.2), bodyMat);
+  tail.position.set(0, 2.0, -3.1); g.add(tail);
+  const fin = new THREE.Mesh(new THREE.BoxGeometry(0.12, 1.0, 0.7), bodyMat);
+  fin.position.set(0, 2.45, -5.0); g.add(fin);
+  const tailRotor = new THREE.Mesh(new THREE.BoxGeometry(0.1, 1.8, 0.14), dark);
+  tailRotor.position.set(0.28, 2.05, -5.0); g.add(tailRotor);
+  const mast = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.16, 0.6, 8), dark);
+  mast.position.set(0, 3.15, 0); g.add(mast);
+  const rotor = new THREE.Group();
+  for (let i = 0; i < 2; i++) {
+    const blade = new THREE.Mesh(new THREE.BoxGeometry(9.5, 0.06, 0.32), dark);
+    blade.rotation.y = i * Math.PI / 2; rotor.add(blade);
+  }
+  rotor.position.set(0, 3.5, 0); g.add(rotor);
+  for (const x of [-1.1, 1.1]) {
+    const skid = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.12, 3.2), dark);
+    skid.position.set(x, 0.55, 0); g.add(skid);
+    const strut = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.9, 0.1), dark);
+    strut.position.set(x, 1.0, 0); g.add(strut);
+  }
+  const light = new THREE.Mesh(new THREE.SphereGeometry(0.16, 8, 6), new THREE.MeshStandardMaterial({ color: 0xfff2c8, emissive: 0xffe0a0, emissiveIntensity: 1.4 }));
+  light.position.set(0, 1.5, 1.9); g.add(light);
+  g.userData.rotor = rotor;
+  g.userData.tailRotor = tailRotor;
+  return g;
+}
+
 function buildBoatMesh(color) {
   const g = new THREE.Group();
   const mat = (c, r = 0.4, m = 0.2) => new THREE.MeshStandardMaterial({ color: c, roughness: r, metalness: m });
@@ -615,6 +623,8 @@ export class Game {
     this.mission = null;
     this.rpJob = null;
     this.completed = new Set(this.save.completed || []);
+    this.trophies = new Set(this.save.trophies || []);
+    this.unlocks = this.save.unlocks || {};
     this.wanted = 0;
     this.rp = this.save.rp || { rep: 0, done: 0 };
     this.rpJobs = null;
@@ -823,6 +833,10 @@ export class Game {
     }
     this._placePlayer();
     this.setCharacter(charId, true);
+    this.player.hunger = saveState?.hunger ?? this.save.hunger ?? 100;
+    this.trophies = new Set(saveState?.trophies || this.save.trophies || []);
+    this.unlocks = saveState?.unlocks || this.save.unlocks || {};
+    this._applyStoryRewards();
     this.showHUD();
     this._rebuildStaticMarkers();
     this._snapCamera();
@@ -883,7 +897,7 @@ export class Game {
       vel: new THREE.Vector3(),
       yaw: saveState?.yaw ?? Math.PI / 2,
       vy: 0, onGround: true,
-      health: 100, armor: 40, stamina: 100, boostReserve: 100,
+      health: 100, armor: 40, stamina: 100, boostReserve: 100, hunger: 100, breath: 100,
       money: saveState?.money ?? 2450,
       weapon: { mag: 12, reserve: 48, magSize: 12, fireRate: 0.26, damage: 34, reloadTime: 1.25 },
       reloading: 0, fireCooldown: 0,
@@ -926,7 +940,8 @@ export class Game {
     this._updateCharHUD();
     if (!silent) {
       this.audio.play('switch');
-      this.notify('TROCA DE PERSONAGEM', charId === 'luiza' ? 'Maria assume. A Avenida Paulista é dela.' : 'Felipe assume. A Zona Sul responde.', 'good');
+      const c = this.charInfo(charId);
+      this.notify('TROCA DE PERSONAGEM', c.name + ' assume. ' + (charId === 'caio' ? 'A favela inteira responde.' : charId === 'luiza' ? 'A Avenida Paulista é dela.' : 'A Zona Sul responde.'), 'good');
       this._autosave();
     }
   }
@@ -939,22 +954,30 @@ export class Game {
     if (p.shadow) p.shadow.position.set(p.pos.x, Math.max(0.02, p.pos.y + 0.02), p.pos.z);
   }
 
+  charInfo(id) {
+    const who = id || (this.player && this.player.charId) || 'caio';
+    if (who === 'luiza') return { id: 'luiza', portrait: 'luiza', name: 'MARIA', full: 'MARIA ANDRADE', role: 'A VOZ DE SÃO PAULO' };
+    if (who === 'carlos') return { id: 'carlos', portrait: 'carlos', name: 'FELIPE', full: 'FELIPE MENDES', role: 'O BRAÇO DO ZONA SUL' };
+    return { id: 'caio', portrait: 'caio', name: 'CAIO BR', full: 'CAIO BR', role: 'O REI DA FAVELA' };
+  }
+
   _updateCharHUD() {
     if (!this.player) return;
-    const isL = this.player.charId === 'luiza';
+    const c = this.charInfo();
+    const svg = `<svg><use href="#portrait-${c.portrait}"/></svg>`;
     const portrait = $('char-portrait');
-    if (portrait) portrait.innerHTML = `<svg><use href="#portrait-${isL ? 'luiza' : 'carlos'}"/></svg>`;
-    $('char-name').textContent = isL ? 'MARIA' : 'FELIPE';
-    $('char-role').textContent = isL ? 'A VOZ DE SÃO PAULO' : 'O BRAÇO DO ZONA SUL';
+    if (portrait) portrait.innerHTML = svg;
+    $('char-name').textContent = c.name;
+    $('char-role').textContent = c.role;
     const pp = $('pause-char');
-    if (pp) pp.innerHTML = `<svg><use href="#portrait-${isL ? 'luiza' : 'carlos'}"/></svg>`;
-    $('pause-char-name').textContent = isL ? 'MARIA' : 'FELIPE';
-    $('pause-char-role').textContent = isL ? 'A VOZ DE SÃO PAULO' : 'O BRAÇO DO ZONA SUL';
-    const rpA = $('rp-avatar'); if (rpA) rpA.innerHTML = `<svg><use href="#portrait-${isL ? 'luiza' : 'carlos'}"/></svg>`;
-    const rpN = $('rp-name'); if (rpN) rpN.textContent = isL ? 'MARIA ANDRADE' : 'FELIPE MENDES';
-    const pc = $('pause-char-name'); if (pc) pc.textContent = isL ? 'MARIA' : 'FELIPE';
-    const msChar = $('ms-char'); if (msChar) msChar.innerHTML = `<svg><use href="#portrait-${isL ? 'luiza' : 'carlos'}"/></svg>`;
-    const msName = $('ms-name'); if (msName) msName.textContent = isL ? 'MARIA' : 'FELIPE';
+    if (pp) pp.innerHTML = svg;
+    $('pause-char-name').textContent = c.name;
+    $('pause-char-role').textContent = c.role;
+    const rpA = $('rp-avatar'); if (rpA) rpA.innerHTML = svg;
+    const rpN = $('rp-name'); if (rpN) rpN.textContent = c.full;
+    const pc = $('pause-char-name'); if (pc) pc.textContent = c.name;
+    const msChar = $('ms-char'); if (msChar) msChar.innerHTML = svg;
+    const msName = $('ms-name'); if (msName) msName.textContent = c.name;
   }
 
   ensureWorldActors() {
@@ -1007,8 +1030,15 @@ export class Game {
   }
 
   _makeVehicle(o) {
-    const isBoat = o.type === 'boat';
-    const mesh = isBoat ? buildBoatMesh(o.color) : buildCarMesh(o.type, o.color, o.name);
+    const isHeli = o.type === 'heli';
+    const isMoto = o.type === 'moto';
+    const isJetski = o.type === 'jetski';
+    const isBoat = o.type === 'boat' || isJetski;
+    const mesh = isHeli ? buildHeliMesh(o.color)
+      : isMoto ? buildMotoMesh(o.color)
+      : isJetski ? buildJetskiMesh(o.color)
+      : isBoat ? buildBoatMesh(o.color)
+      : buildCarMesh(o.type, o.color, o.name);
     mesh.position.set(o.x, isBoat ? WATER_LEVEL + 0.02 : 0, o.z);
     mesh.rotation.y = o.angle || 0;
     this.scene.add(mesh);
@@ -1016,32 +1046,89 @@ export class Game {
       sedan: { max: 38, accel: 15, handling: 1.5, mass: 1 },
       hatch: { max: 34, accel: 16, handling: 1.7, mass: 0.9 },
       sports: { max: 56, accel: 25, handling: 1.9, mass: 1 },
+      luxury: { max: 60, accel: 28, handling: 2.0, mass: 1 },
       suv: { max: 40, accel: 14, handling: 1.25, mass: 1.3 },
       pickup: { max: 36, accel: 13, handling: 1.15, mass: 1.35 },
       taxi: { max: 38, accel: 15, handling: 1.5, mass: 1 },
       police: { max: 50, accel: 22, handling: 1.75, mass: 1.05 },
-      boat: { max: 30, accel: 12, handling: 1.3, mass: 1 }
+      moto: { max: 44, accel: 24, handling: 2.1, mass: 0.6 },
+      heli: { max: 42, accel: 18, handling: 1.4, mass: 1.2 },
+      boat: { max: 30, accel: 12, handling: 1.3, mass: 1 },
+      jetski: { max: 40, accel: 18, handling: 1.9, mass: 0.8 },
+      ambulance: { max: 36, accel: 12, handling: 1.1, mass: 1.5 },
+      truck: { max: 30, accel: 9, handling: 0.9, mass: 2.0 },
+      bus: { max: 28, accel: 8, handling: 0.8, mass: 2.4 }
     };
     const st = typeStats[o.type] || typeStats.sedan;
     const modelNames = {
-      sedan: 'SEDAN GTA 7 BR', hatch: 'HATCH ORLA', sports: 'VECTOR GT',
-      suv: 'TROLLER 4X4', pickup: 'CARRETA LITORAL', taxi: 'TAXI SOL',
-      police: 'VIATURA', boat: 'CENTRAL 01'
+      sedan: 'GOL G5', hatch: 'UNO ATTRACTIVE', sports: 'FERRARI 488', luxury: 'LAMBORGHINI URUS',
+      suv: 'TROLLER 4X4', pickup: 'HILUX', taxi: 'TÁXI SP', police: 'VIATURA',
+      moto: 'MOTO CG 160', heli: 'HELICÓPTERO ÁGUIA', boat: 'LANCHA BELA VISTA',
+      jetski: 'JETSKI TURBO', ambulance: 'AMBULÂNCIA', truck: 'CAMINHÃO SCANIA', bus: 'ÔNIBUS SP'
     };
-    const genericName = !o.name || o.name === 'VEÍCULO';
+    const genericName = !o.name || o.name === 'VEÍCULO' || o.name === 'VEÍCULO DA MISSÃO';
     const v = {
       mesh, type: o.type || 'sedan', name: genericName ? (modelNames[o.type] || 'VEÍCULO') : o.name, color: o.color,
       pos: new THREE.Vector3(o.x, isBoat ? WATER_LEVEL + 0.02 : 0, o.z),
       angle: o.angle || 0, speed: 0, health: 100, maxHealth: 100,
+      fuel: 100, maxFuel: 100, lightsOn: false, damageStage: 0,
       maxSpeed: st.max, accel: st.accel, handling: st.handling, mass: st.mass,
-      isBoat, isPolice: o.type === 'police', driver: o.driver || null, parked: !!o.parked,
+      isBoat, isHeli, isMoto, isJetski, isPolice: o.type === 'police', driver: o.driver || null, parked: !!o.parked,
       traffic: null, ai: null, wheels: mesh.userData.wheels || [], sirenPhase: Math.random() * 10,
       exploded: false, fireTimer: 0, stuck: 0, destroyed: false, occupiedBy: null,
       lightRed: mesh.userData.lightRed, lightBlue: mesh.userData.lightBlue,
+      lights: mesh.userData.lights || null,
+      rotor: mesh.userData.rotor || null, tailRotor: mesh.userData.tailRotor || null,
       lastPos: new THREE.Vector3(o.x, 0, o.z)
     };
     this.vehicles.push(v);
     return v;
+  }
+
+  _damageVehicle(v, amount) {
+    if (!v || v.destroyed || v.exploded) return;
+    v.health -= Math.max(0, amount);
+    v.damageStage = v.health < 25 ? 3 : v.health < 50 ? 2 : v.health < 75 ? 1 : 0;
+    if (v.health <= 0) { this._explodeVehicle(v); return; }
+    if (v.health < 45 && Math.random() < 0.22) this._spawnSmoke(v.pos, v.health < 25 ? 1.2 : 0.7);
+  }
+
+  _spawnSmoke(pos, scale = 1) {
+    const mat = new THREE.MeshBasicMaterial({ color: 0x3a4042, transparent: true, opacity: 0.5, depthWrite: false });
+    const puff = new THREE.Mesh(new THREE.SphereGeometry(0.45 * scale, 6, 5), mat);
+    puff.position.set(pos.x + rand(-0.6, 0.6), (pos.y || 0) + rand(0.8, 1.8), pos.z + rand(-0.6, 0.6));
+    puff.userData.v = new THREE.Vector3(rand(-0.5, 0.5), rand(1.0, 2.2), rand(-0.5, 0.5));
+    this.effectGroup.add(puff);
+    this.effects.push({ obj: puff, life: 1.1, max: 1.1, kind: 'smoke' });
+  }
+
+  _explodeVehicle(v) {
+    if (!v || v.exploded) return;
+    v.exploded = true;
+    const p = this.player;
+    if (p && p.inVehicle === v) this._exitVehicle();
+    const pos = v.pos.clone();
+    const flash = new THREE.Mesh(new THREE.SphereGeometry(2.4, 10, 8), new THREE.MeshBasicMaterial({ color: 0xffb347, transparent: true, opacity: 0.9, depthWrite: false }));
+    flash.position.set(pos.x, (pos.y || 0) + 1.2, pos.z);
+    this.effectGroup.add(flash);
+    this.effects.push({ obj: flash, life: 0.5, max: 0.5, kind: 'boom' });
+    for (let i = 0; i < 10; i++) this._spawnSmoke(pos, 1.6);
+    this.audio.play('explosion');
+    if (p && dist2(p.pos, pos) < 9) this._damagePlayer(35, 'explosão');
+    this.notify('VEÍCULO DESTRUÍDO', v.name + ' explodiu. Fumaça, fogo e prejuízo.', 'bad');
+    this._removeVehicle(v);
+  }
+
+  _toggleVehicleLights() {
+    const p = this.player;
+    const v = p && p.inVehicle;
+    if (!v) return;
+    v.lightsOn = !v.lightsOn;
+    if (v.lights) {
+      if (v.lights.head) v.lights.head.emissiveIntensity = v.lightsOn ? 2.2 : 0.8;
+      if (v.lights.tail) v.lights.tail.emissiveIntensity = v.lightsOn ? 1.6 : 0.7;
+    }
+    this.notify('FAROL', v.lightsOn ? 'Farol ligado.' : 'Farol desligado.', 'good');
   }
 
   _removeVehicle(v) {
@@ -1328,6 +1415,8 @@ export class Game {
       x: p ? p.pos.x : LANDMARKS.spawn.x, z: p ? p.pos.z : LANDMARKS.spawn.z,
       yaw: p ? p.yaw : Math.PI / 2, money: p ? p.money : 2450,
       armor: p ? p.armor : 40, completed: [...this.completed],
+      trophies: [...this.trophies], unlocks: this.unlocks || {},
+      hunger: p ? Math.round(p.hunger ?? 100) : 100,
       rp: this.rp || this.save.rp || { rep: 0, done: 0 },
       clock: this.clockMinutes, playtime: this.playtime,
       waypoint: this.waypoint || null,
@@ -1379,12 +1468,13 @@ export class Game {
         ShiftLeft: 'sprint', ShiftRight: 'sprint'
       };
       if (this._touchEnabled() && touchPulse[e.code]) this._pulseTouch(touchPulse[e.code]);
-      if (e.code === 'KeyE') this._interact();
+      if (e.code === 'KeyE') { if (this._worldAction) this._runWorldAction(); else this._interact(); }
       if (e.code === 'KeyF') this._melee();
       if (e.code === 'Space') { e.preventDefault(); this._jump(); }
       if (e.code === 'KeyR') this._reload();
       if (e.code === 'KeyH' && this.player && this.player.inVehicle) this.audio.play('horn');
-      if (e.code === 'Digit1' || e.code === 'Digit2') this._switchTo(e.code === 'Digit1' ? 'luiza' : 'carlos');
+      if (e.code === 'KeyL' && this.player && this.player.inVehicle) this._toggleVehicleLights();
+      if (e.code === 'Digit1' || e.code === 'Digit2' || e.code === 'Digit3') this._switchTo(e.code === 'Digit1' ? 'luiza' : e.code === 'Digit2' ? 'carlos' : 'caio');
       if (['KeyW','KeyA','KeyS','KeyD','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','ShiftLeft','ShiftRight'].includes(e.code)) e.preventDefault();
     }, { passive: false });
 
@@ -1449,6 +1539,15 @@ export class Game {
     document.addEventListener('mouseup', (e) => { if (e.button === 2) this.mouse.right = false; });
 
     this._bindTouch();
+
+    const wa = $('world-action');
+    if (wa) {
+      wa.addEventListener('pointerdown', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        this._runWorldAction();
+      });
+    }
   }
 
   _requestLock() {
@@ -1807,7 +1906,7 @@ export class Game {
       this._haptic(8);
       return;
     }
-    if (action === 'interact') { this._interact(); this._haptic(8); return; }
+    if (action === 'interact') { if (this._worldAction) this._runWorldAction(); else this._interact(); this._haptic(8); return; }
     if (action === 'melee' || action === 'cut') {
       if (driving) { this.audio.play('horn'); this._haptic(10); return; }
       this._melee(); this._haptic(12);
@@ -2230,6 +2329,7 @@ export class Game {
     this.clockMinutes = (this.clockMinutes + dt * 0.32) % 1440;
     this.world.update(dt, this.camera, this.player ? this.player.pos : null);
     this._updatePlayer(dt);
+    this._updateWorldAction();
     this._updateVehicles(dt);
     this._updateTraffic(dt);
     this._updatePoliceCars(dt);
@@ -2287,12 +2387,13 @@ export class Game {
     let baseYaw = this._camYaw;
 
     if (v) {
-      target.set(v.pos.x, v.pos.y + (v.isBoat ? 2.4 : 1.35), v.pos.z);
+      target.set(v.pos.x, v.pos.y + (v.isBoat ? 2.4 : v.isHeli ? 2.8 : 1.35), v.pos.z);
       if (!snap && performance.now() - (this._lastLookAt || 0) > 1400) {
         let diff = ((v.angle - this._camYaw + Math.PI * 3) % (Math.PI * 2)) - Math.PI;
         this._camYaw += diff * Math.min(1, dt * 2.1);
       }
-      this._camDist += ((this._camDist < 4 ? 4 : 8.2) - this._camDist) * Math.min(1, dt * 2);
+      const wantDist = v.isHeli ? 13.5 : v.isMoto ? 6.6 : v.isBoat ? 9.5 : 8.2;
+      this._camDist += ((this._camDist < 4 ? 4 : wantDist) - this._camDist) * Math.min(1, dt * 2);
     } else {
       target.set(p.pos.x, p.pos.y + 1.5, p.pos.z);
       if (p.aim) this._camDist += (3.4 - this._camDist) * Math.min(1, dt * 6);
@@ -2541,7 +2642,15 @@ export class Game {
       p.pos.y += (targetY - p.pos.y) * Math.min(1, dt * 6);
       p.vy = 0; p.onGround = true;
       if ((moving || dodging) && Math.random() < dt * 6) this.audio.play('splash');
+      if (p.breath == null) p.breath = 100;
+      p.breath = Math.max(0, p.breath - dt * (moving || dodging ? 7 : 4));
+      if (p.breath <= 0 && this._elapsed - (p._lastDrown || 0) > 3) {
+        p._lastDrown = this._elapsed;
+        this._damagePlayer(9, 'afogamento');
+        this.notify('AFOGANDO', 'Saia da água! Respire e recupere o fôlego.', 'bad');
+      }
     } else {
+      p.breath = Math.min(100, (p.breath == null ? 100 : p.breath) + dt * 22);
       if (!p.onGround) {
         p.vy -= 17 * dt;
         p.pos.y += p.vy * dt;
@@ -2570,6 +2679,15 @@ export class Game {
     if (this.input.shoot && p.fireCooldown <= 0) this._shoot();
 
     if (p.health < 100 && this._elapsed - p.lastDamage > 9) p.health = Math.min(100, p.health + dt * 2.2);
+
+    // Fome: se não comer, a vida cai. Comida é comprada na loja/quiosque.
+    if (p.hunger == null) p.hunger = 100;
+    p.hunger = Math.max(0, p.hunger - dt * (p.sprinting ? 0.34 : 0.16));
+    if (p.hunger <= 0 && this._elapsed - (p._lastHungerHurt || 0) > 6) {
+      p._lastHungerHurt = this._elapsed;
+      this._damagePlayer(4, 'fome');
+      this.notify('FOME', 'Caio precisa comer. Compre um lanche na loja.', 'bad');
+    }
   }
 
   _onDock(x, z) {
@@ -2602,6 +2720,159 @@ export class Game {
     }
     if (text) { txt.textContent = text; prompt.classList.remove('hidden'); }
     else prompt.classList.add('hidden');
+  }
+
+  _updateWorldAction() {
+    const el = $('world-action');
+    if (!el) return;
+    const p = this.player;
+    const hide = () => { el.classList.add('hidden'); this._worldAction = null; };
+    if (!p || this.mode === 'attract' || this.paused || this.dialogueActive || this.mapOpen || this.resultOpen || p.dead) return hide();
+    let best = null;
+    const consider = (dist, max, data) => {
+      if (dist <= max && (!best || dist < best.dist)) best = { dist, ...data };
+    };
+
+    const mission = this._nearestMissionMarker(6);
+    if (mission) {
+      const m = this.markers.find(x => x.userData && x.userData.missionId === mission.id);
+      const mp = m ? m.position : mission.start;
+      consider(dist2(p.pos, mp), 6, { type: 'mission', id: mission.id, key: '△', label: 'INICIAR MISSÃO', x: mp.x, y: 3.2, z: mp.z });
+    }
+    for (const v of this.vehicles) {
+      if (v.destroyed || v === p.inVehicle) continue;
+      const d = dist2(p.pos, v.pos);
+      const max = v.isHeli ? 8 : 6;
+      if (d > max) continue;
+      let label = v.isPolice ? 'ROUBAR VIATURA' : v.isHeli ? 'PILOTAR HELICÓPTERO' : v.isBoat ? (v.type === 'jetski' ? 'PILOTAR JETSKI' : 'PILOTAR LANCHA') : v.type === 'moto' ? 'ENTRAR NA MOTO' : 'ENTRAR NO CARRO';
+      if (v.type === 'ambulance') label = 'ENTRAR NA AMBULÂNCIA';
+      if (v.type === 'truck') label = 'ENTRAR NO CAMINHÃO';
+      if (v.type === 'bus') label = 'ENTRAR NO ÔNIBUS';
+      consider(d, max, { type: 'vehicle', vehicle: v, key: '△', label, x: v.pos.x, y: (v.isBoat ? 2.6 : 2.4), z: v.pos.z });
+    }
+    for (const n of this.npcs) {
+      if (n.dead) continue;
+      consider(dist2(p.pos, n.pos), 4, { type: 'npc', npc: n, key: '✕', label: 'FALAR / CONVERSAR', x: n.pos.x, y: 2.2, z: n.pos.z });
+    }
+    for (const it of this.pickups) {
+      if (!it.active) continue;
+      consider(dist2(p.pos, { x: it.x, z: it.z }), 4, {
+        type: 'pickup', pickup: it, key: it.type === 'ammo' ? '□' : '△',
+        label: it.type === 'ammo' ? 'PEGAR ARMA / MUNIÇÃO' : it.type === 'cash' ? 'PEGAR DINHEIRO' : 'PEGAR ITEM',
+        x: it.x, y: 2.4, z: it.z
+      });
+    }
+    const shops = [
+      [LANDMARKS.kiosk, 'COMPRAR LANCHE', 8], [LANDMARKS.shop, 'COMPRAR ROUPA', 8],
+      [LANDMARKS.casino, 'COMPRAR FICHA', 8], [LANDMARKS.garage, 'REPARAR / ABASTECER', 7],
+      [LANDMARKS.hospital, 'COMPRAR KIT MÉDICO', 8], [LANDMARKS.oficina, 'COMPRAR PEÇA', 7]
+    ];
+    for (const [lm, label, max] of shops) {
+      if (!lm) continue;
+      consider(dist2(p.pos, lm), max, { type: 'shop', label, key: '○', x: lm.x, y: 3, z: lm.z, shop: label });
+    }
+    consider(dist2(p.pos, LANDMARKS.bank), 8, { type: 'atm', key: '✕', label: 'SACAR DINHEIRO', x: LANDMARKS.bank.x, y: 3, z: LANDMARKS.bank.z });
+    consider(dist2(p.pos, LANDMARKS.safehouse), 7, { type: 'save', key: '□', label: 'ABRIR PORTA / SALVAR', x: LANDMARKS.safehouse.x, y: 3, z: LANDMARKS.safehouse.z });
+    consider(dist2(p.pos, LANDMARKS.mansion), 8, { type: 'save', key: '□', label: 'ENTRAR NA MANSÃO', x: LANDMARKS.mansion.x, y: 3, z: LANDMARKS.mansion.z });
+    if (p.inVehicle) {
+      const v = p.inVehicle;
+      consider(0, 1, { type: 'exit', key: '✕', label: v.isBoat ? 'SAIR DA LANCHA' : 'SAIR DO VEÍCULO', x: v.pos.x, y: 2.4, z: v.pos.z });
+    }
+    if (!best) return hide();
+    this._worldAction = best;
+    el.dataset.key = best.key;
+    const keyEl = el.querySelector('.wa-key');
+    const labelEl = el.querySelector('.wa-label');
+    if (keyEl) keyEl.textContent = best.key;
+    if (labelEl) labelEl.textContent = best.label;
+    const proj = new THREE.Vector3(best.x, best.y, best.z).project(this.camera);
+    if (proj.z > 1 || proj.z < -1) return hide();
+    const rect = this.canvas.getBoundingClientRect();
+    el.style.left = (rect.left + (proj.x * 0.5 + 0.5) * rect.width) + 'px';
+    el.style.top = (rect.top + (-proj.y * 0.5 + 0.5) * rect.height) + 'px';
+    el.classList.remove('hidden');
+    el.classList.toggle('near', best.dist < 2.6);
+  }
+
+  _runWorldAction() {
+    const a = this._worldAction;
+    const p = this.player;
+    if (!a || !p || this.paused || this.dialogueActive) return;
+    this.audio.play('ui');
+    if (a.type === 'mission') { this.startMissionById(a.id); return; }
+    if (a.type === 'vehicle') { this._enterVehicle(a.vehicle); return; }
+    if (a.type === 'exit') { this._exitVehicle(); return; }
+    if (a.type === 'npc') {
+      const line = NPC_LINES[a.npc.line % NPC_LINES.length];
+      this.showSubtitle('MORADOR', line.pt, line.en, 4);
+      a.npc.talkCooldown = 8;
+      return;
+    }
+    if (a.type === 'pickup') { this._collectPickup(a.pickup); return; }
+    if (a.type === 'shop') { this._shopAction(a.shop); return; }
+    if (a.type === 'atm') {
+      if (p.money < 100) { this.notify('CAIXA ELETRÔNICO', 'Saldo insuficiente para sacar.', 'bad'); return; }
+      p.money += 500;
+      this._updateMoneyHUD();
+      this.notify('CAIXA ELETRÔNICO', 'Saque de R$ 500 realizado.', 'good');
+      this.audio.play('cash');
+      return;
+    }
+    if (a.type === 'save') { this.saveGame(); }
+  }
+
+  _collectPickup(it) {
+    if (!it || !it.active) return;
+    const p = this.player;
+    it.active = false; it.g.visible = false; it.respawn = 35;
+    if (it.type === 'cash') { p.money += 250; this.notify('DINHEIRO', '+ R$ 250', 'good'); this.audio.play('cash'); }
+    if (it.type === 'health') { p.health = Math.min(100, p.health + 35); this.notify('SAÚDE', '+35 de vida', 'good'); this.audio.play('pickup'); }
+    if (it.type === 'armor') { p.armor = Math.min(100, p.armor + 35); this.notify('COLETE', '+35 de armadura', 'good'); this.audio.play('pickup'); }
+    if (it.type === 'ammo') { p.weapon.reserve += 24; this.notify('MUNIÇÃO', '+24 balas', 'good'); this.audio.play('reload'); }
+    this._updateMoneyHUD();
+  }
+
+  _shopAction(kind) {
+    const p = this.player;
+    const spend = (cost, apply) => {
+      if (p.money < cost) { this.notify('LOJA', 'Falta dinheiro. Você tem R$ ' + Math.floor(p.money).toLocaleString('pt-BR') + '.', 'bad'); return; }
+      p.money -= cost;
+      apply();
+      this._updateMoneyHUD();
+      this.audio.play('cash');
+    };
+    if (/LANCHE|MÉDICO/i.test(kind)) {
+      spend(50, () => {
+        p.hunger = 100;
+        p.health = Math.min(100, p.health + 30);
+        this.notify('LANCHE BR', 'Caio comeu. Fome zerada e +30 de vida.', 'good');
+      });
+      return;
+    }
+    if (/ROUPA/i.test(kind)) {
+      spend(300, () => {
+        this.notify('MODA BR', 'Boné, camisa e tatuagem nova. Estilo renovado!', 'good');
+      });
+      return;
+    }
+    if (/FICHA/i.test(kind)) {
+      spend(200, () => {
+        p.money += 600;
+        this.notify('CASSINO', 'A sorte sorriu: +R$ 600!', 'good');
+      });
+      return;
+    }
+    if (/REPARAR|PEÇA/i.test(kind)) {
+      const v = this._nearestVehicle(9);
+      if (!v) { this.notify('OFICINA', 'Nenhum veículo por perto.', ''); return; }
+      spend(150, () => {
+        v.health = v.maxHealth;
+        v.fuel = v.maxFuel || 100;
+        v.damageStage = 0;
+        this.notify('OFICINA', v.name + ' reparado e abastecido.', 'good');
+      });
+      return;
+    }
   }
 
   _nearestVehicle(radius) {
@@ -2645,6 +2916,7 @@ export class Game {
     if (!p || this.dialogueActive || p.dead) return;
     if (p.interactCooldown > 0) return;
     p.interactCooldown = 0.3;
+    if (this._worldAction) { this._runWorldAction(); return; }
     if (p.inVehicle) { this._exitVehicle(); return; }
 
     const nearMission = this._nearestMissionMarker(5.2);
@@ -2655,7 +2927,7 @@ export class Game {
     }
     if (dist2(p.pos, LANDMARKS.garage) < 6) {
       const v = this._nearestVehicle(8);
-      if (v) { v.health = v.maxHealth; this.notify('GARAGEM CENTRAL', 'Veículo reparado.', 'good'); this.audio.play('checkpoint'); }
+      if (v) { v.health = v.maxHealth; v.fuel = v.maxFuel || 100; this.notify('GARAGEM CENTRAL', 'Veículo reparado e abastecido.', 'good'); this.audio.play('checkpoint'); }
       else this.notify('GARAGEM CENTRAL', 'Nenhum veículo por perto.', '');
       return;
     }
@@ -3019,6 +3291,11 @@ export class Game {
         if (v.lightRed) v.lightRed.material.emissiveIntensity = on ? 3 : 0.2;
         if (v.lightBlue) v.lightBlue.material.emissiveIntensity = on ? 0.2 : 3;
       }
+      if (v.isHeli) {
+        if (v.rotor) v.rotor.rotation.y += dt * 26;
+        if (v.tailRotor) v.tailRotor.rotation.x += dt * 24;
+        v.mesh.position.y = v.pos.y || 0;
+      }
     }
   }
 
@@ -3034,8 +3311,17 @@ export class Game {
     if (boosting) p.boostReserve = Math.max(0, p.boostReserve - dt * 18);
     else if (p) p.boostReserve = Math.min(100, p.boostReserve + dt * (p.inVehicle ? 5 : 8));
     const boost = boosting ? 1.42 : 1;
+
+    if (v.fuel == null) v.fuel = 100;
+    const noFuel = v.fuel <= 0;
+    if (noFuel && !v._fuelWarned) {
+      v._fuelWarned = true;
+      this.notify('SEM GASOLINA', 'Pare no posto ou na oficina para abastecer.', 'bad');
+    }
+    if (!noFuel) v.fuel = Math.max(0, v.fuel - dt * (0.18 + Math.abs(v.speed) / Math.max(1, v.maxSpeed) * 0.5));
+
     const max = v.maxSpeed * (boosting ? 1.12 : 1);
-    const accel = v.accel;
+    const accel = noFuel ? 0 : v.accel;
 
     if (this.dialogueActive || this.cutscene) { v.speed *= 0.96; return; }
     if (throttle > 0) v.speed += accel * throttle * boost * dt;
@@ -3049,33 +3335,79 @@ export class Game {
     if (Math.abs(v.speed) < 0.06 && throttle === 0) v.speed = 0;
 
     const steerPower = v.handling * clamp(Math.abs(v.speed) / 9, 0, 1) * (v.speed < 0 ? -1 : 1);
-    v.angle -= steer * steerPower * dt * 1.5;
+    v.angle -= steer * steerPower * dt * (v.isHeli ? 0.9 : 1.5);
 
     const fx = Math.sin(v.angle), fz = Math.cos(v.angle);
     const nx = v.pos.x + fx * v.speed * dt;
     const nz = v.pos.z + fz * v.speed * dt;
 
-    if (v.isBoat) {
+    if (v.isHeli) {
+      if (v.altitude == null) v.altitude = 0;
+      const lift = (this.input.throttle ? 1 : 0) - (this.input.brake ? 1 : 0);
+      if (lift > 0) v.altitude = Math.min(95, v.altitude + dt * 13);
+      else if (lift < 0) v.altitude = Math.max(0, v.altitude - dt * 16);
+      const ground = this.world.groundHeight(nx, nz);
+      v.pos.y = ground + 0.55 + v.altitude;
+      if (v.altitude > 1.1) {
+        v.pos.x = clamp(nx, WORLD_BOUNDS.minX, WORLD_BOUNDS.maxX);
+        v.pos.z = clamp(nz, WORLD_BOUNDS.minZ, WORLD_BOUNDS.maxZ);
+        v.speed *= Math.max(0, 1 - dt * 0.08);
+      } else {
+        const res = this.world.resolveCircle(nx, nz, 1.7);
+        if (res.hit) { v.speed *= -0.15; v.altitude = Math.max(0, v.altitude); }
+        v.pos.x = res.x; v.pos.z = res.z;
+      }
+      if (v.rotor) v.rotor.rotation.y += dt * (v.altitude > 0.4 ? 34 : 12);
+      if (v.tailRotor) v.tailRotor.rotation.x += dt * 28;
+    } else if (v.isBoat) {
       if (!this.world.isWater(nx, nz) && !this._onDock(nx, nz)) {
         v.speed *= -0.2;
       } else {
         v.pos.x = nx; v.pos.z = nz;
       }
       v.pos.y = WATER_LEVEL + 0.02 + Math.sin((this._elapsed || 0) * 2.2) * 0.05;
+      if (v.isJetski) v.mesh.rotation.z = -steer * clamp(Math.abs(v.speed) / 30, 0, 1) * 0.3;
     } else {
       if (this.world.isWater(nx, nz) && !this._onDock(nx, nz)) {
         v.speed *= -0.3;
         this.notify('MOTOR AFOGADO', 'A água não é para este carro.', 'bad');
       } else {
-        const res = this.world.resolveCircle(nx, nz, 1.65);
+        const res = this.world.resolveCircle(nx, nz, v.isMoto ? 0.9 : 1.65);
         if (res.hit) {
-          if (Math.abs(v.speed) > 16) { this._camShake = Math.max(this._camShake, 0.18); this.audio.play('hit'); }
+          const impact = Math.abs(v.speed);
+          if (impact > 16) { this._camShake = Math.max(this._camShake, 0.18); this.audio.play('hit'); }
+          if (impact > 11 && this._elapsed - (v._lastImpact || 0) > 0.6) {
+            v._lastImpact = this._elapsed;
+            this._damageVehicle(v, impact * 1.3);
+            this._camShake = Math.max(this._camShake, 0.24);
+            this.audio.play('hit');
+          }
           v.speed *= -0.18;
         }
         v.pos.x = res.x; v.pos.z = res.z;
       }
       v.pos.y = this.world.groundHeight(v.pos.x, v.pos.z);
+      if (v.isMoto) v.mesh.rotation.z = -steer * clamp(Math.abs(v.speed) / 24, 0, 1) * 0.42;
     }
+
+    // Colisão simples com trânsito e outros veículos: amassa, solta fumaça
+    // e, em impacto forte, pode explodir.
+    if (this._elapsed - (v._lastImpact || 0) > 0.45) {
+      for (const o of [...this.vehicles]) {
+        if (o === v || o.destroyed || o.exploded) continue;
+        if (dist2(v.pos, o.pos) > (v.isMoto ? 2.2 : 3.3)) continue;
+        const impact = Math.abs(v.speed) + Math.abs(o.speed || 0) * 0.4;
+        if (impact < 7) continue;
+        v._lastImpact = this._elapsed;
+        v.speed *= 0.42;
+        this._damageVehicle(v, impact * 1.2);
+        this._damageVehicle(o, impact * 0.8);
+        this._camShake = Math.max(this._camShake, 0.2);
+        this.audio.play('hit');
+        break;
+      }
+    }
+
     if (this._elapsed - (v._hornAt || 0) > 1) {
       const near = this.npcs.find(n => dist2(n.pos, v.pos) < 7);
       if (near && Math.abs(v.speed) > 8) {
@@ -3271,6 +3603,60 @@ export class Game {
     return MISSIONS.find(m => !this.completed.has(m.id)) || null;
   }
 
+  missionProgress() {
+    const total = MISSIONS.length;
+    const done = Math.min(total, this.completed.size);
+    return { done, total, pct: Math.round(done / total * 100) };
+  }
+
+  _addTrophy(def) {
+    if (!def || !def.trophy) return;
+    this.trophies.add(def.trophy);
+    const p = this.missionProgress();
+    this.notify('TROFÉU ' + p.done + '/' + p.total, def.title + ' concluída. ' + p.pct + '% da campanha.', 'good');
+  }
+
+  _applyStoryRewards() {
+    if (!this.player) return;
+    const p = this.missionProgress();
+    if (p.done >= 91 && !this.unlocks.finalReward) {
+      this.unlocks.finalReward = true;
+      this.unlocks.goldCar = true;
+      this.unlocks.mansion = true;
+      this.unlocks.kingOutfit = true;
+    }
+    if (this.unlocks.kingOutfit) this._applyRoyalLook();
+    if (this.unlocks.goldCar && !this._goldCarSpawned) {
+      this._goldCarSpawned = true;
+      const gx = LANDMARKS.mansion.x + 6, gz = LANDMARKS.mansion.z + 6;
+      const car = this._makeVehicle({ x: gx, z: gz, type: 'sports', color: 0xffcf5c, angle: Math.PI / 2, name: 'LAMBO DOURADA' });
+      car._gold = true;
+      car.health = 200; car.maxHealth = 200;
+    }
+    if (this.unlocks.mansion && !this._mansionMarker) {
+      this._mansionMarker = this._makeMarker(0xffcf5c, 'MANSÃO DO CAIO');
+      this._mansionMarker.position.set(LANDMARKS.mansion.x, 0, LANDMARKS.mansion.z);
+      this.scene.add(this._mansionMarker);
+    }
+  }
+
+  _applyRoyalLook() {
+    const model = this.player && this.player.model;
+    if (!model || model._crown) return;
+    const crown = new THREE.Group();
+    const gold = new THREE.MeshStandardMaterial({ color: 0xffcf5c, emissive: 0x6a4a00, emissiveIntensity: 0.7, roughness: 0.25, metalness: 0.9 });
+    const band = new THREE.Mesh(new THREE.CylinderGeometry(0.19, 0.2, 0.1, 10), gold);
+    band.position.y = 2.02; crown.add(band);
+    for (let i = 0; i < 5; i++) {
+      const spike = new THREE.Mesh(new THREE.ConeGeometry(0.035, 0.14, 4), gold);
+      const a = (i / 5) * Math.PI * 2;
+      spike.position.set(Math.cos(a) * 0.17, 2.12, Math.sin(a) * 0.17);
+      crown.add(spike);
+    }
+    model.group.add(crown);
+    model._crown = crown;
+  }
+
   startMissionById(id) {
     const def = MISSIONS.find(m => m.id === id);
     if (!def) return;
@@ -3289,18 +3675,53 @@ export class Game {
     this._checkpoint = {
       step: 0, x: this.player.pos.x, z: this.player.pos.z, char: this.player.charId, wanted: 0
     };
+    this._equipMissionWeapon(def);
     this._showChapter(def);
     this.audio.play('mission');
     this._enterStep();
     this._autosave();
+    if (def.storyLines && def.storyLines.length) {
+      clearTimeout(this._storyTO);
+      this._storyTO = setTimeout(() => {
+        if (this.mission && this.mission.def.id === def.id && !this.dialogueActive && !this.paused && !this.resultOpen) {
+          this.showDialogueLines(def.storyLines);
+        }
+      }, 3100);
+    }
+  }
+
+  _equipMissionWeapon(def) {
+    const p = this.player;
+    if (!p || !def || !def.weapon || /nenhuma/i.test(def.weapon)) return;
+    const table = [
+      [/fuzil|ak/i, { damage: 26, magSize: 30, reserve: 120, fireRate: 0.11, name: 'FUZIL AK-47' }],
+      [/escopeta/i, { damage: 70, magSize: 8, reserve: 32, fireRate: 0.75, name: 'ESCOPETA BR' }],
+      [/submetralhadora/i, { damage: 22, magSize: 32, reserve: 128, fireRate: 0.08, name: 'SUBMETRALHADORA' }],
+      [/sniper/i, { damage: 120, magSize: 5, reserve: 20, fireRate: 1.1, name: 'SNIPER .50' }],
+      [/granada/i, { damage: 90, magSize: 4, reserve: 8, fireRate: 1.2, name: 'LANÇADOR DE GRANADAS' }],
+      [/soco/i, { damage: 40, magSize: 1, reserve: 0, fireRate: 0.4, name: 'SOCO INGLÊS' }],
+      [/pistola/i, { damage: 34, magSize: 12, reserve: 48, fireRate: 0.26, name: 'PISTOLA .40' }]
+    ];
+    for (const [re, st] of table) {
+      if (re.test(def.weapon)) {
+        p.weapon.damage = st.damage;
+        p.weapon.magSize = st.magSize;
+        p.weapon.mag = st.magSize;
+        p.weapon.reserve = st.reserve;
+        p.weapon.fireRate = st.fireRate;
+        p.weapon.name = st.name;
+        this._mhWeaponName = st.name;
+        break;
+      }
+    }
   }
 
   _showChapter(def) {
     const el = $('chapter-intro');
     if (!el) return;
-    $('chapter-kicker').textContent = 'CAPÍTULO ' + def.num;
     $('chapter-title').textContent = def.title.toUpperCase();
-    $('chapter-char').textContent = def.char === 'luiza' ? 'MARIA' : 'FELIPE';
+    $('chapter-char').textContent = this.charInfo(def.char).name;
+    $('chapter-kicker').textContent = 'MISSÃO ' + def.num + ' / 91 • ' + (CATEGORIES[def.category] ? CATEGORIES[def.category].label : 'CAMPANHA');
     $('chapter-loc').textContent = def.location;
     $('chapter-time').textContent = def.time;
     $('chapter-sub').textContent = def.sub;
@@ -3387,6 +3808,34 @@ export class Game {
       this._ensureMissionBoat();
       if (this._activeBoat) this._setObjectiveMarker(this._activeBoat.pos.x, this._activeBoat.pos.z, true, 0x2ee6c8);
       if (step.dialog) this.showDialogue(step.dialog);
+    } else if (step.type === 'race') {
+      this._race = [];
+      this._raceIndex = 0;
+      for (const pt of step.points) {
+        const ring = new THREE.Group();
+        const torus = new THREE.Mesh(new THREE.TorusGeometry(6, 0.35, 6, 28), new THREE.MeshBasicMaterial({ color: 0xffc46b, transparent: true, opacity: 0.92 }));
+        torus.rotation.x = Math.PI / 2; ring.add(torus);
+        const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.26, 5, 6), new THREE.MeshStandardMaterial({ color: 0x2ee6c8, emissive: 0x0f6f74, emissiveIntensity: 0.8 }));
+        pole.position.y = 2.5; ring.add(pole);
+        ring.position.set(pt.x, this.world.groundHeight(pt.x, pt.z) + 0.4, pt.z);
+        this.scene.add(ring);
+        this._race.push({ g: ring, x: pt.x, z: pt.z, passed: false });
+      }
+      this._setObjectiveMarker(step.points[0].x, step.points[0].z, true, 0xffc46b);
+      this.notify('CORRIDA', 'Passe por todos os checkpoints. O último fecha a linha.', 'good');
+    } else if (step.type === 'steal') {
+      const waterCraft = step.vehicle === 'boat' || step.vehicle === 'jetski';
+      const base = waterCraft ? LANDMARKS.marina : (step.pos || this.player.pos);
+      const car = this._makeVehicle({
+        x: waterCraft ? base.x - 18 : base.x + 6,
+        z: waterCraft ? base.z + 4 : base.z + 6,
+        type: step.vehicle || 'sedan',
+        color: step.color || 0xffc46b, angle: Math.PI / 2,
+        name: 'VEÍCULO DA MISSÃO', parked: true
+      });
+      this._stealCar = car;
+      this._setObjectiveMarker(car.pos.x, car.pos.z, true, 0xffc46b);
+      this.notify('ROUBO', 'Chegue ao veículo e entre para continuar.', 'good');
     }
     this._updateObjectiveHUD(true);
   }
@@ -3531,6 +3980,34 @@ export class Game {
       }
     } else if (step.type === 'enterBoat') {
       if (p.inVehicle && p.inVehicle.isBoat) this._advanceStep();
+    } else if (step.type === 'race') {
+      const b = this._race && this._race[this._raceIndex];
+      if (b) {
+        b.g.rotation.z += dt * 0.8;
+        if (dist2(p.pos, b) < 15) {
+          b.passed = true;
+          b.g.visible = false;
+          this._raceIndex++;
+          this.audio.play('checkpoint');
+          if (this._raceIndex >= this._race.length) {
+            this._setObjectiveMarker(0, 0, false);
+            this._advanceStep();
+          } else {
+            const nb = this._race[this._raceIndex];
+            this._setObjectiveMarker(nb.x, nb.z, true, 0xffc46b);
+          }
+        }
+      }
+    } else if (step.type === 'steal') {
+      if (this._stealCar && !this._stealCar.destroyed) {
+        this._setObjectiveMarker(this._stealCar.pos.x, this._stealCar.pos.z, true, 0xffc46b);
+        if (p.inVehicle === this._stealCar) {
+          this._setObjectiveMarker(0, 0, false);
+          this._advanceStep();
+        }
+      } else if (!this._stealCar) {
+        this._advanceStep();
+      }
     }
   }
 
@@ -3547,6 +4024,7 @@ export class Game {
     stars = clamp(stars, 1, 5);
     p.money += def.reward;
     this.completed.add(def.id);
+    this._addTrophy(def);
     this.mission = null;
     this._clearStepEntities();
     this._clearPolice();
@@ -3554,8 +4032,19 @@ export class Game {
     this._rebuildStaticMarkers();
     this.audio.play('mission');
     this._updateMoneyHUD();
+    const prog = this.missionProgress();
+    if (prog.done >= 91) {
+      this.unlocks = { ...(this.unlocks || {}), finalReward: true, goldCar: true, mansion: true, kingOutfit: true };
+      this._applyStoryRewards();
+      this.notify('91/91 • REI DO GTA 7 BR', 'Carro dourado, mansão gigante e roupa de rei liberados!', 'good');
+    }
+    const resultText = prog.done >= 91
+      ? 'Campanha 91/91 concluída. Caio BR é o Rei do GTA 7 BR. Carro dourado, mansão e roupa de rei liberados.'
+      : def.num === 91
+        ? 'O Chefão Final caiu. São Paulo é de Caio BR.'
+        : 'Objetivo cumprido. ' + prog.done + '/91 missões • ' + prog.pct + '% da campanha.';
     this._showResult({
-      win: true, title: def.title, text: def.num === 5 ? 'A cidade mudou de dono. Maria e Felipe venceram.' : 'Objetivo cumprido. São Paulo sente o impacto.',
+      win: true, title: def.title, text: resultText,
       stars, money: def.reward, time: total, acc: clamp(acc, 0, 100), kills: m.stats.kills
     });
     this._autosave();
@@ -3650,6 +4139,15 @@ export class Game {
       for (const b of this._buoys) this.scene.remove(b.g);
       this._buoys = [];
     }
+    if (this._race) {
+      for (const b of this._race) this.scene.remove(b.g);
+      this._race = [];
+      this._raceIndex = 0;
+    }
+    if (this._stealCar) {
+      this._removeVehicle(this._stealCar);
+      this._stealCar = null;
+    }
     this._clearObjectiveMarker();
   }
 
@@ -3738,7 +4236,26 @@ export class Game {
         const a = Math.random() * Math.PI * 2;
         this._spawnCop(p.pos.x + Math.cos(a) * rand(32, 55), p.pos.z + Math.sin(a) * rand(32, 55));
       }
+      if (this.wanted >= 3 && !this.vehicles.some(v => v.isPolice && v.isHeli && !v.destroyed)) {
+        this._spawnPoliceHeli();
+      }
     }
+  }
+
+  _spawnPoliceHeli() {
+    const p = this.player;
+    if (!p) return;
+    const a = Math.random() * Math.PI * 2;
+    const v = this._makeVehicle({
+      x: clamp(p.pos.x + Math.cos(a) * 120, WORLD_BOUNDS.minX, WORLD_BOUNDS.maxX),
+      z: clamp(p.pos.z + Math.sin(a) * 120, WORLD_BOUNDS.minZ, WORLD_BOUNDS.maxZ),
+      type: 'heli', color: 0x1f3550, angle: 0, name: 'HELICÓPTERO DA PM', driver: 'police'
+    });
+    v.isPolice = true;
+    v.altitude = 16;
+    v.pos.y = 16;
+    v.ai = { stuck: 0 };
+    this.notify('PROCURADO 3+', 'Helicóptero da PM na área. Se esconda!', 'bad');
   }
 
   _spawnPoliceCar() {
@@ -3869,6 +4386,11 @@ export class Game {
   showDialogue(key, onDone) {
     const lines = DIALOGUES[key];
     if (!lines || !lines.length) { if (onDone) onDone(); return; }
+    this.showDialogueLines(lines, onDone);
+  }
+
+  showDialogueLines(lines, onDone) {
+    if (!lines || !lines.length) { if (onDone) onDone(); return; }
     this.dialogueActive = true;
     document.body.classList.add('dialogue-open');
     this._dialogue = { lines, index: 0, onDone };
@@ -3905,8 +4427,8 @@ export class Game {
 
     const voiceLevel = Math.max(0, Math.min(100, Number(this.settings.volVoice ?? 90))) / 100;
     utterance.volume = voiceLevel * Math.max(0, Math.min(1, Number(this.settings.volMaster ?? 80) / 100));
-    utterance.rate = who && /luiza/i.test(who) ? 1.02 : who && /carlos/i.test(who) ? 0.93 : 1;
-    utterance.pitch = /carlos/i.test(who) ? 0.92 : /luiza/i.test(who) ? 1.08 : 1;
+    utterance.rate = who && /luiza|maria/i.test(who) ? 1.02 : who && /carlos|felipe/i.test(who) ? 0.93 : who && /caio/i.test(who) ? 0.98 : 1;
+    utterance.pitch = /carlos|felipe/i.test(who) ? 0.92 : /luiza|maria/i.test(who) ? 1.08 : /caio/i.test(who) ? 0.97 : 1;
 
     window.speechSynthesis.speak(utterance);
   }
@@ -3917,8 +4439,9 @@ export class Game {
     const line = d.lines[d.index];
     if (!line) return;
     const who = (line.who || '').toLowerCase();
-    const isL = who.includes('luiza');
-    const isC = who.includes('carlos');
+    const isL = who.includes('luiza') || who.includes('maria');
+    const isC = who.includes('carlos') || who.includes('felipe');
+    const isCaio = who.includes('caio');
     const enFirst = this.settings.language === 'en';
     $('dlg-name').textContent = line.who;
     $('dlg-loc').textContent = this.world.districtAt(this.player.pos.x, this.player.pos.z);
@@ -3926,9 +4449,9 @@ export class Game {
     $('dlg-en').textContent = enFirst ? line.pt : line.en;
     const portrait = $('dlg-portrait');
     if (portrait) {
-      const id = isL ? 'luiza' : isC ? 'carlos' : (this.player.charId === 'carlos' ? 'carlos' : 'luiza');
+      const id = isCaio ? 'caio' : isL ? 'luiza' : isC ? 'carlos' : (this.player.charId || 'caio');
       portrait.innerHTML = `<svg><use href="#portrait-${id}"/></svg>`;
-      portrait.style.opacity = isL || isC ? '1' : '.55';
+      portrait.style.opacity = isL || isC || isCaio ? '1' : '.55';
     }
     const next = $('dlg-next');
     if (next) next.querySelector('span').textContent = d.index >= d.lines.length - 1 ? 'ENCERRAR' : 'CONTINUAR';
@@ -4046,9 +4569,12 @@ export class Game {
         this._mhGear = gear;
         const g = $('mh-gear'); if (g) g.textContent = gear;
       }
-    } else if (this._mhWeaponName !== 'PISTOLA GTA 7 BR .40') {
-      this._mhWeaponName = 'PISTOLA GTA 7 BR .40';
-      const wn = $('mh-weapon-name'); if (wn) wn.textContent = this._mhWeaponName;
+    } else {
+      const wname = (p.weapon && p.weapon.name) || 'PISTOLA GTA 7 BR .40';
+      if (this._mhWeaponName !== wname) {
+        this._mhWeaponName = wname;
+        const wn = $('mh-weapon-name'); if (wn) wn.textContent = this._mhWeaponName;
+      }
     }
 
     const low = p.health <= 30 && !p.dead;
@@ -4084,6 +4610,12 @@ export class Game {
     const msS = $('ms-stamina'); if (msS) msS.style.width = clamp(p.stamina, 0, 100) + '%';
     const msM = $('ms-ammo'); if (msM) msM.textContent = p.weapon.mag;
     const msR = $('ms-ammo-reserve'); if (msR) msR.textContent = p.weapon.reserve;
+    const hunger = $('hud-hunger');
+    if (hunger) {
+      const h = Math.round(p.hunger ?? 100);
+      hunger.textContent = (h <= 20 ? '⚠ ' : '🍔 ') + h + '%';
+      hunger.classList.toggle('low', h <= 20);
+    }
 
     const cross = $('crosshair');
     if (cross) {
@@ -4159,7 +4691,7 @@ export class Game {
     if (this.mission) {
       const m = this.mission;
       const step = m.def.steps[m.step];
-      kicker = 'MISSÃO ' + m.def.num + ' / 5';
+      kicker = 'MISSÃO ' + m.def.num + ' / 91 • ' + (CATEGORIES[m.def.category] ? CATEGORIES[m.def.category].label : 'CAMPANHA');
       title = m.def.title;
       text = step ? (step.desc || '') : '';
       progress = ((m.step + (m.stepDone ? 1 : 0)) / m.def.steps.length) * 100;
@@ -4170,6 +4702,8 @@ export class Game {
         else if (step.type === 'defend') { text = step.desc + ' • ' + Math.ceil(this._defendTimer) + 's'; }
         else if (step.type === 'escape') { text = 'Despiste a polícia. Nível ' + this.wanted + ' de 6.'; }
         else if (step.type === 'buoys') { text = 'Boia ' + Math.min(this._buoyIndex + 1, 5) + ' de 5'; }
+        else if (step.type === 'race') { text = 'Checkpoint ' + Math.min((this._raceIndex || 0) + 1, (this._race || []).length) + ' de ' + ((this._race || []).length || 4); target = this._race && this._race[this._raceIndex] ? this._race[this._raceIndex] : null; }
+        else if (step.type === 'steal') { text = 'Roube: ' + m.def.car; target = this._stealCar ? this._stealCar.pos : step.pos; }
         else if (step.type === 'enterBoat') target = this._activeBoat ? this._activeBoat.pos : LANDMARKS.marina;
         else if (step.type === 'switch') target = this.player.pos;
       }
@@ -4197,9 +4731,9 @@ export class Game {
         text = 'Vá até ' + next.location + ' para começar.';
         target = next.start;
       } else if (this.mode === 'story') {
-        kicker = 'HISTÓRIA CONCLUÍDA';
-        title = 'SÃO PAULO É SEU';
-        text = 'Você terminou as dez missões. Continue explorando ou viva o Roleplay.';
+        kicker = '91/91 • CAMPANHA CONCLUÍDA';
+        title = 'REI DO GTA 7 BR';
+        text = 'Caio BR venceu as 91 missões. Carro dourado, mansão e roupa de rei liberados.';
       }
       const clock = $('mission-clock'); if (clock) clock.classList.add('hidden');
     }
@@ -4586,7 +5120,8 @@ export class Game {
     $('pause-char-role').textContent = isL ? 'A VOZ DE SÃO PAULO' : 'O BRAÇO DO ZONA SUL';
     $('pause-money').textContent = 'R$ ' + Math.floor(p.money).toLocaleString('pt-BR');
     $('pause-wanted').textContent = this.wanted ? this.wanted + ' / 6' : 'Limpo';
-    $('pause-missions').textContent = this.completed.size + ' / 5';
+    const prog = this.missionProgress();
+    $('pause-missions').textContent = prog.done + ' / 91 • ' + prog.pct + '%';
     $('pause-time').textContent = this._formatTime(this.playtime || 0);
     const list = $('pause-mission-list');
     if (list) {
@@ -4685,6 +5220,18 @@ export class Game {
       v.speed += (chaseSpeed - v.speed) * Math.min(1, dt * 2.4);
       const nx = v.pos.x + Math.sin(v.angle) * v.speed * dt;
       const nz = v.pos.z + Math.cos(v.angle) * v.speed * dt;
+      if (v.isHeli) {
+        v.pos.x = clamp(nx, WORLD_BOUNDS.minX, WORLD_BOUNDS.maxX);
+        v.pos.z = clamp(nz, WORLD_BOUNDS.minZ, WORLD_BOUNDS.maxZ);
+        const hover = 15 + Math.sin((this._elapsed || 0) * 0.8) * 1.4;
+        v.pos.y += (hover - v.pos.y) * Math.min(1, dt * 1.4);
+        v.altitude = v.pos.y;
+        if (d < 26 && !p.dead && Math.random() < dt * 0.55) {
+          this._damagePlayer(rand(3, 7), 'helicóptero');
+          this.audio.play('hit');
+        }
+        continue;
+      }
       const res = this.world.resolveCircle(nx, nz, 1.6);
       v.pos.x = res.x; v.pos.z = res.z;
       v.pos.y = this.world.groundHeight(v.pos.x, v.pos.z);

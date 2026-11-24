@@ -32,7 +32,20 @@ export const LANDMARKS = {
   pinheiros:  { x: 980, z: -680, name: 'Mercado de Pinheiros' },
   tatuape:    { x: 1180, z: 520, name: 'Terminal Tatuapé' },
   aeroporto:  { x: 1380, z: 980, name: 'Aeroporto Zona Leste' },
-  ponte:      { x: 1120, z: 1120, name: 'Ponte dos Bandeirantes' }
+  ponte:      { x: 1120, z: 1120, name: 'Ponte dos Bandeirantes' },
+  praia:      { x: 620, z: 340, name: 'Praia de São Paulo' },
+  praiao:     { x: 600, z: 620, name: 'Praia do Pôr do Sol' },
+  ilha:       { x: 900, z: 300, name: 'Ilha do Tesouro' },
+  iate:       { x: 790, z: 60, name: 'Iate Bela Vista' },
+  centro:     { x: -140, z: 0, name: 'Centro Histórico' },
+  shop:       { x: 520, z: 120, name: 'Loja Moda BR' },
+  bank:       { x: -60, z: 140, name: 'Banco Central' },
+  delegacia:  { x: 300, z: -420, name: 'Delegacia da Zona Sul' },
+  mansion:    { x: 250, z: -720, name: 'Mansão dos Jardins' },
+  laje:       { x: -520, z: -260, name: 'Laje do Baile' },
+  escola:     { x: -420, z: -200, name: 'Escola de Tiro do Morro' },
+  feira:      { x: -140, z: 420, name: 'Feira da Mooca' },
+  morroRival: { x: -760, z: -560, name: 'Morro Rival' }
 };
 
 export const DISTRICTS = [
