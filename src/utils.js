@@ -54,14 +54,28 @@ export function noiseTexture(size, base, spots, alpha = 0.15, repeatX = 1, repea
   return textureFromCanvas(c, repeatX, repeatY);
 }
 
+export function normalizeColor(color, fallback = '#ffffff') {
+  if (typeof color === 'string') {
+    const h = color.trim().replace(/^#/, '');
+    if (/^[0-9a-fA-F]{6}$/.test(h)) return `#${h}`;
+    if (/^[0-9a-fA-F]{3}$/.test(h)) return `#${h.replace(/^([0-9a-fA-F])/gi, '$1')}`;
+    if (/^#?[0-9a-fA-F]{3,8}$/.test(color)) {
+      const a = Number.parseInt(h.slice(0, 6), 16);
+      if (Number.isFinite(a)) return `#${a.toString(16).padStart(6, '0')}`;
+    }
+  }
+  return fallback;
+}
+
 export function makeRadialTexture(inner = '#fff7d6', outer = 'rgba(255,255,255,0)') {
   const c = makeCanvas(256);
   const ctx = c.getContext('2d');
   const g = ctx.createRadialGradient(128, 128, 0, 128, 128, 128);
-  g.addColorStop(0, inner);
-  g.addColorStop(.18, inner);
-  g.addColorStop(.5, outer);
-  g.addColorStop(1, outer);
+  const a = normalizeColor(inner, '#fff7d6'), b = normalizeColor(outer, 'rgba(255,255,255,0)');
+  g.addColorStop(0, a);
+  g.addColorStop(.18, a);
+  g.addColorStop(.5, b);
+  g.addColorStop(1, b);
   ctx.fillStyle = g;
   ctx.fillRect(0, 0, 256, 256);
   const tex = new THREE.CanvasTexture(c);

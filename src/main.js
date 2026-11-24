@@ -11,7 +11,7 @@ import { createVehicle, VEHICLE_SPECS } from './vehicle.js';
 import { AudioManager } from './audio.js';
 import { VoiceDirector } from './voice.js';
 import { UI } from './ui.js';
-import { clamp, lerp, damp, angleLerp, formatMoney, createTracer } from './utils.js';
+import { clamp, lerp, damp, angleLerp, formatMoney, createTracer, normalizeColor } from './utils.js';
 
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 const frame = () => new Promise(resolve => requestAnimationFrame(() => resolve()));
@@ -750,7 +750,7 @@ class Game {
     ctx.clearRect(0, 0, 128, 128);
     ctx.fillStyle = 'rgba(4,14,16,.78)';
     ctx.beginPath(); ctx.arc(64, 64, 48, 0, Math.PI * 2); ctx.fill();
-    ctx.strokeStyle = `#${color.toString(16).padStart(6, '0')}`;
+    ctx.strokeStyle = normalizeColor(color, '#f6c768');
     ctx.lineWidth = 7; ctx.stroke();
     ctx.fillStyle = '#f8f4e7';
     ctx.font = '700 54px "Barlow Condensed", sans-serif';

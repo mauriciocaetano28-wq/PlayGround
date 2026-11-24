@@ -335,7 +335,8 @@ export class UI {
 
   updateDashboard() {
     const save = this.game.loadSave();
-    const allCompleted = save?.completedMissions || [];
+    const inMemory = this.game.completedMissions || [];
+    const allCompleted = Array.from(new Set([...(save?.completedMissions || []), ...inMemory]));
     const campaign = (this.game.missions || []).filter(m => m.campaign === 'gta7');
     const total = campaign.length || 91;
     const done = campaign.filter(m => allCompleted.includes(m.index)).length;
