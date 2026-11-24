@@ -99,6 +99,29 @@
         <path d="M40 210 q34 -12 64 0" stroke="#ffffff" stroke-width="1" fill="none" opacity=".13"/>
       </symbol>
 
+      <symbol id="portrait-caio" viewBox="0 0 200 240">
+        <rect width="200" height="240" fill="url(#portraitBgB)"/>
+        <circle cx="150" cy="58" r="48" fill="#ffd166" opacity=".14"/>
+        <circle cx="42" cy="104" r="46" fill="#2ee6c8" opacity=".10"/>
+        <path d="M24 240 C28 178 60 156 100 156 C140 156 172 178 176 240Z" fill="#ffd166"/>
+        <path d="M76 160 L100 198 L124 160" stroke="#0b1c21" stroke-width="7" fill="none"/>
+        <rect x="87" y="126" width="26" height="42" rx="10" fill="#a86a44"/>
+        <ellipse cx="100" cy="103" rx="38" ry="44" fill="#b87c50"/>
+        <path d="M62 96 q-2 -44 38 -44 q40 0 38 44 q-6 -18 -38 -18 q-32 0 -38 18Z" fill="#16110d"/>
+        <path d="M57 76 q43 -34 86 0 l-4 14 q-39 -24 -78 0Z" fill="#0f1d22"/>
+        <path d="M120 66 q26 2 34 16 q-21 5 -37 -2Z" fill="#ffd166"/>
+        <path d="M70 106 q10 -5 22 0" stroke="#241512" stroke-width="4" fill="none" stroke-linecap="round"/>
+        <path d="M109 106 q10 -5 22 0" stroke="#241512" stroke-width="4" fill="none" stroke-linecap="round"/>
+        <ellipse cx="82" cy="113" rx="4" ry="3.4" fill="#160e0b"/><ellipse cx="119" cy="113" rx="4" ry="3.4" fill="#160e0b"/>
+        <path d="M99 112 q-2 10 2 13" stroke="#74452a" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        <path d="M88 133 q12 8 25 0" stroke="#5f2b25" stroke-width="4" fill="none" stroke-linecap="round"/>
+        <path d="M66 168 q10 -4 18 2" stroke="#2ee6c8" stroke-width="3" fill="none" opacity=".85"/>
+        <path d="M70 176 q8 -3 14 1" stroke="#2ee6c8" stroke-width="2.4" fill="none" opacity=".7"/>
+        <path d="M52 180 l20 -8 l10 18 l-20 8Z" fill="#0b1c21" opacity=".45"/>
+        <path d="M148 180 l-20 -8 l-10 18 l20 8Z" fill="#0b1c21" opacity=".45"/>
+        <path d="M40 210 q34 -12 64 0" stroke="#ffffff" stroke-width="1" fill="none" opacity=".13"/>
+      </symbol>
+
       <symbol id="star" viewBox="0 0 24 24">
         <path d="M12 1.7l3.1 6.6 7.2.9-5.3 5 1.4 7.1L12 17.8 5.6 21.3l1.4-7.1-5.3-5 7.2-.9z"/>
       </symbol>
@@ -230,6 +253,7 @@
       </div>
       <div class="cash-row">
         <span class="cash-ico">R$</span><b id="hud-money">2.450</b><span class="cash-delta" id="cash-delta"></span>
+        <span class="hud-hunger" id="hud-hunger">🍔 100%</span>
       </div>
       <div class="vitals">
         <div class="vital"><svg class="v-heart"><use href="#icon-heart"/></svg><div class="vital-bar"><i id="bar-health" style="width:100%"></i></div><span id="val-health">100</span></div>
@@ -265,6 +289,10 @@
     <div id="crosshair" class="crosshair hidden"><span></span><span></span><span></span><span></span><i></i></div>
     <div id="hitmarker" class="hitmarker"></div>
     <div id="interact-prompt" class="interact-prompt hidden"><span class="key">E</span><span id="interact-text">Entrar no veículo</span></div>
+    <div id="world-action" class="world-action hidden" role="button" tabindex="0" aria-live="polite">
+      <span class="wa-key">△</span>
+      <span class="wa-label">ENTRAR NO CARRO</span>
+    </div>
 
     <div class="hud-bottom-left">
       <div class="char-badge" id="char-badge">
@@ -707,6 +735,15 @@
       <p>Você pode alternar entre Maria e Felipe durante o modo livre.</p>
     </div>
     <div class="cs-cards">
+      <button class="cs-card caio" data-char="caio">
+        <div class="cs-art"><svg><use href="#portrait-caio"/></svg><div class="cs-shade"></div></div>
+        <div class="cs-info">
+          <div class="cs-role">O REI DA FAVELA</div><h3>CAIO BR</h3>
+          <p>Vinte anos, boné virado e tatuagem no braço. Saiu do morro para conquistar São Paulo — e agora a cidade inteira conhece o nome dele.</p>
+          <div class="cs-stats"><span>CONDUÇÃO <i style="--v:90%"></i></span><span>CARISMA <i style="--v:88%"></i></span><span>COMBATE <i style="--v:94%"></i></span></div>
+          <span class="cs-cta">JOGAR COMO CAIO <em>△</em></span>
+        </div>
+      </button>
       <button class="cs-card luiza" data-char="luiza">
         <div class="cs-art"><svg><use href="#portrait-luiza"/></svg><div class="cs-shade"></div></div>
         <div class="cs-info">
@@ -732,11 +769,11 @@
   <!-- ============ MISSION LIST ============ -->
   <section id="missions-modal" class="overlay modal missions-modal hidden">
     <div class="modal-head">
-      <div><small>MODO HISTÓRIA // MARIA &amp; FELIPE</small><h2>MISSÕES</h2></div>
+      <div><small>MODO HISTÓRIA // CAIO BR • 91 MISSÕES</small><h2>MISSÕES</h2></div>
       <button class="icon-btn close-overlay" data-close="missions-modal"><svg><use href="#icon-close"/></svg></button>
     </div>
     <div class="missions-list" id="missions-list"></div>
-    <div class="modal-foot"><span class="save-note">A missão final exige os dois protagonistas.</span><button class="btn primary" data-close="missions-modal">Fechar</button></div>
+    <div class="modal-foot"><span class="save-note">Cada missão salva, destrava a próxima e rende um troféu.</span><button class="btn primary" data-close="missions-modal">Fechar</button></div>
   </section>
 
   <!-- ============ RP PANEL ============ -->
@@ -787,7 +824,8 @@
   <section id="switch-overlay" class="overlay switch-overlay hidden">
     <div class="switch-head"><small>ALTERNÂNCIA DE PERSONAGEM</small><h2>QUEM ASSUME AGORA?</h2></div>
     <div class="switch-cards">
-      <button class="switch-card active" data-char="luiza"><span class="switch-num">1</span><svg><use href="#portrait-luiza"/></svg><b>MARIA</b><small>Orla</small></button>
+      <button class="switch-card" data-char="caio"><span class="switch-num">3</span><svg><use href="#portrait-caio"/></svg><b>CAIO BR</b><small>Favela</small></button>
+      <button class="switch-card" data-char="luiza"><span class="switch-num">1</span><svg><use href="#portrait-luiza"/></svg><b>MARIA</b><small>Orla</small></button>
       <button class="switch-card" data-char="carlos"><span class="switch-num">2</span><svg><use href="#portrait-carlos"/></svg><b>FELIPE</b><small>Zona Sul</small></button>
     </div>
     <div class="switch-note" id="switch-note">Troca instantânea • TAB ou ESC para voltar</div>

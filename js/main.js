@@ -166,7 +166,7 @@ function startExperience(mode, charId, state = null) {
   hideMenu();
   audio && audio.init();
   if (mode === 'rp') game.startRP(charId || 'luiza', state);
-  else game.startStory(charId || 'luiza', state);
+  else game.startStory(charId || 'caio', state);
   game.showHUD();
   game._last = performance.now();
   if (game._touchEnabled()) $('touch-controls').classList.remove('hidden');
@@ -180,7 +180,7 @@ function continueGame() {
   }
   save = s;
   if (s.mode === 'rp') startExperience('rp', s.char || 'luiza', s);
-  else startExperience('story', s.char || 'luiza', s);
+  else startExperience('story', s.char || 'caio', s);
 }
 
 function updateContinueState() {
@@ -189,8 +189,9 @@ function updateContinueState() {
   if (!btn || !sub) return;
   const s = loadJSON(SAVE_KEY, null);
   if (s) {
-    const ch = s.char === 'carlos' ? 'Felipe' : 'Maria';
-    const mode = s.mode === 'rp' ? 'Roleplay' : `${(s.completed || []).length}/10 missões`;
+    const ch = s.char === 'carlos' ? 'Felipe' : s.char === 'caio' ? 'Caio BR' : 'Maria';
+    const done = (s.completed || []).length;
+    const mode = s.mode === 'rp' ? 'Roleplay' : `${done}/91 missões • ${Math.round(done / 91 * 100)}%`;
     sub.textContent = `${ch} • ${mode} • ${new Date(s.updated || Date.now()).toLocaleDateString('pt-BR')}`;
     btn.classList.remove('disabled');
   } else {
@@ -250,28 +251,62 @@ function openMissionsModal() {
   if (!list || !game) return;
   if (game.mode !== 'attract' && !game.paused && !game.mapOpen && !game.dialogueActive) game.togglePause(true);
   list.innerHTML = '';
-  const completed = new Set((save && save.completed) || []);
+  const completed = game.completed || new Set((save && save.completed) || []);
+  const done = completed.size;
+  const pct = Math.round(done / MISSIONS.length * 100);
+  const catLabel = {
+    tutorial: 'TUTORIAL / FAVELA', favela: 'FAVELA / CIDADE', assalto: 'CIDADE / ASSALTO',
+    praia: 'PRAIA / IATE / FESTA', guerra: 'CHEFÃO FINAL / GUERRA', final: 'FINAL SECRETA'
+  };
+  const head = document.createElement('div');
+  head.className = 'missions-progress';
+  head.innerHTML = `
+    <div class="mp-top">
+      <div><small>CAMPANHA CAIO BR</small><b>${done} / 91 MISSÕES</b></div>
+      <div class="mp-pct">${pct}%</div>
+    </div>
+    <div class="mp-bar"><i style="width:${pct}%"></i></div>
+    <div class="mp-legend"><span>🏆 ${game.trophies ? game.trophies.size : 0} troféus</span><span>${done >= 91 ? 'CARRO DOURADO • MANSÃO • ROUPA DE REI' : 'Complete para liberar as recompensas finais'}</span></div>
+  `;
+  list.appendChild(head);
+
   MISSIONS.forEach((m, i) => {
-    const done = completed.has(m.id);
+    const isDone = completed.has(m.id);
     const prevDone = i === 0 || completed.has(MISSIONS[i - 1].id);
-    const available = !done && prevDone;
-    const locked = !done && !prevDone;
-    const row = document.createElement('div');
-    row.className = 'mission-row' + (done ? ' done' : available ? ' available' : locked ? ' locked' : '');
+    const available = !isDone && prevDone;
+    const locked = !isDone && !prevDone;
+    const row = document.createElement('details');
+    row.className = 'mission-row' + (isDone ? ' done' : available ? ' available' : locked ? ' locked' : '');
+    const story = (m.story || []).map((line) => `<p>${line}</p>`).join('');
     row.innerHTML = `
-      <div class="mission-num">${String(m.num).padStart(2, '0')}</div>
-      <div class="mission-info">
-        <b>${m.title}</b>
-        <small>${m.char === 'luiza' ? 'MARIA' : 'FELIPE'} • ${m.location}</small>
-        <div class="mission-tags"><span>CAP. ${m.num}</span><span>R$ ${m.reward.toLocaleString('pt-BR')}</span><span>${m.time}</span></div>
+      <summary>
+        <div class="mission-num">${String(m.num).padStart(2, '0')}</div>
+        <div class="mission-info">
+          <b>${m.title}</b>
+          <small>CAIO BR • ${m.location} • ${catLabel[m.category] || 'CAMPANHA'}</small>
+          <div class="mission-tags"><span>R$ ${m.reward.toLocaleString('pt-BR')}</span><span>${m.car}</span><span>${m.weapon}</span></div>
+        </div>
+        <div class="mission-state ${isDone ? 'done' : available ? 'available' : ''}">${isDone ? 'CONCLUÍDA' : available ? 'DISPONÍVEL' : 'BLOQUEADA'}</div>
+        ${isDone || available ? `<button class="mission-play" data-mission="${m.id}">${isDone ? 'REJOGAR' : 'INICIAR'}</button>` : '<span class="mission-lock">🔒</span>'}
+      </summary>
+      <div class="mission-detail">
+        <div class="mission-story"><small>HISTÓRIA</small>${story}</div>
+        <div class="mission-reward-grid">
+          <div><small>OBJETIVO</small><b>${m.objective}</b></div>
+          <div><small>MAPA</small><b>${m.location} → ${(m.steps[m.steps.length - 1].pos && m.steps[m.steps.length - 1].pos.name) || m.location}</b></div>
+          <div><small>RECOMPENSA</small><b>R$ ${m.reward.toLocaleString('pt-BR')}</b></div>
+          <div><small>CARRO</small><b>${m.car}</b></div>
+          <div><small>ARMA</small><b>${m.weapon}</b></div>
+          <div><small>TROFÉU</small><b>${isDone ? '🏆 ' + m.trophy : '🔒 ' + m.trophy}</b></div>
+        </div>
       </div>
-      <div class="mission-state ${done ? 'done' : available ? 'available' : ''}">${done ? 'CONCLUÍDA' : available ? 'DISPONÍVEL' : 'BLOQUEADA'}</div>
-      ${done || available ? `<button class="mission-play" data-mission="${m.id}">${done ? 'REJOGAR' : 'INICIAR'}</button>` : ''}
     `;
     list.appendChild(row);
   });
   list.querySelectorAll('[data-mission]').forEach((btn) => {
-    btn.addEventListener('click', () => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
       closeOverlay('missions-modal');
       if (game.paused) game.togglePause(false);
       game.startMissionById(btn.dataset.mission);
@@ -315,11 +350,11 @@ function renderRPJobs() {
 function updateRPPanel() {
   if (!game || !game.player) return;
   const p = game.player;
-  const isL = p.charId === 'luiza';
+  const c = game.charInfo ? game.charInfo() : { portrait: 'luiza', full: 'MARIA ANDRADE' };
   const av = $('rp-avatar');
-  if (av) av.innerHTML = `<svg><use href="#portrait-${isL ? 'luiza' : 'carlos'}"/></svg>`;
+  if (av) av.innerHTML = `<svg><use href="#portrait-${c.portrait}"/></svg>`;
   const name = $('rp-name');
-  if (name) name.textContent = isL ? 'MARIA ANDRADE' : 'FELIPE MENDES';
+  if (name) name.textContent = c.full;
   const money = $('rp-money');
   if (money) money.textContent = 'R$ ' + Math.floor(p.money).toLocaleString('pt-BR');
   const rep = game.rp || { rep: 0, done: 0 };
