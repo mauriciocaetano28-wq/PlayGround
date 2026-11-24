@@ -1,5 +1,26 @@
 import * as THREE from 'three';
-import { addShadowBlob, makeRadialTexture } from './utils.js';
+import { addShadowBlob, makeRadialTexture, makeTextTexture } from './utils.js';
+
+export const VEHICLE_SPECS = {
+  hatch: { max: 28, accel: 10.5, brake: 23, turn: 1.25, label: 'POPULAR' },
+  muscle: { max: 46, accel: 17, brake: 27, turn: 1.2, label: 'MUSCLE' },
+  super: { max: 84, accel: 25, brake: 32, turn: 1.15, label: 'LUXO' },
+  pickup: { max: 30, accel: 11, brake: 21, turn: 1.15, label: 'PICAPE' },
+  suv: { max: 32, accel: 12, brake: 22, turn: 1.1, label: 'SUV' },
+  van: { max: 25, accel: 9, brake: 18, turn: 1.0, label: 'VAN' },
+  taxi: { max: 31, accel: 12, brake: 23, turn: 1.25, label: 'TÁXI' },
+  police: { max: 42, accel: 16, brake: 26, turn: 1.2, label: 'VIATURA' },
+  ambulance: { max: 27, accel: 10, brake: 20, turn: 1.05, label: 'AMBULÂNCIA' },
+  truck: { max: 21, accel: 8, brake: 16, turn: .95, label: 'CAMINHÃO' },
+  bus: { max: 18, accel: 6, brake: 14, turn: .85, label: 'ÔNIBUS' },
+  tank: { max: 15, accel: 6, brake: 12, turn: .8, label: 'TANQUE' },
+  motorcycle: { max: 47, accel: 20, brake: 28, turn: 1.65, label: 'MOTO' },
+  helicopter: { max: 58, accel: 15, brake: 24, turn: 1.15, air: true, label: 'HELICÓPTERO' },
+  plane: { max: 82, accel: 22, brake: 28, turn: .9, air: true, label: 'AVIÃO' },
+  boat: { max: 30, accel: 11, brake: 18, turn: 1.1, water: true, label: 'LANCHA' },
+  jetski: { max: 38, accel: 15, brake: 20, turn: 1.4, water: true, label: 'JETSKI' },
+  yacht: { max: 22, accel: 7, brake: 12, turn: .8, water: true, label: 'IATE' }
+};
 
 const PAINT = (color) => new THREE.MeshPhysicalMaterial({ color, roughness: .28, metalness: .52, clearcoat: .75, clearcoatRoughness: .18 });
 const GLASS = () => new THREE.MeshPhysicalMaterial({ color: 0x172629, roughness: .08, metalness: .2, transparent: true, opacity: .78, clearcoat: 1 });
@@ -31,8 +52,12 @@ export function createVehicle(type = 'hatch', color = 0xf1eee3, options = {}) {
   const paint = options.paint || PAINT(color);
   const glass = GLASS();
   const trim = TRIM();
-  const dims = { hatch: [1.85, 4.0], muscle: [1.98, 4.65], pickup: [2.02, 4.9], suv: [2.08, 4.8], van: [2.1, 5.3], police: [2.02, 4.75] }[type] || [1.9, 4.3];
+  const dims = { hatch: [1.85, 4.0], muscle: [1.98, 4.65], pickup: [2.02, 4.9], suv: [2.08, 4.8], van: [2.1, 5.3], police: [2.02, 4.75], super: [2.06, 4.55], taxi: [1.9, 4.3], ambulance: [2.12, 5.4], truck: [2.24, 6.9], bus: [2.42, 9.4], tank: [2.5, 6.2] }[type] || [1.9, 4.3];
   const [width, length] = dims;
+
+  if (type === 'motorcycle') return buildMotorcycle(root, body, paint, trim, glass, color, options);
+  if (type === 'helicopter' || type === 'plane') return buildAircraft(root, body, paint, trim, glass, color, options, type);
+  if (type === 'boat' || type === 'jetski' || type === 'yacht') return buildWatercraft(root, body, paint, trim, glass, color, options, type);
 
   const lower = box(width, .48, length, paint, 0, .64, 0);
   body.add(lower);
@@ -94,7 +119,7 @@ export function createVehicle(type = 'hatch', color = 0xf1eee3, options = {}) {
   const plate = new THREE.Mesh(new THREE.PlaneGeometry(.5, .12), new THREE.MeshBasicMaterial({ map: makePlateTexture(), toneMapped: false }));
   plate.position.set(0, .52, -length / 2 - .06); plate.rotation.y = Math.PI; body.add(plate);
 
-  if (options.taxi) {
+  if (options.taxi || type === 'taxi') {
     const sign = box(.9, .22, .34, new THREE.MeshBasicMaterial({ color: 0xffce61 }), 0, 1.75, -length * .06); body.add(sign);
   }
 
@@ -105,7 +130,8 @@ export function createVehicle(type = 'hatch', color = 0xf1eee3, options = {}) {
   const state = {
     root, body, wheels, type, color, width, length, speed: 0, steering: 0,
     seatHeight: .9, forward: new THREE.Vector3(0, 0, 1), shadow,
-    lights: [], time: 0, health: 100, occupied: false, patrol: false, siren: false,
+    glass: [windshield, rearGlass], lights: [], time: 0, health: 100, fuel: 100,
+    occupied: false, patrol: false, siren: false,
     driver: null, label: options.label || '',
     update(dt, opts = {}) {
       state.time += dt;
@@ -129,6 +155,46 @@ export function createVehicle(type = 'hatch', color = 0xf1eee3, options = {}) {
     },
     setOccupied(v) { state.occupied = v; }
   };
+
+  if (type === 'super') {
+    body.add(box(width * 1.04, .1, length * .46, trim, 0, .4, .05));
+    const wing = box(width * .9, .06, .34, trim, 0, 1.2, -length / 2 + .28); body.add(wing);
+    for (const sx of [-1, 1]) body.add(box(.05, .22, .16, trim, sx * width * .33, 1.06, -length / 2 + .28));
+    const glow = new THREE.Mesh(new THREE.PlaneGeometry(width * .9, length * .8), new THREE.MeshBasicMaterial({ map: makeRadialTexture(0x43ddbe, 'rgba(0,0,0,0)'), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, opacity: .22 }));
+    glow.rotation.x = -Math.PI / 2; glow.position.y = .05; root.add(glow);
+  }
+  if (type === 'ambulance') {
+    const stripe = new THREE.Mesh(new THREE.PlaneGeometry(length * .78, .22), new THREE.MeshBasicMaterial({ color: 0xe23b32 }));
+    for (const sx of [-1, 1]) {
+      const p = stripe.clone(); p.position.set(sx * width * .48, .92, -.05); p.rotation.y = sx * Math.PI / 2; body.add(p);
+    }
+    const cross = new THREE.Mesh(new THREE.PlaneGeometry(.52, .52), new THREE.MeshBasicMaterial({ map: makeTextTexture('+', { width: 128, height: 128, font: '700 96px sans-serif', bg: '#e23b32', color: '#ffffff' }), toneMapped: false }));
+    cross.position.set(width * .49, 1.25, 0); cross.rotation.y = Math.PI / 2; body.add(cross);
+    const bar = box(width * .7, .12, .28, new THREE.MeshBasicMaterial({ color: 0xff3b32, toneMapped: false }), 0, 1.72, length * .05); body.add(bar);
+    body.add(box(width * .7, .1, .24, new THREE.MeshBasicMaterial({ color: 0x3b7bff, toneMapped: false }), 0, 1.84, length * .05));
+  }
+  if (type === 'truck') {
+    const cargo = box(width * .98, 2.05, length * .58, new THREE.MeshStandardMaterial({ color: 0xd8d2c4, roughness: .85 }), 0, 1.45, -length * .18);
+    body.add(cargo);
+    const stripe = new THREE.Mesh(new THREE.PlaneGeometry(length * .52, .18), new THREE.MeshBasicMaterial({ color: 0xd6594e }));
+    for (const sx of [-1, 1]) { const p = stripe.clone(); p.position.set(sx * width * .5, 1.3, -length * .18); p.rotation.y = sx * Math.PI / 2; body.add(p); }
+  }
+  if (type === 'bus') {
+    body.add(box(width, .9, length * .9, new THREE.MeshStandardMaterial({ color: 0xf0b23c, roughness: .75 }), 0, 1.55, 0));
+    for (const sx of [-1, 1]) {
+      for (let i = 0; i < 4; i++) {
+        const win = new THREE.Mesh(new THREE.PlaneGeometry(length * .16, .62), new THREE.MeshBasicMaterial({ color: 0x27434a, transparent: true, opacity: .8 }));
+        win.position.set(sx * (width / 2 + .005), 1.65, -length * .3 + i * length * .2);
+        win.rotation.y = sx * Math.PI / 2; body.add(win);
+      }
+    }
+    body.add(box(width * .8, .3, .06, new THREE.MeshBasicMaterial({ color: 0x1f2f33 }), 0, 1.95, length / 2 + .03));
+  }
+  if (type === 'tank') {
+    const turret = box(width * .68, .55, length * .34, new THREE.MeshStandardMaterial({ color: 0x4a5940, roughness: .9 }), 0, 1.55, -length * .03); body.add(turret);
+    const barrel = new THREE.Mesh(new THREE.CylinderGeometry(.09, .11, 3.3, 8), new THREE.MeshStandardMaterial({ color: 0x39443a, roughness: .85 }));
+    barrel.rotation.x = Math.PI / 2; barrel.position.set(0, 1.65, length * .34); body.add(barrel);
+  }
 
   // police livery
   if (type === 'police') {
@@ -183,4 +249,148 @@ function makePoliceTexture() {
 
 export function createTrafficCar(color, type) {
   return createVehicle(type || 'hatch', color);
+}
+
+// ---------------- SPECIAL VEHICLES ----------------
+function buildMotorcycle(root, body, paint, trim, glass, color, options) {
+  const state = {
+    root, body, wheels: [], type: 'motorcycle', color, width: .95, length: 2.25,
+    speed: 0, steering: 0, seatHeight: .82, forward: new THREE.Vector3(0, 0, 1), shadow: null,
+    glass: [], lights: [], time: 0, health: 100, fuel: 100, occupied: false, patrol: false, siren: false,
+    driver: null, label: options.label || ''
+  };
+  const frame = box(.2, .16, 1.35, trim, 0, .64, 0); body.add(frame);
+  const tank = box(.42, .3, .62, paint, 0, .9, .1); body.add(tank);
+  const seat = box(.36, .12, .6, TRIM(), 0, .9, -.44); body.add(seat);
+  const rearFender = box(.32, .1, .62, paint, 0, .78, -.82); body.add(rearFender);
+  const frontFork = box(.07, .52, .07, trim, 0, .58, .76); frontFork.rotation.x = -.22; body.add(frontFork);
+  const bars = box(.66, .06, .06, trim, 0, 1.06, .62); body.add(bars);
+  const headlight = box(.24, .16, .08, HEAD(), 0, .96, .88); body.add(headlight);
+  state.lights.push(headlight);
+  const tail = box(.2, .1, .06, TAIL(), 0, .86, -1.06); body.add(tail);
+  state.lights.push(tail);
+  const exhaust = new THREE.Mesh(new THREE.CylinderGeometry(.055, .07, 1.1, 7), trim);
+  exhaust.rotation.x = Math.PI / 2; exhaust.position.set(.22, .52, -.35); body.add(exhaust);
+  for (const z of [.78, -.78]) {
+    const w = new THREE.Mesh(new THREE.CylinderGeometry(.36, .36, .18, 14), TIRE());
+    w.rotation.z = Math.PI / 2; w.position.set(0, .36, z); w.castShadow = true; body.add(w); state.wheels.push(w);
+    const rim = new THREE.Mesh(new THREE.CylinderGeometry(.19, .19, .2, 8), RIM());
+    rim.rotation.z = Math.PI / 2; rim.position.set(0, .36, z); body.add(rim);
+  }
+  state.shadow = addShadowBlob(root, 1.6); state.shadow.position.y = .015;
+  state.update = (dt, opts = {}) => {
+    state.time += dt;
+    state.speed = opts.speed ?? state.speed;
+    state.steering = opts.steering ?? state.steering;
+    const spin = state.speed * dt / .36;
+    state.wheels.forEach(w => { w.rotation.x -= spin; });
+    body.rotation.z = -state.steering * Math.min(.55, Math.abs(state.speed) * .02) + Math.sin(state.time * 2) * .01;
+    body.rotation.x = Math.sin(state.time * 3.4) * Math.min(.008, Math.abs(state.speed) * .001);
+    body.position.y = Math.sin(state.time * 11) * Math.min(.01, Math.abs(state.speed) * .001);
+  };
+  return state;
+}
+
+function buildAircraft(root, body, paint, trim, glass, color, options, type) {
+  const plane = type === 'plane';
+  const width = plane ? 8.6 : 3.1;
+  const length = plane ? 8.4 : 7.6;
+  const state = {
+    root, body, wheels: [], rotors: [], type, color, width, length,
+    speed: 0, steering: 0, seatHeight: 1.4, forward: new THREE.Vector3(0, 0, 1), shadow: null,
+    glass: [], lights: [], time: 0, health: 100, fuel: 100, occupied: false, patrol: false, siren: false,
+    driver: null, label: options.label || '', isAir: true, altitude: plane ? 0 : 0
+  };
+  if (plane) {
+    const fuselage = new THREE.Mesh(new THREE.CylinderGeometry(.42, .5, 6.4, 10), paint);
+    fuselage.rotation.x = Math.PI / 2; fuselage.position.set(0, 1.5, 0); fuselage.castShadow = true; body.add(fuselage);
+    const nose = new THREE.Mesh(new THREE.SphereGeometry(.42, 10, 8), paint); nose.position.set(0, 1.5, 3.2); body.add(nose);
+    const wing = box(width, .12, 1.55, paint, 0, 1.55, .1); body.add(wing);
+    body.add(box(2.8, .1, .9, paint, 0, 1.55, -3.0));
+    body.add(box(.16, 1.2, 1.1, paint, 0, 2.0, -3.0));
+    const canopy = box(.72, .42, 1.5, glass, 0, 1.88, .35); body.add(canopy); state.glass.push(canopy);
+    const prop = new THREE.Group(); prop.position.set(0, 1.5, 3.62);
+    const b1 = box(.12, 1.8, .05, trim, 0, 0, 0); prop.add(b1);
+    const b2 = box(1.8, .12, .05, trim, 0, 0, 0); prop.add(b2);
+    body.add(prop); state.rotors.push({ mesh: prop, axis: 'z', speed: 32 });
+    for (const sx of [-1, 1]) {
+      const wheel = new THREE.Mesh(new THREE.CylinderGeometry(.22, .22, .12, 10), TIRE());
+      wheel.rotation.z = Math.PI / 2; wheel.position.set(sx * .85, .42, 1.1); body.add(wheel);
+    }
+  } else {
+    const fuselage = box(1.9, 1.35, 3.2, paint, 0, 2.0, .15); body.add(fuselage);
+    const nose = new THREE.Mesh(new THREE.SphereGeometry(.85, 12, 9), paint); nose.scale.set(1, .78, 1.2); nose.position.set(0, 1.95, 1.7); body.add(nose);
+    const cabin = box(1.55, .95, 1.25, glass, 0, 2.1, .55); body.add(cabin); state.glass.push(cabin);
+    body.add(box(.32, .32, 4.4, paint, 0, 2.15, -3.1));
+    const fin = box(.12, 1.15, 1.0, paint, 0, 2.55, -5.1); body.add(fin);
+    const skidMat = TRIM();
+    for (const sx of [-1, 1]) {
+      body.add(box(.11, .11, 3.3, skidMat, sx * 1.05, .6, .1));
+      body.add(box(.08, .55, .08, skidMat, sx * .72, .85, .9));
+      body.add(box(.08, .55, .08, skidMat, sx * .72, .85, -.9));
+    }
+    const mast = box(.18, .55, .18, TRIM(), 0, 2.85, 0); body.add(mast);
+    const rotor = new THREE.Group(); rotor.position.set(0, 3.1, 0);
+    rotor.add(box(6.4, .06, .22, TRIM(), 0, 0, 0));
+    rotor.add(box(.22, .06, 6.4, TRIM(), 0, 0, 0));
+    body.add(rotor); state.rotors.push({ mesh: rotor, axis: 'y', speed: 24 });
+    const tailRotor = new THREE.Group(); tailRotor.position.set(.22, 2.55, -5.15);
+    tailRotor.add(box(.05, 1.3, .1, TRIM(), 0, 0, 0));
+    tailRotor.add(box(.05, .1, 1.3, TRIM(), 0, 0, 0));
+    body.add(tailRotor); state.rotors.push({ mesh: tailRotor, axis: 'x', speed: 38 });
+    const light = new THREE.Mesh(new THREE.SphereGeometry(.12, 6, 5), new THREE.MeshBasicMaterial({ color: 0xff3b32, toneMapped: false }));
+    light.position.set(0, 1.35, 1.9); body.add(light); state.lights.push(light);
+  }
+  state.shadow = addShadowBlob(root, plane ? 7 : 4.5); state.shadow.position.y = .02;
+  state.update = (dt, opts = {}) => {
+    state.time += dt;
+    state.speed = opts.speed ?? state.speed;
+    state.steering = opts.steering ?? state.steering;
+    for (const r of state.rotors) r.mesh.rotation[r.axis] += dt * r.speed * (state.speed > -50 ? 1 : 1);
+    body.rotation.z = -state.steering * Math.min(.4, Math.abs(state.speed) * .008);
+    body.rotation.x = plane ? Math.sin(state.time * 2) * .01 : Math.sin(state.time * 2.2) * .02 - state.speed * .002;
+    body.position.y = Math.sin(state.time * 9) * Math.min(.03, Math.abs(state.speed) * .002);
+  };
+  return state;
+}
+
+function buildWatercraft(root, body, paint, trim, glass, color, options, type) {
+  const yacht = type === 'yacht';
+  const jetski = type === 'jetski';
+  const width = yacht ? 4.2 : jetski ? 1.35 : 2.5;
+  const length = yacht ? 12 : jetski ? 3.1 : 7.2;
+  const state = {
+    root, body, wheels: [], type, color, width, length,
+    speed: 0, steering: 0, seatHeight: .9, forward: new THREE.Vector3(0, 0, 1), shadow: null,
+    glass: [], lights: [], time: 0, health: 100, fuel: 100, occupied: false, patrol: false, siren: false,
+    driver: null, label: options.label || '', isWater: true
+  };
+  const hull = box(width, .78, length, paint, 0, .45, 0); body.add(hull);
+  const bow = new THREE.Mesh(new THREE.ConeGeometry(width * .5, length * .32, 4), paint);
+  bow.rotation.x = Math.PI / 2; bow.rotation.y = Math.PI / 4;
+  bow.position.set(0, .45, length * .58); body.add(bow);
+  const deck = box(width * .86, .1, length * .8, new THREE.MeshStandardMaterial({ color: 0xc9b68f, roughness: .85 }), 0, .88, -.05); body.add(deck);
+  if (!jetski) {
+    const cabin = box(width * .62, yacht ? 1.6 : .85, length * (yacht ? .42 : .3), paint, 0, yacht ? 1.7 : 1.2, -length * .1); body.add(cabin);
+    const windshield = box(width * .55, .5, .05, glass, 0, yacht ? 2.2 : 1.55, length * .12); body.add(windshield); state.glass.push(windshield);
+    if (yacht) {
+      const upper = box(width * .52, 1.1, length * .26, paint, 0, 2.9, -length * .08); body.add(upper);
+      const win = box(width * .46, .42, .05, glass, 0, 3.0, length * .06); body.add(win); state.glass.push(win);
+    }
+  } else {
+    const seat = box(.62, .22, 1.1, TRIM(), 0, 1.0, -.25); body.add(seat);
+    const bars = box(.7, .05, .05, trim, 0, 1.15, .55); body.add(bars);
+  }
+  const head = box(width * .5, .12, .08, HEAD(), 0, .95, length * .48); body.add(head); state.lights.push(head);
+  const tail = box(width * .4, .1, .06, TAIL(), 0, .92, -length * .5); body.add(tail); state.lights.push(tail);
+  state.shadow = addShadowBlob(root, Math.max(width, length) * .7); state.shadow.position.y = .02;
+  state.update = (dt, opts = {}) => {
+    state.time += dt;
+    state.speed = opts.speed ?? state.speed;
+    state.steering = opts.steering ?? state.steering;
+    body.position.y = Math.sin(state.time * 1.6) * .08 + .02;
+    body.rotation.z = Math.sin(state.time * 1.2) * .025 - state.steering * Math.min(.2, Math.abs(state.speed) * .01);
+    body.rotation.x = Math.sin(state.time * 1.9) * .015 - Math.min(.08, Math.abs(state.speed) * .003);
+  };
+  return state;
 }

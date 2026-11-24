@@ -1008,6 +1008,15 @@ export function createWorld(scene, renderer, settings = {}) {
   world.locations.ferris = new THREE.Vector3(350, 0, 35);
   world.locations.park = new THREE.Vector3(-178, 0, 30);
   world.locations.favela = new THREE.Vector3(-350, 0, -222);
+  // GTA 7 BR: novos pontos de missão e serviços espalhados por Costa Dourada.
+  world.locations.shop = new THREE.Vector3(-120, 0, 30);
+  world.locations.bank = new THREE.Vector3(100, 0, -120);
+  world.locations.police = new THREE.Vector3(-230, 0, -120);
+  world.locations.mansion = new THREE.Vector3(-10, 0, -230);
+  world.locations.airport = new THREE.Vector3(320, 0, -230);
+  world.locations.home = new THREE.Vector3(-340, 0, -230);
+  world.locations.lanchonete = new THREE.Vector3(-120, 0, 82);
+  world.locations.port = new THREE.Vector3(230, 0, -230);
 
   // add invisible colliders for lighthouse base etc done. Keep player on land side.
   world.bounds = { minX: -430, maxX: 430, minZ: -410, maxZ: 150 };

@@ -98,6 +98,7 @@ export class UI {
     this.missionCardTimer = null;
     this.storyMode = 'story';
     this.voiceTestTimer = null;
+    this.missionFilter = 'all';
     if (this.game.voice) {
       this.game.voice.configure(this.settings);
       this.game.voice.onState = (speaking) => this.setVoiceIndicator(speaking);
@@ -203,6 +204,27 @@ export class UI {
       this.$$('.pause-tabs button').forEach(b => b.classList.toggle('active', b === btn));
       this.$$('.pause-panel').forEach(p => p.classList.toggle('active', p.dataset.pausePanel === this.currentTab));
     }));
+    this.$$('#mission-filter-row .mission-filter').forEach(btn => btn.addEventListener('click', () => {
+      this.missionFilter = btn.dataset.filter || 'all';
+      this.$$('#mission-filter-row .mission-filter').forEach(b => b.classList.toggle('on', b === btn));
+      this.buildMissionList();
+    }));
+    this.$('#mission-list')?.addEventListener('click', (e) => {
+      const mapBtn = e.target.closest('button[data-map]');
+      if (mapBtn) {
+        const mission = this.game.missions.find(m => m.index === Number(mapBtn.dataset.map));
+        if (mission) this.game.setWaypoint(mission);
+        return;
+      }
+      const startBtn = e.target.closest('button[data-mission]');
+      if (startBtn) {
+        this.game.startMission(Number(startBtn.dataset.mission), { fromMenu: true });
+        this.closePause();
+        return;
+      }
+      const row = e.target.closest('.mission-row');
+      if (row) row.classList.toggle('expanded');
+    });
     this.$$('.app-card').forEach(btn => btn.addEventListener('click', () => {
       this.$$('.app-card').forEach(b => b.classList.toggle('active', b === btn));
       this.currentJob = btn.dataset.job;
@@ -313,16 +335,22 @@ export class UI {
 
   updateDashboard() {
     const save = this.game.loadSave();
-    const completed = save?.completedMissions?.length || 0;
-    this.$('#story-progress-bar').style.width = `${(completed / 5) * 100}%`;
-    this.$('#continue-progress').textContent = this.language === 'pt' ? `${completed} de 5 missões` : `${completed} of 5 missions`;
-    this.$('#menu-progress').textContent = `${completed} / 5`;
+    const allCompleted = save?.completedMissions || [];
+    const campaign = (this.game.missions || []).filter(m => m.campaign === 'gta7');
+    const total = campaign.length || 91;
+    const done = campaign.filter(m => allCompleted.includes(m.index)).length;
+    const pct = Math.round((done / total) * 100);
+    this.$('#story-progress-bar').style.width = `${pct}%`;
+    this.$('#continue-progress').textContent = this.language === 'pt' ? `${done} de ${total} missões · ${pct}%` : `${done} of ${total} missions · ${pct}%`;
+    this.$('#menu-progress').textContent = `${done} / ${total}`;
     this.$('#menu-money').textContent = formatMoney(save?.money ?? 2500);
-    if (save && completed > 0) {
-      const m = this.game.missions[Math.min(completed, 4)];
-      this.$('#continue-title').textContent = this.language === 'pt' ? `Capítulo ${completed + 1} · ${m.title.pt}` : `Chapter ${completed + 1} · ${m.title.en}`;
-      this.$('#menu-continue-label').textContent = this.language === 'pt' ? 'Continuar história' : 'Continue story';
-      this.$('#menu-continue-sub').textContent = this.language === 'pt' ? `Capítulo ${completed + 1} · ${m.title.pt}` : `Chapter ${completed + 1} · ${m.title.en}`;
+    const next = campaign.find(m => !allCompleted.includes(m.index)) || campaign[campaign.length - 1];
+    if (next) {
+      const chapter = this.chapterFor(next);
+      this.$('#continue-title').textContent = this.language === 'pt' ? `Missão ${next.gta7Index || done + 1} · ${next.title.pt}` : `Mission ${next.gta7Index || done + 1} · ${next.title.en}`;
+      this.$('#menu-continue-label').textContent = this.language === 'pt' ? (done > 0 ? 'Continuar campanha' : 'Começar campanha') : (done > 0 ? 'Continue campaign' : 'Start campaign');
+      this.$('#menu-continue-sub').textContent = this.language === 'pt' ? `${chapter} · ${next.placeName || 'Costa Dourada'}` : `${next.placeName || 'Costa Dourada'}`;
+      this.$('#continue-copy').textContent = this.language === 'pt' ? next.descPt : next.descEn;
     }
     if (save?.rp) {
       this.$('#phone-rep').textContent = `REP ${save.rp.rep || 12}`;
@@ -396,7 +424,7 @@ export class UI {
     const menu = this.$$('.menu-item');
     const labels = [
       [this.t('continue'), pt ? 'Capítulo atual · modo história' : 'Current chapter · story mode'],
-      [this.t('story'), pt ? '5 missões · Luiza & Carlos' : '5 missions · Luiza & Carlos'],
+      [this.t('story'), pt ? '91 missões GTA 7 BR · Caio' : '91 GTA 7 BR missions · Caio'],
       [this.t('rp'), pt ? 'Costa RP · trabalhos e reputação' : 'Costa RP · jobs and reputation'],
       [this.t('free'), pt ? 'Explore sem limites' : 'Explore without limits']
     ];
@@ -461,15 +489,22 @@ export class UI {
     this.$('#low-health').classList.toggle('on', health < 28 && health > 0);
     this.$('#armor-fill').style.width = `${clamp(p.armor, 0, 100)}%`;
     this.$('#stamina-fill').style.width = `${clamp(p.stamina, 0, 100)}%`;
+    const hunger = clamp(game.hunger ?? 100, 0, 100);
+    this.$('#hunger-fill').style.width = `${hunger}%`;
+    this.$('#hunger-value').textContent = Math.round(hunger);
+    this.$('#hunger-row').classList.toggle('low', hunger < 25);
     const char = game.activeChar;
+    const cycle = { Caio: 'LUIZA', Luiza: 'CARLOS', Carlos: 'CAIO' };
+    const tags = { Caio: 'FAVELA', Luiza: 'ESTRADA', Carlos: 'MOTOR' };
     this.$('#player-name').textContent = char.name.toUpperCase();
     this.$('#player-avatar').textContent = char.name[0];
     this.$('#player-avatar').classList.toggle('carlos', char.name === 'Carlos');
-    this.$('#player-tag').textContent = char.name === 'Luiza' ? 'ESTRADA' : 'MOTOR';
-    this.$('#switch-name').textContent = (char.name === 'Luiza' ? 'CARLOS' : 'LUIZA');
-    this.$('#switch-avatar').textContent = (char.name === 'Luiza' ? 'C' : 'L');
-    this.$('#switch-avatar').style.background = char.name === 'Luiza' ? 'linear-gradient(135deg,#234f48,#0c1d21)' : 'linear-gradient(135deg,#5a2d35,#1e1820)';
-    this.$('#switch-avatar').style.color = char.name === 'Luiza' ? '#baffef' : '#ffd0c2';
+    this.$('#player-avatar').classList.toggle('caio', char.name === 'Caio');
+    this.$('#player-tag').textContent = tags[char.name] || 'RUA';
+    this.$('#switch-name').textContent = cycle[char.name] || 'CAIO';
+    this.$('#switch-avatar').textContent = (cycle[char.name] || 'CAIO')[0];
+    this.$('#switch-avatar').style.background = char.name === 'Caio' ? 'linear-gradient(135deg,#204b96,#071a33)' : char.name === 'Luiza' ? 'linear-gradient(135deg,#234f48,#0c1d21)' : 'linear-gradient(135deg,#5a2d35,#1e1820)';
+    this.$('#switch-avatar').style.color = char.name === 'Caio' ? '#bcd9ff' : char.name === 'Luiza' ? '#baffef' : '#ffd0c2';
     this.$('#ammo').textContent = p.mag;
     this.$('#weapon-name').textContent = p.weapon === 'pistol' ? 'PISTOLA' : 'SUBMETRALHADORA';
     this.$('#weapon-card').querySelector('small').textContent = `/ ${p.reserve}`;
@@ -489,11 +524,29 @@ export class UI {
     this.$('#map-district-desc').textContent = this.language === 'pt' ? d.descPt : d.descEn;
     this.$('#weapon-card').style.display = game.inVehicle ? 'none' : 'flex';
     this.$('#stamina-row') && (this.$('#stamina-row').style.opacity = game.inVehicle ? '.4' : '1');
-    if (game.missionManager?.active && game.missionManager.currentStep) {
-      const step = game.missionManager.currentStep;
+    const veh = game.inVehicle ? game.activeVehicle : null;
+    const vehHud = this.$('#vehicle-hud');
+    if (vehHud) {
+      vehHud.classList.toggle('on', !!veh);
+      if (veh) {
+        this.$('#veh-name').textContent = game.vehicleLabel ? game.vehicleLabel(veh) : (veh.type || 'VEÍCULO').toUpperCase();
+        this.$('#veh-speed').textContent = Math.round(Math.abs(veh.speed || 0) * 3.6);
+        this.$('#veh-health').style.width = `${clamp(veh.health ?? 100, 0, 100)}%`;
+        this.$('#veh-fuel').style.width = `${clamp(veh.fuel ?? 100, 0, 100)}%`;
+      }
+    }
+    if (game.missionManager?.active && game.missionManager.step) {
+      const step = game.missionManager.step;
       const dist = Math.round(game.missionManager.distanceToTarget());
       this.$('#objective-distance').textContent = `${dist} m`;
       this.$('#objective-extra').textContent = step.checkpoint === false ? '' : this.t('checkpoint');
+      const mission = game.missionManager.mission;
+      if (mission) {
+        const num = mission.campaign === 'gta7' ? mission.gta7Index : mission.index + 1;
+        this.$('#objective-mode').textContent = this.language === 'pt' ? `MISSÃO ${num}${mission.campaign === 'gta7' ? ' / 91' : ''}` : `MISSION ${num}${mission.campaign === 'gta7' ? ' / 91' : ''}`;
+        this.$('#objective-title').textContent = this.language === 'pt' ? mission.title.pt : mission.title.en;
+        this.$('#objective-text').textContent = this.language === 'pt' ? step.textPt : step.textEn;
+      }
     }
   }
 
@@ -524,7 +577,10 @@ export class UI {
   updateObjective(mission, step, distance) {
     if (!mission || !step) { this.$('#objective-panel').style.display = 'none'; return; }
     this.$('#objective-panel').style.display = 'block';
-    this.$('#objective-mode').textContent = this.storyMode === 'story' ? (this.language === 'pt' ? `MISSÃO 0${mission.index + 1}` : `MISSION 0${mission.index + 1}`) : (this.storyMode === 'rp' ? 'COSTA RP' : (this.language === 'pt' ? 'MUNDO LIVRE' : 'FREE ROAM'));
+    const num = mission.campaign === 'gta7' ? mission.gta7Index : mission.index + 1;
+    this.$('#objective-mode').textContent = this.storyMode === 'story'
+      ? (this.language === 'pt' ? `MISSÃO ${mission.campaign === 'gta7' ? `${num} / 91` : `0${num}`}` : `MISSION ${mission.campaign === 'gta7' ? `${num} / 91` : `0${num}`}`)
+      : (this.storyMode === 'rp' ? 'COSTA RP' : (this.language === 'pt' ? 'MUNDO LIVRE' : 'FREE ROAM'));
     this.$('#objective-title').textContent = this.language === 'pt' ? mission.title.pt : mission.title.en;
     this.$('#objective-text').textContent = this.language === 'pt' ? step.textPt : step.textEn;
     this.$('#objective-distance').textContent = distance >= 0 ? `${Math.round(distance)} m` : '';
@@ -630,8 +686,8 @@ export class UI {
     return new Promise(resolve => {
       const pt = this.language === 'pt';
       const card = this.$('#mission-card');
-      this.$('#mission-card-num').textContent = `0${mission.index + 1}`;
-      this.$('#mission-card-kicker').textContent = `${pt ? 'MODO HISTÓRIA' : 'STORY MODE'} · ${protagonist.toUpperCase()}`;
+      this.$('#mission-card-num').textContent = mission.campaign === 'gta7' ? String(mission.gta7Index).padStart(2, '0') : `P${mission.index + 1}`;
+      this.$('#mission-card-kicker').textContent = `${mission.campaign === 'gta7' ? (pt ? 'GTA 7 BR · CAMPANHA DO CAIO' : 'GTA 7 BR · CAIO CAMPAIGN') : (pt ? 'PRÓLOGO' : 'PROLOGUE')} · ${protagonist.toUpperCase()}`;
       this.$('#mission-card-title').textContent = pt ? mission.title.pt.toUpperCase() : mission.title.en.toUpperCase();
       this.$('#mission-card-desc').textContent = pt ? mission.descPt : mission.descEn;
       card.classList.remove('on');
@@ -669,29 +725,99 @@ export class UI {
   }
   hideWasted() { this.$('#wasted-screen').classList.remove('on'); }
 
+  chapterFor(mission) {
+    const n = mission?.gta7Index || 0;
+    const pt = this.language === 'pt';
+    if (n <= 10) return pt ? 'TUTORIAL · FAVELA' : 'TUTORIAL · HILL';
+    if (n <= 30) return pt ? 'FAVELA · CIDADE' : 'HILL · CITY';
+    if (n <= 50) return pt ? 'CIDADE · ASSALTO' : 'CITY · HEIST';
+    if (n <= 70) return pt ? 'PRAIA · IATE · FESTA' : 'BEACH · YACHT · PARTY';
+    if (n <= 90) return pt ? 'CHEFÃO FINAL · GUERRA' : 'FINAL BOSS · WAR';
+    return pt ? 'FINAL SECRETA' : 'SECRET FINALE';
+  }
+
+  isMissionUnlocked(m, completed) {
+    if (completed.includes(m.index)) return true;
+    if (m.campaign === 'gta7') {
+      if (m.gta7Index <= 1) return true;
+      return completed.includes(m.index - 1);
+    }
+    if (m.index <= 0) return true;
+    return completed.includes(m.index - 1);
+  }
+
+  updateGta7Progress() {
+    const completed = this.game.completedMissions || this.game.loadSave()?.completedMissions || [];
+    const campaign = (this.game.missions || []).filter(m => m.campaign === 'gta7');
+    const total = campaign.length || 91;
+    const done = campaign.filter(m => completed.includes(m.index)).length;
+    const pct = Math.round((done / total) * 100);
+    const bar = this.$('#gta7-progress-bar');
+    if (bar) bar.style.width = `${pct}%`;
+    const label = this.$('#gta7-progress-label');
+    if (label) label.textContent = `${done} / ${total} · ${pct}%`;
+    const badge = this.$('#mission-count-badge');
+    if (badge) badge.textContent = `${done} / ${total}`;
+    const next = campaign.find(m => !completed.includes(m.index));
+    const chapter = this.$('#gta7-progress-chapter');
+    if (chapter) {
+      chapter.textContent = next
+        ? (this.language === 'pt' ? `MISSÃO ${next.gta7Index} · ${next.title.pt.toUpperCase()} · ${this.chapterFor(next)}` : `MISSION ${next.gta7Index} · ${next.title.en.toUpperCase()} · ${this.chapterFor(next)}`)
+        : (this.language === 'pt' ? '91 / 91 · REI DO BRASIL' : '91 / 91 · KING OF BRAZIL');
+    }
+    const note = this.$('#gta7-progress-note');
+    if (note) {
+      note.textContent = done >= total
+        ? (this.language === 'pt' ? 'TROFÉU 91/91 CONQUISTADO · Carro dourado, mansão e roupa de rei liberados.' : 'TROPHY 91/91 UNLOCKED · Golden car, mansion and king outfit unlocked.')
+        : (this.language === 'pt' ? 'Cada missão concluída salva o jogo, destrava a próxima e entrega um troféu. No 91/91: carro dourado, mansão e roupa de rei.' : 'Each mission saves, unlocks the next and grants a trophy. At 91/91: golden car, mansion and king outfit.');
+    }
+    const pause = this.$('#pause-progress');
+    if (pause) pause.textContent = `${done}/${total}`;
+    return { done, total, pct };
+  }
+
   buildMissionList() {
     const list = this.$('#mission-list');
     if (!list || !this.game.missions) return;
-    const save = this.game.loadSave();
-    const completed = save?.completedMissions || [];
-    list.innerHTML = this.game.missions.map((m, i) => {
+    const completed = this.game.completedMissions?.length ? this.game.completedMissions : (this.game.loadSave()?.completedMissions || []);
+    const pt = this.language === 'pt';
+    const filter = this.missionFilter || 'all';
+    const missions = this.game.missions.filter(m => {
       const done = completed.includes(m.index);
-      const active = this.game.missionManager?.missionIndex === i && this.game.missionManager?.active;
-      const locked = i > completed.length;
-      return `<div class="mission-row ${done ? 'completed' : ''} ${active ? 'active' : ''} ${locked ? 'locked' : ''}">
-        <div class="mission-num">${done ? '✓' : `0${i + 1}`}</div>
-        <div><h4>${this.language === 'pt' ? m.title.pt : m.title.en}</h4><p>${this.language === 'pt' ? m.descPt : m.descEn}</p></div>
-        <span class="m-protag">${m.protag.toUpperCase()}</span>
-        <button data-mission="${i}" ${locked ? 'disabled' : ''}>${done ? (this.language === 'pt' ? 'REJOGAR' : 'REPLAY') : (this.language === 'pt' ? 'INICIAR' : 'START')}</button>
+      if (filter === 'done' && !done) return false;
+      if (filter === 'open' && (done || !this.isMissionUnlocked(m, completed))) return false;
+      return true;
+    });
+    list.innerHTML = missions.map(m => {
+      const done = completed.includes(m.index);
+      const active = this.game.missionManager?.missionIndex === this.game.missions.indexOf(m) && this.game.missionManager?.active;
+      const locked = !this.isMissionUnlocked(m, completed);
+      const num = m.campaign === 'gta7' ? String(m.gta7Index).padStart(2, '0') : `P${m.index + 1}`;
+      const story = (pt ? m.story : m.storyEn) || [pt ? m.descPt : m.descEn].filter(Boolean);
+      const stars = m.wanted ? '★'.repeat(Math.min(6, m.wanted)) : (pt ? 'SEM POLÍCIA' : 'NO HEAT');
+      return `<div class="mission-row ${done ? 'completed' : ''} ${active ? 'active' : ''} ${locked ? 'locked' : ''}" data-row="${m.index}">
+        <div class="mission-num">${done ? '✓' : num}</div>
+        <div class="mission-copy">
+          <h4>${m.campaign === 'gta7' ? `${num} · ` : ''}${pt ? m.title.pt : m.title.en}</h4>
+          <p>${pt ? m.objective || m.descPt : m.objective || m.descEn}</p>
+          <div class="mission-meta">
+            <span>${pt ? 'LOCAL' : 'PLACE'} · ${(m.placeName || (m.spawnKey ? m.spawnKey : 'COSTA DOURADA')).toUpperCase()}</span>
+            <span class="reward">R$ ${Number(m.reward || 0).toLocaleString('pt-BR')}</span>
+            ${m.vehicle ? `<span class="vehicle">${m.vehicle.toUpperCase()}</span>` : ''}
+            ${m.weapon ? `<span class="weapon">${m.weapon.toUpperCase()}</span>` : ''}
+            <span>${stars}</span>
+            ${m.campaign === 'gta7' ? `<span>${this.chapterFor(m)}</span>` : ''}
+          </div>
+          <div class="mission-story">${(story || []).map(line => `<p>${line}</p>`).join('')}</div>
+        </div>
+        <div class="mission-actions">
+          <button data-mission="${this.game.missions.indexOf(m)}" ${locked ? 'disabled' : ''}>${done ? (pt ? 'REJOGAR' : 'REPLAY') : (pt ? 'INICIAR' : 'START')}</button>
+          <button data-map="${m.index}" class="map">${pt ? 'MAPA' : 'MAP'}</button>
+        </div>
       </div>`;
     }).join('');
-    list.querySelectorAll('button[data-mission]').forEach(btn => btn.addEventListener('click', () => {
-      this.game.startMission(Number(btn.dataset.mission), { fromMenu: true });
-      this.closePause();
-    }));
-    const count = completed.length;
-    this.$('#mission-count-badge').textContent = `${Math.min(count + 1, 5)} / 5`;
-    this.$('#pause-progress').textContent = `${count}/5`;
+    this.updateGta7Progress();
+    this.updateDashboard();
   }
 
   // ---------------- SETTINGS ----------------
@@ -901,6 +1027,9 @@ export class UI {
     if (this.game.missionManager?.active) {
       this.$('#map-objective').textContent = this.game.missionManager.mission.title ? (this.language === 'pt' ? this.game.missionManager.mission.title.pt : this.game.missionManager.mission.title.en) : '—';
       this.$('#map-objective-dist').textContent = `${Math.round(this.game.missionManager.distanceToTarget())} m`;
+    } else if (this.game.waypointMeta) {
+      this.$('#map-objective').textContent = this.game.waypointMeta.title;
+      this.$('#map-objective-dist').textContent = `${Math.round(this.game.distanceTo(this.game.waypoint))} m`;
     }
     const list = this.$('#map-markers');
     if (list) {
@@ -985,10 +1114,18 @@ export class UI {
       labels.forEach(([x, z, text]) => ctx.fillText(text, toX(x), toY(z)));
       ctx.textAlign = 'left';
     }
-    // mission marker
-    const marker = game.missionManager?.markerPos;
+    // mission marker + animated route line
+    const marker = game.missionManager?.markerPos || game.waypoint;
     if (marker) {
       const x = toX(marker.x), y = toY(marker.z);
+      const px0 = toX(game.player.position.x), py0 = toY(game.player.position.z);
+      ctx.save();
+      ctx.setLineDash([big ? 10 : 5, big ? 8 : 4]);
+      ctx.lineDashOffset = -(performance.now() * .012) % 18;
+      ctx.strokeStyle = big ? 'rgba(246,199,104,.82)' : 'rgba(246,199,104,.62)';
+      ctx.lineWidth = big ? 3 : 1.6;
+      ctx.beginPath(); ctx.moveTo(px0, py0); ctx.lineTo(x, y); ctx.stroke();
+      ctx.restore();
       const pulse = 1 + Math.sin(performance.now() * .005) * .24;
       ctx.save();
       ctx.translate(x, y); ctx.rotate(Math.PI / 4);
@@ -996,6 +1133,17 @@ export class UI {
       ctx.strokeRect(-7 * pulse, -7 * pulse, 14 * pulse, 14 * pulse);
       ctx.fillStyle = 'rgba(246,199,104,.35)'; ctx.fillRect(-5, -5, 10, 10);
       ctx.restore();
+      if (!big) {
+        const dist = Math.hypot(marker.x - game.player.position.x, marker.z - game.player.position.z);
+        if (dist > range * .32) {
+          const a = Math.atan2(marker.z - game.player.position.z, marker.x - game.player.position.x);
+          const r = Math.min(W, H) * .42;
+          ctx.fillStyle = '#f6c768';
+          ctx.beginPath();
+          ctx.arc(W / 2 + Math.cos(a) * r, H / 2 + Math.sin(a) * r, 4, 0, 7);
+          ctx.fill();
+        }
+      }
     }
     // service markers if big
     if (big) {

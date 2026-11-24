@@ -5,8 +5,9 @@
 // ============================================================
 import * as THREE from 'three';
 import { createWorld } from './world.js';
-import { createLuiza, createCarlos, createRandomNPC } from './character.js';
-import { createVehicle } from './vehicle.js';
+import { createLuiza, createCarlos, createCaio, createRandomNPC } from './character.js';
+import { buildGta7Missions } from './missions-gta7.js';
+import { createVehicle, VEHICLE_SPECS } from './vehicle.js';
 import { AudioManager } from './audio.js';
 import { VoiceDirector } from './voice.js';
 import { UI } from './ui.js';
@@ -77,7 +78,7 @@ const LINES = {
   ]
 };
 
-const MISSIONS = [
+const PROLOGUE_MISSIONS = [
   {
     index: 0,
     protag: 'Luiza',
@@ -171,6 +172,9 @@ const MISSIONS = [
   }
 ];
 
+// Campanha GTA 7 BR (91 missões) somada às 5 missões originais.
+const MISSIONS = [...PROLOGUE_MISSIONS, ...buildGta7Missions(PROLOGUE_MISSIONS.length)];
+
 // ============================================================
 // MISSION DIRECTOR
 // ============================================================
@@ -192,6 +196,8 @@ class MissionManager {
     this.talking = false;
     this.cleanupTimer = 0;
   }
+
+  get currentStep() { return this.step; }
 
   start(index) {
     this.active = true;
@@ -450,6 +456,29 @@ class Game {
     this.rp = { rep: 12, money: 2500 };
     this.completedMissions = [];
     this.playMode = 'story';
+    this.hunger = 100;
+    this.gta7Complete = false;
+    this.kingUnlocked = false;
+    this.mansionOwned = false;
+    this.goldenCarSpawned = false;
+    this.pickups = [];
+    this.facilityCooldowns = {};
+    this.contextAction = null;
+    this.contextTarget = null;
+    this.contextTick = 0;
+    this.crouching = false;
+    this.swimming = false;
+    this.waypoint = null;
+    this.waypointMeta = null;
+    this.hungerTimer = 0;
+    this.bank = 1500;
+    this.outfits = [];
+    this.ownedVehicles = [];
+    this.interactables = [];
+    this.specialNPCs = [];
+    this.policeHeli = null;
+    this.armySpawned = false;
+    this.lastContextKey = '';
 
     this.setupRenderer();
     this.setupScene();
@@ -495,6 +524,17 @@ class Game {
     this.completedMissions = Array.isArray(save.completedMissions) ? [...new Set(save.completedMissions)] : [];
     this.rp = { rep: save.rp?.rep ?? 12, money: save.rp?.money ?? this.money };
     this.playMode = save.playMode || 'story';
+    this.hunger = Number.isFinite(save.hunger) ? save.hunger : 100;
+    this.gta7Complete = !!save.gta7Complete;
+    this.kingUnlocked = !!save.kingUnlocked;
+    this.mansionOwned = !!save.mansionOwned;
+    this.bank = Number.isFinite(save.bank) ? save.bank : 1500;
+    this.outfits = Array.isArray(save.outfits) ? save.outfits : [];
+    this.ownedVehicles = Array.isArray(save.ownedVehicles) ? save.ownedVehicles : [];
+    if (save.waypoint && Number.isFinite(save.waypoint.x)) {
+      this.waypoint = new THREE.Vector3(save.waypoint.x, 0, save.waypoint.z);
+      this.waypointMeta = save.waypointMeta || null;
+    }
     if (save.timeOfDay) this.timeOfDay = save.timeOfDay;
     if (save.position && Number.isFinite(save.position.x)) {
       this.player.position.set(save.position.x, 0, save.position.z);
@@ -521,6 +561,8 @@ class Game {
       this.spawnNPCs();
       this.spawnVehicles();
       this.spawnTraffic();
+      this.spawnExtraVehicles();
+      this.initInteractables();
       this.applySettings();
       this.snapCamera();
       ui.bootProgress(78, 'Sincronizando controles e rádio…');
@@ -553,16 +595,18 @@ class Game {
 
   initEntities() {
     const ground = (x, z) => this.world.getGroundHeight(x, z);
+    this.caio = createCaio();
     this.luiza = createLuiza();
     this.carlos = createCarlos();
-    for (const c of [this.luiza, this.carlos]) {
+    for (const c of [this.caio, this.luiza, this.carlos]) {
       c.root.traverse(o => { if (o.isMesh) o.castShadow = true; });
       this.scene.add(c.root);
       c.root.visible = false;
     }
-    this.luiza.root.position.set(this.player.position.x, ground(this.player.position.x, this.player.position.z), this.player.position.z);
-    this.carlos.root.position.copy(this.luiza.root.position);
-    this.activeChar = this.luiza;
+    this.caio.root.position.set(this.player.position.x, ground(this.player.position.x, this.player.position.z), this.player.position.z);
+    this.luiza.root.position.copy(this.caio.root.position);
+    this.carlos.root.position.copy(this.caio.root.position);
+    this.activeChar = this.caio;
     this.activeChar.root.visible = true;
     this.activeChar.setWeapon('pistol');
     this.missionManager = new MissionManager(this);
@@ -590,19 +634,31 @@ class Game {
         chatter: Math.floor(Math.random() * LINES.chatterPT.length)
       });
     }
+    // Elenco fixo do GTA 7 BR: amigo, namorada, vendedor, policial, rival e moradores.
+    this.spawnSpecialNPC('Zeca', 'friend', 'favela', 10, 12, true);
+    this.spawnSpecialNPC('Bia', 'girlfriend', 'beachKiosk', 10, 10, true);
+    this.spawnSpecialNPC('Vendedor', 'vendor', 'shop', -8, 6, false);
+    this.spawnSpecialNPC('Policial', 'cop', 'police', -8, 6, true);
+    this.spawnSpecialNPC('Rival', 'rival', 'port', -10, 10, true);
+    this.spawnSpecialNPC('Morador', 'resident', 'park', 8, 8, true);
+    this.spawnSpecialNPC('Dona Neide', 'mother', 'home', -10, 10, false);
   }
 
   makeVehicle(spawn, options = {}) {
-    const model = createVehicle(spawn.type || 'hatch', spawn.color || 0xf1eee3, options);
+    const type = spawn.type || 'hatch';
+    const model = createVehicle(type, spawn.color || 0xf1eee3, options);
+    const spec = VEHICLE_SPECS[type] || VEHICLE_SPECS.hatch;
     const v = {
       model, root: model.root, position: model.root.position,
       heading: spawn.rotY || 0, speed: 0, steering: 0,
-      type: spawn.type || 'hatch', color: spawn.color || 0xf1eee3,
-      health: 100, occupied: false, ai: !!options.ai, patrol: false,
-      lane: options.lane || null, wrap: options.wrap || null,
-      hero: !!spawn.hero
+      type, color: spawn.color || 0xf1eee3, spec,
+      health: 100, maxHealth: options.hero ? 180 : 100, fuel: 100, occupied: false,
+      ai: !!options.ai, patrol: false, lane: options.lane || null, wrap: options.wrap || null,
+      hero: !!spawn.hero, isAir: !!spec.air, isWater: !!spec.water,
+      altitude: 0, vertical: 0, golden: false, smoke: 0,
+      label: spec.label || VEHICLE_SPECS.hatch.label
     };
-    v.root.position.set(spawn.x, 0, spawn.z);
+    v.root.position.set(spawn.x, this.world?.getGroundHeight?.(spawn.x, spawn.z) || 0, spawn.z);
     v.root.rotation.y = v.heading;
     this.scene.add(v.root);
     this.vehicles.push(v);
@@ -622,12 +678,133 @@ class Game {
     for (const lane of lanes) {
       const v = this.makeVehicle({
         x: lane.x, z: lane.z, rotY: lane.dir > 0 ? Math.PI / 2 : -Math.PI / 2,
-        type: Math.random() > .5 ? 'hatch' : 'pickup',
+        type: ['hatch', 'pickup', 'taxi', 'suv', 'van', 'truck'][Math.floor(Math.random() * 6)],
         color: [0x2c8d8b, 0xd6594e, 0xefb94e, 0xf1eee3][Math.floor(Math.random() * 4)]
       }, { ai: true, lane });
       v.lane = lane;
       this.traffic.push(v);
     }
+  }
+
+  spawnSpecialNPC(name, role, key, offX, offZ, walking = false) {
+    const base = this.world.locations[key] || this.world.locations.beachKiosk;
+    const spot = this.freeSpot(base.x + offX, base.z + offZ, 4);
+    const char = createRandomNPC(name);
+    char.root.position.set(spot.x, this.world.getGroundHeight(spot.x, spot.z), spot.z);
+    char.setAiming(false);
+    char.weapon.visible = false;
+    char.smg.visible = false;
+    char.root.traverse(o => { if (o.isMesh) o.castShadow = true; });
+    this.scene.add(char.root);
+    const npc = {
+      char, root: char.root, position: char.root.position, name, role, walking,
+      axis: 'x', dir: Math.random() > .5 ? 1 : -1, speed: .4 + Math.random() * .35,
+      homeX: spot.x, homeZ: spot.z, dead: false, deadTimer: 0,
+      chatter: Math.floor(Math.random() * LINES.chatterPT.length)
+    };
+    this.npcs.push(npc);
+    this.specialNPCs.push(npc);
+    return npc;
+  }
+
+  spawnExtraVehicles() {
+    const add = (type, color, key, dx, dz, rotY = 0, options = {}) => {
+      const base = this.world.locations[key] || this.world.locations.beachKiosk;
+      const spot = this.freeSpot(base.x + dx, base.z + dz, 9);
+      const v = this.makeVehicle({ x: spot.x, z: spot.z, rotY, type, color }, options);
+      v.parkingKey = key;
+      return v;
+    };
+    // Motos, carros de luxo, viaturas e utilitários espalhados pela cidade.
+    add('motorcycle', 0xd6594e, 'favela', 16, 20, .6);
+    add('motorcycle', 0xefb94e, 'garage', -12, -8, Math.PI / 2);
+    add('motorcycle', 0x2c8d8b, 'beachKiosk', 22, 8, Math.PI / 2);
+    add('super', 0xffc93c, 'mansion', 9, 12, Math.PI / 2);
+    add('super', 0xd21f3c, 'matteoTower', 22, 24, Math.PI);
+    add('taxi', 0xf2c14e, 'beachKiosk', -18, 4, Math.PI / 2, { taxi: true });
+    add('ambulance', 0xf1eee3, 'hospital', 12, 8, Math.PI / 2);
+    add('truck', 0x8c9aa2, 'port', -14, 18, 0);
+    add('bus', 0xf0b23c, 'matteoTower', -24, 22, Math.PI / 2);
+    add('police', 0x172326, 'police', 10, 8, Math.PI / 2);
+    add('tank', 0x4a5940, 'airport', 28, -24, 0);
+    add('helicopter', 0x1f3a4a, 'airport', -30, -34, .4);
+    add('plane', 0xe9e5d8, 'airport', 30, -48, Math.PI);
+    add('boat', 0xe8e2d2, 'pier', 4, 18, Math.PI);
+    add('jetski', 0xefb94e, 'pier', 24, 22, Math.PI / 2);
+    add('yacht', 0xf1eee3, 'pier', 48, 30, Math.PI);
+    add('boat', 0x2c8d8b, 'marina', 60, 120, Math.PI);
+  }
+
+  makeBeacon(color, icon) {
+    const group = new THREE.Group();
+    const ring = new THREE.Mesh(
+      new THREE.RingGeometry(.55, .78, 20),
+      new THREE.MeshBasicMaterial({ color, transparent: true, opacity: .55, side: THREE.DoubleSide, depthWrite: false })
+    );
+    ring.rotation.x = -Math.PI / 2;
+    ring.position.y = .06;
+    group.add(ring);
+    const canvas = document.createElement('canvas');
+    canvas.width = canvas.height = 128;
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, 128, 128);
+    ctx.fillStyle = 'rgba(4,14,16,.78)';
+    ctx.beginPath(); ctx.arc(64, 64, 48, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = `#${color.toString(16).padStart(6, '0')}`;
+    ctx.lineWidth = 7; ctx.stroke();
+    ctx.fillStyle = '#f8f4e7';
+    ctx.font = '700 54px "Barlow Condensed", sans-serif';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(icon, 64, 68);
+    const tex = new THREE.CanvasTexture(canvas);
+    tex.colorSpace = THREE.SRGBColorSpace;
+    const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false }));
+    sprite.scale.set(1.15, 1.15, 1);
+    sprite.position.y = 1.55;
+    group.add(sprite);
+    group.userData.sprite = sprite;
+    this.scene.add(group);
+    if (!this.beacons) this.beacons = [];
+    this.beacons.push(group);
+    return group;
+  }
+
+  initInteractables() {
+    const loc = (key) => this.world.locations[key] || this.world.locations.beachKiosk;
+    const push = (kind, key, dx, dz, icon, symbol, labelPt, labelEn, subPt, subEn, extra = {}) => {
+      const base = loc(key);
+      const spot = this.freeSpot(base.x + dx, base.z + dz, 5);
+      const item = {
+        id: `${kind}-${key}-${this.interactables.length}`,
+        kind, key, x: spot.x, z: spot.z, y: this.world.getGroundHeight(spot.x, spot.z),
+        radius: extra.radius || 4.4, icon, symbol, labelPt, labelEn, subPt, subEn, ...extra
+      };
+      item.beacon = this.makeBeacon(extra.color || 0xf6c768, symbol);
+      item.beacon.position.set(item.x, item.y, item.z);
+      this.interactables.push(item);
+      return item;
+    };
+
+    push('bed', 'home', 5, 5, 'square', '▣', 'DORMIR / SALVAR', 'SLEEP / SAVE', 'Barraco do Caio', "Caio's place", { color: 0x43ddbe });
+    push('door', 'home', -6, 6, 'square', '▣', 'ABRIR PORTA / ENTRAR', 'OPEN DOOR / ENTER', 'Barraco do Caio', "Caio's place", { color: 0x43ddbe });
+    push('shop', 'shop', 3, 3, 'circle', '○', 'COMPRAR ROUPA', 'BUY CLOTHES', 'Loja da Orla', 'Shore Shop', { color: 0xff7058, cost: 300 });
+    push('weapon', 'shop', -3, 3, 'square', '□', 'PEGAR ARMA', 'PICK UP WEAPON', 'Balcão da loja', 'Shop counter', { color: 0xff8bc1, weapon: 'smg' });
+    push('food', 'lanchonete', 2, 3, 'circle', '○', 'COMPRAR LANCHE', 'BUY SNACK', 'Lanchonete da Praia', 'Beach Diner', { color: 0xff7058, cost: 25 });
+    push('heal', 'hospital', 3, 3, 'cross', '✕', 'TRATAR / CURAR', 'TREAT / HEAL', 'Hospital da Maré', 'Maré Hospital', { color: 0x71c7ff, cost: 200 });
+    push('repair', 'garage', 3, 3, 'triangle', '△', 'REPARAR VEÍCULO', 'REPAIR VEHICLE', 'Oficina do Zeca', "Zeca's Garage", { color: 0x43ddbe, cost: 150 });
+    push('buycar', 'garage', -8, -6, 'triangle', '△', 'COMPRAR CARRO', 'BUY CAR', 'Oficina do Zeca', "Zeca's Garage", { color: 0x43ddbe, cost: 5000 });
+    push('atm', 'bank', 2, 2, 'cross', '✕', 'SACAR DINHEIRO', 'WITHDRAW CASH', 'Banco Maré', 'Maré Bank', { color: 0x71c7ff, amount: 500 });
+    push('door', 'bank', -4, 2, 'square', '□', 'ABRIR PORTA / ENTRAR', 'OPEN DOOR / ENTER', 'Banco Maré', 'Maré Bank', { color: 0x71c7ff });
+    push('door', 'police', 3, 3, 'square', '□', 'ABRIR PORTA / ENTRAR', 'OPEN DOOR / ENTER', 'Delegacia Central', 'Central Precinct', { color: 0x71c7ff });
+    push('item', 'port', 4, 4, 'triangle', '△', 'PEGAR ITEM', 'PICK UP ITEM', 'Porto Maré', 'Maré Harbor', { color: 0x43ddbe, reward: 350 });
+    push('item', 'park', 3, 3, 'triangle', '△', 'PEGAR ITEM', 'PICK UP ITEM', 'Parque das Salinas', 'Salt Park', { color: 0x89c67a, reward: 180 });
+    push('item', 'pier', 4, -4, 'triangle', '△', 'PEGAR ITEM', 'PICK UP ITEM', 'Pier de Costa', 'Costa Pier', { color: 0xe6ddc8, reward: 240 });
+    push('weapon', 'favela', 6, 7, 'square', '□', 'PEGAR ARMA', 'PICK UP WEAPON', 'Morro do Som', 'Sound Hill', { color: 0xff8bc1, weapon: 'smg' });
+    push('drink', 'club', 3, 3, 'circle', '○', 'COMPRAR BEBIDA', 'BUY DRINK', 'Clube Neon 88', 'Neon 88 Club', { color: 0xff8bc1, cost: 40 });
+    push('mansion', 'mansion', 4, 4, 'square', '□', 'COMPRAR MANSÃO', 'BUY MANSION', 'Mansão da Serra', 'Hill Mansion', { color: 0xf6c768, cost: 25000 });
+    push('door', 'airport', 5, 5, 'square', '□', 'ABRIR PORTA / ENTRAR', 'OPEN DOOR / ENTER', 'Aeroporto de Costa', 'Costa Airport', { color: 0x71c7ff });
+    push('door', 'mansion', -5, 5, 'square', '□', 'ABRIR PORTA / ENTRAR', 'OPEN DOOR / ENTER', 'Mansão da Serra', 'Hill Mansion', { color: 0xf6c768 });
+    push('food', 'beachKiosk', 4, 8, 'circle', '○', 'COMPRAR LANCHE', 'BUY SNACK', 'Quiosque da Orla', 'Shore Kiosk', { color: 0xff7058, cost: 20 });
   }
 
   freeSpot(x, z, spread = 4) {
@@ -793,6 +970,7 @@ class Game {
       if (this.state === 'playing' && !this.locked && !this.isTouch) this.captureInput();
     });
     this.bindTouch();
+    this.bindContext();
   }
 
   haptic(ms = 10) {
@@ -813,6 +991,15 @@ class Game {
     this.camPitch = this.inVehicle ? .14 : .16;
     this.snapCamera();
     this.haptic(8);
+  }
+
+  toggleCrouch() {
+    this.crouching = !this.crouching;
+    const pt = this.ui?.language !== 'en';
+    if (this.activeChar) this.activeChar.root.scale.y = this.crouching ? .8 : 1;
+    this.ui?.hudToast?.(this.crouching ? (pt ? 'AGACHADO · ESCONDIDO' : 'CROUCHED · HIDDEN') : (pt ? 'EM PÉ' : 'STANDING'));
+    this.haptic(8);
+    this.audio?.click?.();
   }
 
   toggleSprint() {
@@ -840,7 +1027,7 @@ class Game {
     set('.touch-r3', 'CAM');
     set('.ps-btn.triangle', v ? (pt ? 'SAIR' : 'EXIT') : (pt ? 'VEÍCULO' : 'VEHICLE'));
     set('.ps-btn.square', v ? (pt ? 'FREIO MÃO' : 'HANDBRAKE') : (pt ? 'SALTAR' : 'JUMP'));
-    set('.ps-btn.circle', v ? (pt ? 'BUZINA' : 'HORN') : (pt ? 'ATIRAR' : 'FIRE'));
+    set('.ps-btn.circle', v ? (pt ? 'BUZINA' : 'HORN') : (pt ? 'AGACHAR' : 'CROUCH'));
     set('.ps-btn.cross', v ? (pt ? 'SAIR' : 'EXIT') : (pt ? 'INTERAGIR' : 'INTERACT'));
   }
 
@@ -914,6 +1101,7 @@ class Game {
         btn.classList.remove('held');
         if (action === 'fire') this.touchFireHeld = false;
         if (action === 'aim') this.touchBrake = false;
+        if (action === 'jump') this.jumpHeld = false;
         if (longTimer) { clearTimeout(longTimer); longTimer = null; }
       };
       const release = () => {
@@ -951,6 +1139,11 @@ class Game {
             break;
           case 'jump':
             this.jumpRequested = true;
+            this.jumpHeld = true;
+            break;
+          case 'crouch':
+            if (this.inVehicle) this.audio.horn?.();
+            else this.toggleCrouch();
             break;
           case 'vehicle':
             this.toggleVehicle();
@@ -1132,6 +1325,7 @@ class Game {
     if (playing) {
       this.updateGameplay(dt);
       this.updateCamera(dt, false);
+      this.updateContextAction();
       this.hudTimer += dt;
       if (this.hudTimer > .1) {
         this.hudTimer = 0;
@@ -1274,6 +1468,15 @@ class Game {
       car.root.parent?.remove(car.root);
     }
     this.policeCars = [];
+    if (this.policeHeli) {
+      this.policeHeli.root.parent?.remove(this.policeHeli.root);
+      this.policeHeli = null;
+    }
+    if (this.armyHostiles) {
+      for (const h of this.armyHostiles) this.removeHostile(h);
+      this.armyHostiles = null;
+    }
+    this.armySpawned = false;
     this.ui.setSearchProgress(0);
     if (!silent) this.ui.notify('✓', this.ui.language === 'pt' ? 'Você despistou a polícia.' : 'You lost the police.');
   }
@@ -1313,6 +1516,38 @@ class Game {
   }
 
   // ---------------- GAMEPLAY ----------------
+  updateHunger(dt) {
+    this.hungerTimer += dt;
+    const decay = this.inVehicle ? .045 : .075;
+    this.hunger = clamp((this.hunger ?? 100) - dt * decay, 0, 100);
+    if (this.hunger <= 0) {
+      this.player.health = clamp(this.player.health - dt * .65, 0, 100);
+      if (!this.hungerWarned || this.sessionTime - this.hungerWarned > 26) {
+        this.hungerWarned = this.sessionTime;
+        this.ui.notify('!', this.ui.language === 'pt' ? 'Você está com fome. Compre um lanche.' : 'You are hungry. Buy a snack.');
+      }
+    }
+    if (this.hunger < 20 && !this.hungerLowWarned) {
+      this.hungerLowWarned = true;
+      this.ui.hudToast(this.ui.language === 'pt' ? 'FOME CRÍTICA' : 'CRITICAL HUNGER');
+    } else if (this.hunger > 30) this.hungerLowWarned = false;
+  }
+
+  updateInteractables(dt) {
+    for (const item of this.interactables) {
+      if (item.used && (item.respawnAt || 0) <= this.sessionTime) {
+        item.used = false;
+        if (item.beacon) item.beacon.visible = true;
+      }
+    }
+    if (!this.beacons) return;
+    for (let i = 0; i < this.beacons.length; i++) {
+      const b = this.beacons[i];
+      const sprite = b.userData.sprite;
+      if (sprite) sprite.position.y = 1.5 + Math.sin(this.elapsed * 2.1 + i) * .12;
+    }
+  }
+
   updateGameplay(dt) {
     this.grace = Math.max(0, this.grace - dt);
     this.fireCooldown = Math.max(0, this.fireCooldown - dt);
@@ -1338,6 +1573,8 @@ class Game {
     if (this.inVehicle) this.updateVehicle(dt);
     else this.updateOnFoot(dt);
 
+    this.updateHunger(dt);
+    this.updateInteractables(dt);
     this.updateNPCs(dt);
     this.updateHostiles(dt);
     this.updateTraffic(dt);
@@ -1361,8 +1598,8 @@ class Game {
     const moving = mag > .08;
     const stickPush = Math.hypot(this.touchMove.x, this.touchMove.y);
 
-    const sprinting = (this.keys.has('ShiftLeft') || this.keys.has('ShiftRight') || this.touchSprint || stickPush > .96) && p.stamina > 2 && moving;
-    const targetSpeed = moving ? (this.aiming ? 2.5 : sprinting ? 7.4 : 4.2) : 0;
+    const sprinting = !this.crouching && (this.keys.has('ShiftLeft') || this.keys.has('ShiftRight') || this.touchSprint || stickPush > .96) && p.stamina > 2 && moving;
+    const targetSpeed = moving ? (this.crouching ? 2.1 : this.aiming ? 2.5 : sprinting ? 7.4 : 4.2) : 0;
     if (sprinting) p.stamina = clamp(p.stamina - dt * 16, 0, 100);
     else p.stamina = clamp(p.stamina + dt * 11, 0, 100);
 
@@ -1386,7 +1623,7 @@ class Game {
 
     const next = this._next || (this._next = new THREE.Vector3());
     next.set(p.position.x + (mx / len) * this.moveSpeed * dt, p.position.y, p.position.z + (mz / len) * this.moveSpeed * dt);
-    this.resolveCollision(next, .42);
+    this.resolveCollision(next, .42, 300);
     p.position.x = next.x;
     p.position.z = next.z;
 
@@ -1396,12 +1633,30 @@ class Game {
       this.audio.footstep();
     }
     const ground = this.world.getGroundHeight(p.position.x, p.position.z);
-    p.vy -= 19 * dt;
-    p.position.y += p.vy * dt;
-    if (p.position.y <= ground) {
-      p.position.y = ground;
+    const inWater = p.position.z > 146;
+    this.swimming = inWater;
+    if (inWater) {
+      this.swimTime = (this.swimTime || 0) + dt;
       p.vy = 0;
-      p.onGround = true;
+      p.position.y = .18 + Math.sin(this.elapsed * 2.5) * .05;
+      p.onGround = false;
+      if (this.swimTime > 18) {
+        this.swimTime = 18.5;
+        this.damagePlayer(dt * 9);
+      } else if (this.swimTime > 12 && !this.swimWarned) {
+        this.swimWarned = true;
+        this.ui.notify('!', this.ui.language === 'pt' ? 'Você está se afogando. Volte para a areia.' : 'You are drowning. Get back to the sand.');
+      }
+    } else {
+      this.swimTime = 0;
+      this.swimWarned = false;
+      p.vy -= 19 * dt;
+      p.position.y += p.vy * dt;
+      if (p.position.y <= ground) {
+        p.position.y = ground;
+        p.vy = 0;
+        p.onGround = true;
+      }
     }
 
     this.activeChar.root.position.copy(p.position);
@@ -1418,21 +1673,42 @@ class Game {
   updateVehicle(dt) {
     const v = this.activeVehicle;
     if (!v) { this.inVehicle = false; return; }
+    const spec = v.spec || VEHICLE_SPECS.hatch;
     const fwd = (this.keys.has('KeyW') || this.keys.has('ArrowUp') ? 1 : 0) - (this.keys.has('KeyS') || this.keys.has('ArrowDown') ? 1 : 0);
     const side = (this.keys.has('KeyD') || this.keys.has('ArrowRight') ? 1 : 0) - (this.keys.has('KeyA') || this.keys.has('ArrowLeft') ? 1 : 0);
     const throttle = clamp(fwd + this.touchMove.y + (this.touchFireHeld ? 1 : 0) - (this.touchBrake ? 1 : 0), -1, 1);
     const steer = clamp(side - this.touchMove.x, -1, 1);
     const handbrake = this.keys.has('Space') || this.jumpRequested;
+    const noFuel = (v.fuel ?? 100) <= 0;
 
-    if (throttle > 0) v.speed += 10.5 * throttle * dt;
-    else if (throttle < 0) v.speed -= (v.speed > .6 ? 23 : 7) * dt;
-    else v.speed *= Math.exp(-1.15 * dt);
-    if (handbrake) v.speed *= Math.exp(-4.8 * dt);
-    v.speed = clamp(v.speed, -9, 28);
+    if (!noFuel) {
+      if (v.isAir) {
+        if (throttle > 0) v.speed += spec.accel * .42 * throttle * dt;
+        else if (throttle < 0) v.speed -= spec.brake * .5 * dt;
+        else v.speed *= Math.exp(-.35 * dt);
+        v.speed = clamp(v.speed, -spec.max * .25, spec.max);
+        const climbing = (this.jumpRequested || this.jumpHeld || this.keys.has('Space')) && !this.touchBrake;
+        const descending = this.touchBrake || throttle < -.2;
+        const lift = climbing ? 9 : descending ? -9 : 0;
+        v.vertical = damp(v.vertical || 0, lift, 2.4, dt);
+        v.altitude = clamp((v.altitude || 0) + v.vertical * dt, 5.5, 78);
+        v.fuel = clamp((v.fuel ?? 100) - Math.abs(v.speed) * dt * .010, 0, 100);
+      } else {
+        if (throttle > 0) v.speed += spec.accel * throttle * dt * (v.isWater ? .8 : 1);
+        else if (throttle < 0) v.speed -= (v.speed > .6 ? spec.brake : spec.brake * .3) * dt;
+        else v.speed *= Math.exp(-(v.isWater ? .8 : 1.15) * dt);
+        if (handbrake) v.speed *= Math.exp(-4.8 * dt);
+        v.speed = clamp(v.speed, -spec.max * .3, spec.max);
+        v.fuel = clamp((v.fuel ?? 100) - Math.abs(v.speed) * dt * .008, 0, 100);
+      }
+    } else {
+      v.speed *= Math.exp(-2.2 * dt);
+      if (v.isAir) v.altitude = Math.max(0, (v.altitude || 0) - 4 * dt);
+    }
 
     if (Math.abs(v.speed) > .25) {
-      const grip = handbrake ? .45 : 1;
-      v.heading += steer * clamp(Math.abs(v.speed) / 6, 0, 1) * 1.25 * dt * grip * (v.speed < 0 ? -1 : 1);
+      const grip = v.isAir ? .8 : handbrake ? .45 : v.isWater ? .72 : 1;
+      v.heading += steer * clamp(Math.abs(v.speed) / 6, 0, 1) * (spec.turn || 1.2) * dt * grip * (v.speed < 0 ? -1 : 1);
     }
 
     const next = this._next || (this._next = new THREE.Vector3());
@@ -1440,27 +1716,71 @@ class Game {
     next.x += Math.sin(v.heading) * v.speed * dt;
     next.z += Math.cos(v.heading) * v.speed * dt;
     const bx = next.x, bz = next.z;
-    this.resolveCollision(next, 1.45);
-    if (Math.abs(next.x - bx) > .015 || Math.abs(next.z - bz) > .015) {
+    const highAir = v.isAir && (v.altitude || 0) > 4.5;
+    if (!highAir) this.resolveCollision(next, v.isAir ? 1.1 : 1.45, v.isWater ? 360 : 148);
+    const hit = Math.abs(next.x - bx) > .015 || Math.abs(next.z - bz) > .015;
+    if (hit) {
+      const impact = Math.abs(v.speed);
       v.speed *= -.18;
       this.audio.noise(.12, .12, 240);
+      if (impact > 7) this.damageVehicle(v, clamp(impact * .55, 1, 26));
     }
     v.root.position.x = next.x;
     v.root.position.z = next.z;
-    v.root.position.y = 0;
+    if (v.isAir) {
+      v.root.position.y = v.altitude || 5.5;
+      v.root.rotation.z = clamp(-steer * .18 - (v.speed / (spec.max || 1)) * .04, -.3, .3);
+    } else {
+      v.root.position.y = v.isWater ? 0 : this.world.getGroundHeight(next.x, next.z);
+      v.root.position.y += v.isWater ? Math.sin(this.elapsed * 2.1) * .06 : 0;
+    }
     v.root.rotation.y = v.heading;
-    v.model.update(dt, { speed: v.speed, steering: steer * .55, siren: false });
+    if (v.smoke > 0) {
+      v.smoke -= dt;
+      this.audio.noise(.04, .02, 90);
+    }
+    v.model.update(dt, { speed: v.speed, steering: steer * .55, siren: !!v.patrol });
     this.player.position.copy(v.root.position);
     this.player.heading = v.heading;
-    this.player.weapon = this.player.weapon;
-    this.audio.updateEngine(Math.abs(v.speed), 28, Math.max(0, throttle));
+    this.audio.updateEngine(Math.abs(v.speed), spec.max, Math.max(0, throttle));
     this.moveSpeed = Math.abs(v.speed);
+    if (v.speed > 12 && Math.random() < .05) this.haptic(4);
   }
 
-  resolveCollision(pos, radius) {
+  damageVehicle(v, amount) {
+    if (!v) return;
+    v.health = Math.max(0, (v.health ?? 100) - amount);
+    if (v.health < 45) v.smoke = Math.max(v.smoke || 0, 1.5);
+    if (v.health <= 0) this.explodeVehicle(v);
+  }
+
+  explodeVehicle(v) {
+    if (!v || v.exploded) return;
+    v.exploded = true;
+    const pos = v.root.position.clone();
+    this.audio.noise(.9, .6, 60);
+    this.audio.error?.();
+    this.ui.notify('✹', this.ui.language === 'pt' ? 'Veículo destruído.' : 'Vehicle destroyed.');
+    if (this.distanceTo(pos) < 12) this.damagePlayer(25);
+    v.root.parent?.remove(v.root);
+    const i = this.vehicles.indexOf(v);
+    if (i >= 0) this.vehicles.splice(i, 1);
+    if (this.activeVehicle === v) {
+      this.inVehicle = false;
+      this.activeVehicle = null;
+      this.audio.engineOn(false);
+      this.player.position.set(pos.x, this.world.getGroundHeight(pos.x, pos.z), pos.z);
+      this.activeChar.root.visible = true;
+      this.activeChar.root.position.copy(this.player.position);
+      this.updateTouchContext();
+      this.damagePlayer(20);
+    }
+  }
+
+  resolveCollision(pos, radius, maxZ = 148) {
     const b = this.world.bounds;
     pos.x = clamp(pos.x, b.minX + radius, b.maxX - radius);
-    pos.z = clamp(pos.z, b.minZ + radius, 148 - radius);
+    pos.z = clamp(pos.z, b.minZ + radius, maxZ - radius);
     for (const c of this.world.colliders) {
       if (pos.x > c.minX - radius && pos.x < c.maxX + radius && pos.z > c.minZ - radius && pos.z < c.maxZ + radius) {
         const dl = pos.x - (c.minX - radius);
@@ -1534,14 +1854,14 @@ class Game {
       h.char.update(dt, { speed, rotationY: heading, aiming: true });
       h.fireTimer -= dt;
       if (dist < 36 && h.fireTimer <= 0 && this.grace <= 0) {
-        h.fireTimer = (h.kind === 'police' ? 1.35 : 1.55) + Math.random() * .7;
+        h.fireTimer = (h.kind === 'army' ? .92 : h.kind === 'police' ? 1.35 : 1.55) + Math.random() * .7;
         const from = new THREE.Vector3(h.root.position.x, h.root.position.y + 1.25, h.root.position.z);
         const to = new THREE.Vector3(p.x, p.y + 1.15, p.z);
         if (dist < 55) this.tracer?.fire(from, to, 0xffd28a);
         this.audio.shoot('pistol');
-        const chance = h.kind === 'police' ? .4 : .33;
+        const chance = h.kind === 'army' ? .52 : h.kind === 'police' ? .4 : .33;
         if (Math.random() < chance) {
-          this.damagePlayer(3 + Math.random() * 4);
+          this.damagePlayer((h.kind === 'army' ? 5 : 3) + Math.random() * 4);
           this.showHitmarker(false);
         }
       }
@@ -1573,10 +1893,16 @@ class Game {
       return;
     }
     this.policeSpawnTimer -= dt;
-    const maxCars = Math.min(3, Math.ceil(this.wanted / 2) + (this.wanted >= 4 ? 1 : 0));
+    const maxCars = Math.min(5, Math.ceil(this.wanted / 2) + (this.wanted >= 4 ? 2 : 0));
     if (this.policeCars.length < maxCars && this.policeSpawnTimer <= 0) {
       this.spawnPolice();
-      this.policeSpawnTimer = Math.max(2.4, 5.2 - this.wanted * .35);
+      this.policeSpawnTimer = Math.max(2.1, 5.2 - this.wanted * .4);
+    }
+    if (this.wanted >= 3 && !this.policeHeli) this.spawnPoliceHeli();
+    if (this.wanted >= 4 && !this.armySpawned) {
+      this.armySpawned = true;
+      this.armyHostiles = this.spawnHostiles(3 + Math.min(3, this.wanted - 3), this.player.position, 'army', 24);
+      this.ui.notify('★', this.ui.language === 'pt' ? 'Exército entrou na caçada.' : 'Army joined the hunt.');
     }
     let near = false;
     for (const car of this.policeCars) {
@@ -1590,6 +1916,7 @@ class Game {
 
   updatePolice(dt) {
     const p = this.player.position;
+    this.updatePoliceHeli(dt);
     for (const car of [...this.policeCars]) {
       const dx = p.x - car.root.position.x;
       const dz = p.z - car.root.position.z;
@@ -1629,21 +1956,285 @@ class Game {
     }
   }
 
+  bindContext() {
+    const layer = document.querySelector('#context-layer');
+    if (!layer || this.contextBtn) return;
+    const btn = document.createElement('button');
+    btn.id = 'context-action';
+    btn.className = 'context-action';
+    btn.type = 'button';
+    btn.setAttribute('aria-live', 'polite');
+    btn.innerHTML = '<span class="ctx-symbol">△</span><span class="ctx-copy"><b></b><small></small></span>';
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      this.audio.init();
+      this.audio.resume?.();
+      this.useContextTarget();
+    });
+    layer.appendChild(btn);
+    this.contextBtn = btn;
+  }
+
+  nearestInteractable(radius = 4.6) {
+    let best = null, bestD = radius;
+    for (const item of this.interactables) {
+      if (item.used && (item.respawnAt || 0) > this.sessionTime) continue;
+      const d = Math.hypot(item.x - this.player.position.x, item.z - this.player.position.z);
+      if (d < bestD) { bestD = d; best = item; }
+    }
+    return best;
+  }
+
+  contextTargetFor() {
+    if (this.state !== 'playing' || this.ui.dialogueActive) return null;
+    const pt = this.ui.language !== 'en';
+    if (this.inVehicle) {
+      const v = this.activeVehicle;
+      if (!v) return null;
+      if (Math.abs(v.speed) > 3) return null;
+      return {
+        type: 'exit', icon: 'cross', label: pt ? 'SAIR DO VEÍCULO' : 'EXIT VEHICLE',
+        sub: this.vehicleLabel(v), distance: 0, position: v.root.position
+      };
+    }
+    const npc = this.nearestNPC(3.4);
+    const vehicle = this.nearestVehicle(6.4);
+    const item = this.nearestInteractable(4.6);
+    const options = [];
+    if (npc) options.push({ type: 'npc', npc, distance: this.distanceTo(npc.root.position), position: npc.root.position, icon: 'cross', label: pt ? 'FALAR / CONVERSAR' : 'TALK / CONVERSE', sub: `${npc.name}${npc.role ? ` · ${npc.role.toUpperCase()}` : ''}` });
+    if (vehicle) {
+      const vt = vehicle.type;
+      const action = vt === 'police' ? (pt ? 'ROUBAR VIATURA' : 'STEAL POLICE CAR')
+        : vt === 'motorcycle' ? (pt ? 'ENTRAR NA MOTO' : 'GET ON MOTORCYCLE')
+        : (vt === 'helicopter' || vt === 'plane') ? (pt ? `PILOTAR ${this.vehicleLabel(vehicle)}` : `PILOT ${this.vehicleLabel(vehicle)}`)
+        : (vt === 'boat' || vt === 'jetski' || vt === 'yacht') ? (pt ? `PILOTAR ${this.vehicleLabel(vehicle)}` : `PILOT ${this.vehicleLabel(vehicle)}`)
+        : (pt ? 'ENTRAR NO CARRO' : 'ENTER CAR');
+      options.push({ type: 'vehicle', vehicle, distance: this.distanceTo(vehicle.root.position), position: vehicle.root.position, icon: 'triangle', label: action, sub: this.vehicleLabel(vehicle) });
+    }
+    if (item) options.push({ type: 'interactable', item, distance: Math.hypot(item.x - this.player.position.x, item.z - this.player.position.z), position: new THREE.Vector3(item.x, item.y + 1, item.z), icon: item.icon, label: pt ? item.labelPt : item.labelEn, sub: pt ? item.subPt : item.subEn });
+    if (!options.length) return null;
+    options.sort((a, b) => a.distance - b.distance);
+    return options[0];
+  }
+
+  updateContextAction() {
+    const target = this.contextTargetFor();
+    this.contextTarget = target;
+    const btn = this.contextBtn;
+    if (!btn) return;
+    if (!target || this.state !== 'playing') {
+      btn.classList.remove('on');
+      if (this.lastContextKey) { this.lastContextKey = ''; }
+      return;
+    }
+    const key = `${target.type}:${target.label}:${target.sub}:${target.item?.id || target.vehicle?.type || target.npc?.name || ''}`;
+    if (key !== this.lastContextKey) {
+      this.lastContextKey = key;
+      btn.dataset.icon = target.icon;
+      btn.querySelector('.ctx-symbol').textContent = target.icon === 'triangle' ? '△' : target.icon === 'square' ? '□' : target.icon === 'circle' ? '○' : target.icon === 'dpad' ? '✚' : '✕';
+      btn.querySelector('b').textContent = target.label;
+      btn.querySelector('small').textContent = target.sub || '';
+    }
+    const p = target.position?.clone ? target.position.clone() : new THREE.Vector3(target.position.x, target.position.y, target.position.z);
+    p.y += target.type === 'vehicle' ? (target.vehicle?.isAir ? 2.2 : 2.15) : 2.15;
+    const projected = p.project(this.camera);
+    if (projected.z > 1 || projected.x < -1.15 || projected.x > 1.15 || projected.y < -1.2 || projected.y > 1.2) {
+      btn.classList.remove('on');
+      return;
+    }
+    const x = (projected.x * .5 + .5) * innerWidth;
+    const y = (-projected.y * .5 + .5) * innerHeight;
+    btn.style.setProperty('--x', `${x}px`);
+    btn.style.setProperty('--y', `${y}px`);
+    btn.classList.add('on');
+  }
+
   updatePrompt() {
     const ui = this.ui;
-    if (ui.dialogueActive || this.state !== 'playing') { ui.hidePrompt(); return; }
-    if (this.inVehicle) { ui.hidePrompt(); return; }
-    const npc = this.nearestNPC(3.0);
-    const vehicle = this.nearestVehicle(5.2);
-    if (npc && (!vehicle || this.distanceTo(npc.root.position) < this.distanceTo(vehicle.root.position) + .5)) {
-      ui.showPrompt(ui.t('talk'), npc.name);
-    } else if (vehicle) {
-      const labels = { hatch: 'HATCH', muscle: 'MUSCLE', pickup: 'PICAPE', suv: 'SUV', van: 'VAN', police: 'VIATURA' };
-      ui.showPrompt(ui.t('enter'), labels[vehicle.type] || 'VEÍCULO');
-    } else {
-      ui.hidePrompt();
-    }
+    const target = this.contextTargetFor();
+    if (!target) { ui.hidePrompt(); return; }
+    ui.showPrompt(target.label, target.sub);
   }
+
+  useContextTarget() {
+    const target = this.contextTarget || this.contextTargetFor();
+    if (!target) return;
+    if (target.type === 'exit') { this.exitVehicle(); return; }
+    if (target.type === 'vehicle') { this.enterVehicle(target.vehicle); return; }
+    if (target.type === 'npc') { this.talkToNPC(target.npc); return; }
+    if (target.type === 'interactable') { this.runInteractable(target.item); return; }
+    this.interact();
+  }
+
+  talkToNPC(npc) {
+    if (!npc) return;
+    const pt = this.ui.language !== 'en';
+    const role = npc.role || 'resident';
+    const dialogues = {
+      friend: [
+        { name: npc.name.toUpperCase(), gender: 'male', pt: 'Caio! O morro tá te esperando. Já separou a moto?', en: "Caio! The hill is waiting. Got the bike ready?" },
+        { name: 'CAIO', gender: 'male', pt: 'Tô pronto. Só me diz qual é a missão de hoje.', en: "I'm ready. Just tell me today's mission." },
+        { name: npc.name.toUpperCase(), gender: 'male', pt: 'Abre o menu de missões e segue a linha no mapa. Eu vou na garupa.', en: 'Open the mission menu and follow the map line. I ride with you.' }
+      ],
+      girlfriend: [
+        { name: npc.name.toUpperCase(), gender: 'female', pt: 'Caio, você prometeu que ia passar na praia hoje.', en: 'Caio, you promised you would come to the beach today.' },
+        { name: 'CAIO', gender: 'male', pt: 'Eu passei. Só cheguei com a polícia atrás de mim.', en: 'I did. I just arrived with the police behind me.' },
+        { name: npc.name.toUpperCase(), gender: 'female', pt: 'Então resolve isso e volta. A maré não espera.', en: 'Then fix it and come back. The tide does not wait.' }
+      ],
+      vendor: [
+        { name: 'VENDEDOR', gender: 'male', pt: 'E aí, vai levar? Tenho carro, arma, roupa e mansão no catálogo.', en: 'So, buying? I have cars, guns, clothes and a mansion in the catalog.' },
+        { name: 'CAIO', gender: 'male', pt: 'Depende do preço, patrão.', en: 'Depends on the price, boss.' },
+        { name: 'VENDEDOR', gender: 'male', pt: 'Perto do balcão tem o botão. Aperta e o dinheiro fala.', en: 'There is a button by the counter. Press it and money talks.' }
+      ],
+      cop: [
+        { name: 'POLICIAL', gender: 'male', pt: 'Se eu te ver com uma estrela, você já sabe o que acontece.', en: 'If I see you with one star, you know what happens.' },
+        { name: 'CAIO', gender: 'male', pt: 'Relaxa, agente. Hoje eu tô só passeando.', en: "Relax, officer. Today I'm just cruising." },
+        { name: 'POLICIAL', gender: 'male', pt: 'É o que todos dizem antes de correr.', en: 'That is what everyone says before they run.' }
+      ],
+      rival: [
+        { name: 'RIVAL', gender: 'male', pt: 'Esse morro não é seu, garoto. Ainda.', en: 'This hill is not yours, kid. Not yet.' },
+        { name: 'CAIO', gender: 'male', pt: 'Então vem buscar.', en: 'Then come get it.' }
+      ],
+      mother: [
+        { name: 'DONA NEIDE', gender: 'female', pt: 'Caio, come alguma coisa antes de sair. Você não é de ferro.', en: "Caio, eat something before you go. You're not made of iron." },
+        { name: 'CAIO', gender: 'male', pt: 'Já comi, mãe. Prometo que volto antes da noite.', en: "I ate, mom. I promise I'll be back before night." }
+      ],
+      resident: [
+        { name: npc.name.toUpperCase(), gender: 'male', pt: pt ? 'A cidade tá doida hoje. Melhor andar armado.' : 'The city is crazy today. Better go armed.' },
+        { name: 'CAIO', gender: 'male', pt: pt ? 'Sempre.' : 'Always.' }
+      ]
+    };
+    const lines = (dialogues[role] || dialogues.resident).map(l => ({ ...l, pt: l.pt, en: l.en }));
+    this.audio.click();
+    this.ui.speak(lines);
+    this.ui.hidePrompt();
+    this.haptic(8);
+  }
+
+  runInteractable(item) {
+    if (!item) return;
+    const pt = this.ui.language !== 'en';
+    const now = performance.now();
+    if ((item.cooldownUntil || 0) > now) {
+      this.ui.hudToast(pt ? 'AGUARDE UM POUCO' : 'PLEASE WAIT');
+      return;
+    }
+    item.cooldownUntil = now + 1800;
+    const money = this.money;
+    const toast = (text, type = 'ok') => this.ui.toast(text, type);
+    const spend = (cost) => {
+      if (money < cost) { toast(pt ? `Faltam R$ ${Math.ceil(cost - money)}.` : `You need R$ ${Math.ceil(cost - money)} more.`, 'warn'); return false; }
+      this.addMoney(-cost);
+      return true;
+    };
+    switch (item.kind) {
+      case 'shop':
+        if (!spend(item.cost || 300)) return;
+        this.outfits.push('BR');
+        toast(pt ? 'Roupa BR comprada: boné, camisa e tatuagem.' : 'BR outfit bought: cap, shirt and tattoo.');
+        this.ui.speak([{ name: 'CAIO', gender: 'male', pt: 'Agora sim. Estilo de favela, atitude de rei.', en: 'Now we are talking. Hood style, king attitude.' }]);
+        break;
+      case 'food':
+      case 'drink': {
+        if (!spend(item.cost || 25)) return;
+        this.hunger = clamp(this.hunger + (item.kind === 'drink' ? 28 : 55), 0, 100);
+        this.player.health = clamp(this.player.health + 10, 0, 100);
+        toast(pt ? 'Lanche comprado. Fome recuperada.' : 'Snack bought. Hunger restored.');
+        this.audio.pickup();
+        break;
+      }
+      case 'bed':
+        this.hunger = clamp(this.hunger + 40, 0, 100);
+        this.player.health = 100;
+        this.player.armor = Math.max(this.player.armor, 50);
+        this.timeOfDay = 8 * 60;
+        this.save();
+        toast(pt ? 'Você dormiu. Jogo salvo e vida cheia.' : 'You slept. Game saved and health full.');
+        this.ui.speak([{ name: 'CAIO', gender: 'male', pt: 'Dormir de consciência limpa. Quase isso.', en: 'Sleeping with a clean conscience. Almost.' }]);
+        break;
+      case 'atm': {
+        const amount = Math.min(item.amount || 500, this.bank || 0);
+        if (amount <= 0) { toast(pt ? 'Conta vazia. Faça missões para depositar.' : 'Account empty. Do missions to deposit.', 'warn'); return; }
+        this.bank -= amount;
+        this.addMoney(amount);
+        toast(pt ? `Saque de R$ ${amount} realizado.` : `Withdrew R$ ${amount}.`);
+        this.audio.cash?.();
+        break;
+      }
+      case 'heal':
+        if (this.player.health >= 100 && this.player.armor >= 100) { toast(pt ? 'Você já está inteiro.' : 'You are already healthy.'); return; }
+        if (!spend(item.cost || 200)) return;
+        this.player.health = 100;
+        this.player.armor = 100;
+        toast(pt ? 'Tratamento completo.' : 'Treatment complete.');
+        break;
+      case 'repair': {
+        const v = this.activeVehicle || this.nearestVehicle(10);
+        if (!v) { toast(pt ? 'Traga um veículo para a oficina.' : 'Bring a vehicle to the garage.', 'warn'); return; }
+        if (!spend(item.cost || 150)) return;
+        v.health = v.maxHealth || 100;
+        v.fuel = 100;
+        v.smoke = 0;
+        toast(pt ? 'Veículo reparado e abastecido.' : 'Vehicle repaired and refueled.');
+        break;
+      }
+      case 'buycar': {
+        if (!spend(item.cost || 5000)) return;
+        const spot = this.freeSpot(item.x + 6, item.z + 6, 8);
+        const car = this.makeVehicle({ x: spot.x, z: spot.z, rotY: Math.random() * 6, type: 'super', color: 0x1f6fff }, { hero: true });
+        this.ownedVehicles.push('super');
+        toast(pt ? 'Carro de luxo comprado e estacionado na oficina.' : 'Luxury car bought and parked at the garage.');
+        this.audio.pickup();
+        car.health = car.maxHealth;
+        break;
+      }
+      case 'mansion':
+        if (this.mansionOwned) { toast(pt ? 'A mansão já é sua.' : 'The mansion is already yours.'); return; }
+        if (!spend(item.cost || 25000)) return;
+        this.mansionOwned = true;
+        this.outfits.push('KING');
+        this.save();
+        toast(pt ? 'Mansão comprada. A cobertura é sua.' : 'Mansion bought. The penthouse is yours.');
+        this.ui.notify('♛', pt ? 'MANSÃO DA SERRA ADQUIRIDA' : 'HILL MANSION ACQUIRED');
+        break;
+      case 'weapon': {
+        const weapon = item.weapon || 'smg';
+        this.player.weapon = weapon;
+        if (weapon === 'smg') {
+          this.player.mag = 30;
+          this.player.reserve = clamp((this.player.reserve || 0) + 90, 0, 240);
+          this.weapons.smg = { mag: 30, reserve: this.player.reserve };
+        }
+        this.activeChar.setWeapon(weapon);
+        item.used = true;
+        item.respawnAt = this.sessionTime + 120;
+        if (item.beacon) item.beacon.visible = false;
+        toast(pt ? 'Arma equipada. Munição reforçada.' : 'Weapon equipped. Ammo replenished.');
+        this.audio.pickup();
+        break;
+      }
+      case 'item':
+        this.addMoney(item.reward || 250);
+        this.hunger = clamp(this.hunger + 10, 0, 100);
+        item.used = true;
+        item.respawnAt = this.sessionTime + 150;
+        if (item.beacon) item.beacon.visible = false;
+        toast(pt ? `Item pego. +R$ ${item.reward || 250}.` : `Item picked up. +R$ ${item.reward || 250}.`);
+        this.audio.pickup();
+        break;
+      case 'door':
+        toast(pt ? `${item.subPt}: porta aberta.` : `${item.subEn}: door opened.`);
+        if (item.key === 'home') { this.save(); toast(pt ? 'Casa do Caio. Jogo salvo.' : "Caio's place. Game saved."); }
+        this.ui.speak([{ name: 'CAIO', gender: 'male', pt: 'Porta aberta. Se alguém perguntar, eu moro aqui.', en: 'Door open. If anyone asks, I live here.' }]);
+        break;
+      default:
+        toast(pt ? 'Ação concluída.' : 'Action complete.');
+    }
+    this.haptic(10);
+    this.ui.hidePrompt();
+  }
+
 
   distanceTo(pos) {
     return Math.hypot(pos.x - this.player.position.x, pos.z - this.player.position.z);
@@ -1669,6 +2260,24 @@ class Game {
     return best;
   }
 
+  vehicleLabel(v) {
+    const t = v?.type || 'hatch';
+    const pt = this.ui?.language !== 'en';
+    const ptLabels = {
+      hatch: 'CARRO POPULAR', muscle: 'CARRO ESPORTIVO', super: 'CARRO DE LUXO', pickup: 'PICAPE',
+      suv: 'SUV', van: 'VAN', taxi: 'TÁXI', police: 'VIATURA', ambulance: 'AMBULÂNCIA',
+      truck: 'CAMINHÃO', bus: 'ÔNIBUS', tank: 'TANQUE', motorcycle: 'MOTO',
+      helicopter: 'HELICÓPTERO', plane: 'AVIÃO', boat: 'LANCHA', jetski: 'JETSKI', yacht: 'IATE'
+    };
+    const enLabels = {
+      hatch: 'STREET CAR', muscle: 'MUSCLE CAR', super: 'LUXURY CAR', pickup: 'PICKUP',
+      suv: 'SUV', van: 'VAN', taxi: 'TAXI', police: 'POLICE CAR', ambulance: 'AMBULANCE',
+      truck: 'TRUCK', bus: 'BUS', tank: 'TANK', motorcycle: 'MOTORCYCLE',
+      helicopter: 'HELICOPTER', plane: 'PLANE', boat: 'BOAT', jetski: 'JETSKI', yacht: 'YACHT'
+    };
+    return (pt ? ptLabels : enLabels)[t] || (pt ? 'VEÍCULO' : 'VEHICLE');
+  }
+
   enterVehicle(v) {
     if (!v || this.inVehicle) return;
     this.activeVehicle = v;
@@ -1683,6 +2292,8 @@ class Game {
     this.setAiming(false);
     document.querySelector('#touch-l3')?.classList.remove('on');
     document.querySelector('#stick-zone')?.classList.remove('sprint');
+    if (v.isAir) v.altitude = Math.max(v.altitude || 0, 5.5);
+    if (v.isWater) v.root.position.y = 0;
     this.player.position.copy(v.root.position);
     this.player.heading = v.heading;
     this.camYaw = v.heading + Math.PI;
@@ -1690,28 +2301,40 @@ class Game {
     this.activeChar.root.visible = false;
     this.audio.engineOn(true);
     this.updateTouchContext();
-    this.ui.hudToast(this.ui.language === 'pt' ? 'VEÍCULO ADQUIRIDO' : 'VEHICLE ACQUIRED');
+    const label = this.vehicleLabel(v);
+    this.ui.hudToast(this.ui.language === 'pt' ? `${label} · ADQUIRIDO` : `${label} · ACQUIRED`);
     this.ui.hidePrompt();
     this.audio.pickup();
+    this.haptic(12);
+    if (v.type === 'police') this.crime(1.5);
   }
 
   exitVehicle() {
     const v = this.activeVehicle;
     if (!v) return;
     let placed = false;
-    for (const side of [1, -1]) {
-      const rx = Math.cos(v.heading) * 2.35 * side;
-      const rz = -Math.sin(v.heading) * 2.35 * side;
-      const next = new THREE.Vector3(v.root.position.x + rx, 0, v.root.position.z + rz);
-      const bx = next.x, bz = next.z;
-      this.resolveCollision(next, .45);
-      if (Math.abs(next.x - bx) < .05 && Math.abs(next.z - bz) < .05) {
-        this.player.position.set(next.x, this.world.getGroundHeight(next.x, next.z), next.z);
-        placed = true;
-        break;
+    if (!v.isAir && !v.isWater) {
+      for (const side of [1, -1]) {
+        const rx = Math.cos(v.heading) * 2.35 * side;
+        const rz = -Math.sin(v.heading) * 2.35 * side;
+        const next = new THREE.Vector3(v.root.position.x + rx, 0, v.root.position.z + rz);
+        const bx = next.x, bz = next.z;
+        this.resolveCollision(next, .45);
+        if (Math.abs(next.x - bx) < .05 && Math.abs(next.z - bz) < .05) {
+          this.player.position.set(next.x, this.world.getGroundHeight(next.x, next.z), next.z);
+          placed = true;
+          break;
+        }
       }
     }
-    if (!placed) this.player.position.copy(v.root.position);
+    if (!placed) {
+      if (v.isWater) this.player.position.set(v.root.position.x, 0, 137);
+      else this.player.position.set(v.root.position.x, this.world.getGroundHeight(v.root.position.x, v.root.position.z), v.root.position.z);
+    }
+    if (v.isAir && v.altitude > 4) {
+      this.damagePlayer(18);
+      this.ui.hudToast(this.ui.language === 'pt' ? 'SALTO DE HELICÓPTERO' : 'HELICOPTER JUMP');
+    }
     this.player.heading = v.heading;
     v.occupied = false;
     v.speed = 0;
@@ -1739,13 +2362,15 @@ class Game {
     if (this.state !== 'playing' || this.player.dead) return;
     if (this.characterCooldown > 0) return;
     this.characterCooldown = .6;
-    this.setActiveCharacter(this.activeChar.name === 'Luiza' ? 'Carlos' : 'Luiza');
-    this.ui.hudToast(this.ui.t('switchTo'));
+    const order = ['Caio', 'Luiza', 'Carlos'];
+    const next = order[(order.indexOf(this.activeChar.name) + 1) % order.length];
+    this.setActiveCharacter(next);
+    this.ui.hudToast(`${this.ui.t('switchTo')} ${next.toUpperCase()}`);
     this.audio.click();
   }
 
   setActiveCharacter(name) {
-    const next = name === 'Carlos' ? this.carlos : this.luiza;
+    const next = name === 'Carlos' ? this.carlos : name === 'Caio' ? this.caio : this.luiza;
     if (!next) return;
     if (this.activeChar) this.activeChar.root.visible = false;
     this.activeChar = next;
@@ -1918,18 +2543,15 @@ class Game {
     if (this.state !== 'playing') return;
     if (this.ui.dialogueActive) { this.ui.advanceDialogue(); return; }
     if (this.inVehicle) { this.exitVehicle(); return; }
+    const target = this.contextTargetFor();
+    if (target && target.type !== 'exit') { this.useContextTarget(); return; }
     const npc = this.nearestNPC(3.4);
     if (npc) {
-      const i = npc.chatter % LINES.chatterPT.length;
-      this.audio.click();
-      this.ui.speak([{
-        name: npc.name.toUpperCase(),
-        gender: npc.char.female ? 'female' : 'male',
-        pt: LINES.chatterPT[i],
-        en: LINES.chatterEN[i]
-      }]);
-      this.ui.hidePrompt();
+      this.talkToNPC(npc);
+      return;
     }
+    const item = this.nearestInteractable(4.6);
+    if (item) this.runInteractable(item);
   }
 
   spawnHostiles(count, center, kind = 'gang', spread = 12, opts = {}) {
@@ -1937,15 +2559,15 @@ class Game {
     const list = [];
     for (let i = 0; i < count; i++) {
       const pos = this.freeSpot(center.x, center.z, spread);
-      const char = createRandomNPC(kind === 'police' ? 'Agente' : names[Math.floor(Math.random() * names.length)]);
+      const char = createRandomNPC(kind === 'army' ? 'Soldado' : kind === 'police' ? 'Agente' : names[Math.floor(Math.random() * names.length)]);
       char.root.position.set(pos.x, this.world.getGroundHeight(pos.x, pos.z), pos.z);
       char.root.traverse(o => { if (o.isMesh) o.castShadow = true; });
       char.setAiming(true);
       this.scene.add(char.root);
+      const toughness = kind === 'army' ? 150 : kind === 'police' ? 95 : 60;
       const h = {
         char, root: char.root, position: char.root.position,
-        health: kind === 'police' ? 95 : 60,
-        maxHealth: kind === 'police' ? 95 : 60,
+        health: toughness, maxHealth: toughness,
         alive: true, dead: false, deadTimer: 0,
         fireTimer: 1.1 + Math.random() * 1.4,
         kind, silent: !!opts.silent
@@ -1961,6 +2583,51 @@ class Game {
     h.root.parent?.remove(h.root);
     const i = this.hostiles.indexOf(h);
     if (i >= 0) this.hostiles.splice(i, 1);
+  }
+
+  spawnPoliceHeli() {
+    const p = this.player.position;
+    const model = createVehicle('helicopter', 0x142b3a, {});
+    const heli = {
+      root: model.root, model, health: 180, fireTimer: 2.2,
+      heading: Math.random() * Math.PI * 2, speed: 0, altitude: 32
+    };
+    heli.root.position.set(p.x + 70, heli.altitude, p.z + 70);
+    heli.root.rotation.y = heli.heading;
+    this.scene.add(heli.root);
+    this.policeHeli = heli;
+    this.ui.notify('★', this.ui.language === 'pt' ? 'Helicóptero da polícia no céu.' : 'Police helicopter overhead.');
+  }
+
+  updatePoliceHeli(dt) {
+    const heli = this.policeHeli;
+    if (!heli) return;
+    const p = this.player.position;
+    const dx = p.x - heli.root.position.x;
+    const dz = p.z - heli.root.position.z;
+    const dist = Math.hypot(dx, dz);
+    heli.heading = angleLerp(heli.heading, Math.atan2(dx, dz), clamp(dt * 1.4, 0, 1));
+    const targetSpeed = dist > 45 ? 22 : dist < 26 ? 4 : 12;
+    heli.speed = damp(heli.speed, targetSpeed, 1.4, dt);
+    heli.root.position.x += Math.sin(heli.heading) * heli.speed * dt;
+    heli.root.position.z += Math.cos(heli.heading) * heli.speed * dt;
+    heli.root.position.y = damp(heli.root.position.y, 26 + Math.sin(this.elapsed * .8) * 4, 1.2, dt);
+    heli.root.rotation.y = heli.heading;
+    heli.model.update(dt, { speed: heli.speed, steering: 0 });
+    heli.fireTimer -= dt;
+    if (dist < 60 && heli.fireTimer <= 0 && this.grace <= 0) {
+      heli.fireTimer = 1.6 + Math.random() * .6;
+      const from = heli.root.position.clone(); from.y -= 1;
+      const to = new THREE.Vector3(p.x, p.y + 1.1, p.z);
+      this.tracer?.fire(from, to, 0x9ec1ff);
+      this.audio.shoot('pistol');
+      if (Math.random() < .34) this.damagePlayer(4 + Math.random() * 4);
+    }
+    if (heli.health <= 0 || dist > 360) {
+      heli.root.parent?.remove(heli.root);
+      this.policeHeli = null;
+      if (heli.health <= 0) this.ui.notify('✹', this.ui.language === 'pt' ? 'Helicóptero abatido.' : 'Helicopter down.');
+    }
   }
 
   spawnPolice() {
@@ -2084,11 +2751,33 @@ class Game {
     if (!this.completedMissions.includes(mission.index)) this.completedMissions.push(mission.index);
     this.completedMissions.sort((a, b) => a - b);
     this.addMoney(mission.reward);
+    this.bank = (this.bank || 0) + Math.round((mission.reward || 0) * .25);
+    this.waypoint = null;
+    this.waypointMeta = null;
+    if (mission.campaign === 'gta7') {
+      const done = this.missions.filter(m => m.campaign === 'gta7' && this.completedMissions.includes(m.index)).length;
+      this.ui.notify('♛', this.ui.language === 'pt' ? `TROFÉU ${done}/91 · ${mission.title.pt}` : `TROPHY ${done}/91 · ${mission.title.en}`);
+      this.ui.hudToast(this.ui.language === 'pt' ? `TROFÉU ${done}/91` : `TROPHY ${done}/91`);
+      if (done >= 91 && !this.gta7Complete) {
+        this.gta7Complete = true;
+        this.kingUnlocked = true;
+        this.mansionOwned = true;
+        this.addMoney(1000000);
+        this.grantKingRewards();
+        this.ui.notify('♛', this.ui.language === 'pt' ? '91/91 · REI DO BRASIL. Carro dourado, mansão e roupa de rei liberados.' : '91/91 · KING OF BRAZIL. Golden car, mansion and king outfit unlocked.');
+        this.ui.hudToast(this.ui.language === 'pt' ? 'TROFÉU 91/91 · REI DO BRASIL' : 'TROPHY 91/91 · KING OF BRAZIL');
+      }
+    }
     const stars = Math.max(2, 5 - Math.min(3, stats.wanted || 0));
     const starString = '★'.repeat(stars) + '☆'.repeat(5 - stars);
-    this.pendingNextMission = this.completedMissions.length < MISSIONS.length
-      ? MISSIONS.findIndex(m => !this.completedMissions.includes(m.index))
-      : null;
+    if (mission.campaign === 'gta7') {
+      const nextIndex = mission.index + 1;
+      const nextMission = MISSIONS[nextIndex];
+      this.pendingNextMission = nextMission && nextMission.campaign === 'gta7' ? nextIndex : null;
+    } else {
+      const nextPrologue = MISSIONS.find((m, i) => i < 5 && !this.completedMissions.includes(m.index));
+      this.pendingNextMission = nextPrologue ? MISSIONS.indexOf(nextPrologue) : (MISSIONS[5] ? 5 : null);
+    }
     this.ui.showMissionComplete({
       title: mission.title,
       reward: mission.reward,
@@ -2100,6 +2789,36 @@ class Game {
     this.save();
     this.ui.buildMissionList();
     this.ui.updateDashboard();
+  }
+
+  grantKingRewards() {
+    this.kingUnlocked = true;
+    this.mansionOwned = true;
+    this.hunger = 100;
+    this.player.health = 100;
+    this.player.armor = 100;
+    try { this.caio?.setCrown?.(true); } catch { /* noop */ }
+    if (!this.goldenCarSpawned) {
+      this.goldenCarSpawned = true;
+      const mansion = this.world?.locations?.mansion;
+      if (mansion) {
+        const car = this.makeVehicle({
+          x: mansion.x + 10, z: mansion.z + 14, rotY: Math.PI / 2,
+          type: 'super', color: 0xffd34d, hero: true
+        });
+        car.golden = true;
+        car.health = 300;
+        car.fuel = 100;
+        this.ui?.notify('◆', this.ui.language === 'pt' ? 'Carro dourado estacionado na mansão.' : 'Golden car parked at the mansion.');
+      }
+    }
+    this.save();
+  }
+
+  gta7Progress() {
+    const total = this.missions.filter(m => m.campaign === 'gta7').length || 91;
+    const done = this.missions.filter(m => m.campaign === 'gta7' && this.completedMissions.includes(m.index)).length;
+    return { done, total, pct: Math.round((done / total) * 100) };
   }
 
   onMissionCompleteContinue() {
@@ -2171,7 +2890,9 @@ class Game {
         action = 'story';
       }
       if (action === 'story' || action === 'continue') {
-        const next = MISSIONS.findIndex(m => !this.completedMissions.includes(m.index));
+        // A campanha do Caio tem prioridade; o prólogo original continua acessível no menu de missões.
+        let next = MISSIONS.findIndex(m => m.campaign === 'gta7' && !this.completedMissions.includes(m.index));
+        if (next === -1) next = MISSIONS.findIndex(m => !this.completedMissions.includes(m.index));
         if (next === -1) await this.startFreeRoam(false);
         else await this.startMission(next);
       } else if (action === 'rp') {
@@ -2189,11 +2910,11 @@ class Game {
 
   async startMission(index, opts = {}) {
     if (index < 0 || index >= MISSIONS.length) return;
-    if (index > this.completedMissions.length) {
+    const mission = MISSIONS[index];
+    if (!this.isMissionUnlocked(mission)) {
       this.ui.toast(this.ui.language === 'pt' ? 'Conclua a missão anterior primeiro.' : 'Finish the previous mission first.', 'warn');
       return;
     }
-    const mission = MISSIONS[index];
     const pt = this.ui.language === 'pt';
     this.ui.showLoading(
       pt ? mission.title.pt : mission.title.en,
@@ -2205,17 +2926,72 @@ class Game {
     this.resetRun();
     this.setPlayMode('story');
     this.setActiveCharacter(mission.protag);
-    this.teleport(mission.spawn.x, mission.spawn.z, mission.spawn.heading);
+    if (mission.weapon && /SMG|Fuzil|Metralhadora/i.test(mission.weapon)) {
+      this.player.weapon = 'smg';
+      this.player.mag = 30;
+      this.player.reserve = 180;
+      this.weapons.smg = { mag: 30, reserve: 180 };
+      this.activeChar.setWeapon('smg');
+    }
+    const spawn = mission.spawnKey
+      ? (() => {
+          const base = this.world.locations[mission.spawnKey] || this.world.locations.beachKiosk;
+          const dist = mission.spawnDistance || 28;
+          const a = (mission.gta7Index || 1) * 2.39996;
+          const spot = this.freeSpot(base.x + Math.cos(a) * dist, base.z + Math.sin(a) * dist, 9);
+          return { x: spot.x, z: spot.z, heading: mission.heading };
+        })()
+      : mission.spawn;
+    this.teleport(spawn.x, spawn.z, spawn.heading);
+    this.waypoint = new THREE.Vector3(spawn.x, 0, spawn.z);
+    this.waypointMeta = { title: pt ? mission.title.pt : mission.title.en, missionIndex: mission.index };
+    this.spawnMissionVehicle(mission, spawn);
     await delay(1500);
     this.ui.startHUD();
     this.state = 'playing';
     this.snapCamera();
     await this.ui.showMissionCard(mission, mission.protag);
     this.state = 'playing';
+    if (mission.wanted) this.crime(mission.wanted);
     this.missionManager.start(index);
     this.grace = 1.6;
     this.captureInput();
     this.save();
+  }
+
+  missionVehicleType(name) {
+    const n = String(name || '').toLowerCase();
+    if (!n || n.includes('nenhum')) return null;
+    if (n.includes('moto')) return 'motorcycle';
+    if (n.includes('helic')) return 'helicopter';
+    if (n.includes('lancha')) return 'boat';
+    if (n.includes('jetski')) return 'jetski';
+    if (n.includes('iate')) return 'yacht';
+    if (n.includes('avião') || n.includes('aviao')) return 'plane';
+    if (n.includes('tanque')) return 'tank';
+    if (n.includes('ambul')) return 'ambulance';
+    if (n.includes('caminh')) return 'truck';
+    if (n.includes('ônibus') || n.includes('onibus')) return 'bus';
+    if (n.includes('táxi') || n.includes('taxi')) return 'taxi';
+    if (n.includes('viatura')) return 'police';
+    if (n.includes('van')) return 'van';
+    if (n.includes('suv') || n.includes('blindado')) return 'suv';
+    if (n.includes('picape')) return 'pickup';
+    if (n.includes('lamborghini') || n.includes('ferrari') || n.includes('dourado') || n.includes('esportivo') || n.includes('luxo')) return 'super';
+    if (n.includes('muscle')) return 'muscle';
+    return 'hatch';
+  }
+
+  spawnMissionVehicle(mission, spawn) {
+    const type = this.missionVehicleType(mission.vehicle);
+    if (!type) return null;
+    const spot = this.freeSpot(spawn.x + Math.sin(spawn.heading + Math.PI) * 10, spawn.z + Math.cos(spawn.heading + Math.PI) * 10, 7);
+    const color = type === 'super' ? 0xffd34d : type === 'police' ? 0x172326 : [0xd6594e, 0x2c8d8b, 0xefb94e, 0xf1eee3][Math.floor(Math.random() * 4)];
+    const v = this.makeVehicle({ x: spot.x, z: spot.z, rotY: spawn.heading + Math.PI / 2, type, color }, { hero: true });
+    v.health = v.maxHealth;
+    v.fuel = 100;
+    if (v.isAir) v.altitude = 0;
+    return v;
   }
 
   async startFreeRoam(continuePosition = false) {
@@ -2225,7 +3001,7 @@ class Game {
     this.ui.hideObjective();
     this.resetRun();
     this.setPlayMode('free');
-    this.setActiveCharacter('Luiza');
+    this.setActiveCharacter('Caio');
     const pos = (continuePosition && this.safeSavedPosition(this.loadSave()?.position)) || { x: -88, z: 94 };
     this.teleport(pos.x, pos.z, Math.PI / 2);
     await delay(1250);
@@ -2245,7 +3021,7 @@ class Game {
     this.ui.hideObjective();
     this.resetRun();
     this.setPlayMode('rp');
-    this.setActiveCharacter('Luiza');
+    this.setActiveCharacter('Caio');
     const pos = continueData ? this.safeSavedPosition(this.loadSave()?.position) : null;
     this.teleport(pos?.x ?? -50, pos?.z ?? 90, Math.PI / 2);
     await delay(1300);
@@ -2313,6 +3089,32 @@ class Game {
   }
 
   // ---------------- MAP + SAVE ----------------
+  isMissionUnlocked(mission) {
+    if (!mission) return false;
+    if (this.completedMissions.includes(mission.index)) return true;
+    if (mission.campaign === 'gta7') {
+      if (mission.gta7Index <= 1) return true;
+      return this.completedMissions.includes(mission.index - 1);
+    }
+    return mission.index <= 0 || this.completedMissions.includes(mission.index - 1);
+  }
+
+  setWaypoint(mission) {
+    if (!mission) return;
+    const base = mission.spawnKey ? this.world.locations[mission.spawnKey] : null;
+    const target = base ? base.clone() : (mission.spawn ? new THREE.Vector3(mission.spawn.x, 0, mission.spawn.z) : null);
+    if (!target) return;
+    this.waypoint = target;
+    this.waypointMeta = {
+      title: this.ui.language === 'pt' ? mission.title.pt : mission.title.en,
+      missionIndex: mission.index
+    };
+    this.ui.toast(this.ui.language === 'pt' ? 'Rota marcada no mapa. Siga a linha.' : 'Route marked on the map. Follow the line.', 'ok');
+    this.ui.notify('▧', this.ui.language === 'pt' ? `Mapa: ${mission.title.pt}` : `Map: ${mission.title.en}`);
+    this.ui.drawMinimap();
+    if (this.ui.mapOpen) this.ui.drawBigMap();
+  }
+
   mapMarkers() {
     const list = [];
     const push = (namePt, nameEn, color, target) => {
@@ -2323,16 +3125,25 @@ class Game {
       push(this.ui.language === 'pt' ? 'Objetivo da missão' : 'Mission objective', this.ui.language === 'pt' ? 'Objetivo da missão' : 'Mission objective', '#f6c768', this.missionManager.markerPos);
     }
     if (this.job) push(this.job.titlePt, this.job.titleEn, '#43ddbe', this.job.target);
+    if (this.waypoint && this.waypointMeta) push(this.waypointMeta.title, this.waypointMeta.title, '#f6c768', this.waypoint);
     const locs = [
       ['hospital', 'Hospital da Maré', 'Maré Hospital', '#ff7058'],
-      ['garage', 'Garagem Central', 'Central Garage', '#71c7ff'],
+      ['garage', 'Oficina do Zeca', "Zeca's Garage", '#71c7ff'],
       ['marina', 'Marina Azul', 'Blue Marina', '#43ddbe'],
       ['pier', 'Pier de Costa', 'Costa Pier', '#e6ddc8'],
       ['ferris', 'Roda-Gigante', 'Ferris Wheel', '#ff8bc1'],
       ['lighthouse', 'Farol Velho', 'Old Lighthouse', '#f6c768'],
       ['park', 'Parque das Salinas', 'Salt Park', '#89c67a'],
       ['club', 'Neon 88', 'Neon 88', '#b48cff'],
-      ['delivery', 'Morro do Som', 'Sound Hill', '#ffb457']
+      ['delivery', 'Morro do Som', 'Sound Hill', '#ffb457'],
+      ['bank', 'Banco Maré', 'Maré Bank', '#43ddbe'],
+      ['police', 'Delegacia Central', 'Central Precinct', '#71c7ff'],
+      ['mansion', 'Mansão da Serra', 'Hill Mansion', '#f6c768'],
+      ['airport', 'Aeroporto de Costa', 'Costa Airport', '#c8d2ce'],
+      ['shop', 'Loja da Orla', 'Shore Shop', '#ff8bc1'],
+      ['home', 'Barraco do Caio', "Caio's Place", '#ffb457'],
+      ['lanchonete', 'Lanchonete da Praia', 'Beach Diner', '#ff7058'],
+      ['port', 'Porto Maré', 'Maré Harbor', '#e6ddc8']
     ];
     for (const [key, namePt, nameEn, color] of locs) push(namePt, nameEn, color, this.world.locations[key]);
     return list.sort((a, b) => a.dist - b.dist);
@@ -2348,6 +3159,15 @@ class Game {
         rp: this.rp,
         position: { x: this.player.position.x, z: this.player.position.z },
         timeOfDay: this.timeOfDay,
+        hunger: this.hunger,
+        gta7Complete: this.gta7Complete,
+        kingUnlocked: this.kingUnlocked,
+        mansionOwned: this.mansionOwned,
+        bank: this.bank,
+        outfits: this.outfits,
+        ownedVehicles: this.ownedVehicles,
+        waypoint: this.waypoint ? { x: this.waypoint.x, z: this.waypoint.z } : null,
+        waypointMeta: this.waypointMeta,
         wanted: 0,
         savedAt: Date.now()
       };

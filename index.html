@@ -111,7 +111,7 @@
               <div class="chapter-art"><span>01</span><i></i></div>
               <div class="continue-info">
                 <div class="continue-bar"><i id="story-progress-bar" style="width:0%"></i></div>
-                <div class="continue-meta"><span id="continue-progress">0 de 5 missões</span><span>Luiza & Carlos</span></div>
+                <div class="continue-meta"><span id="continue-progress">0 de 91 missões</span><span>Caio BR</span></div>
                 <p id="continue-copy">O sol nasce sobre a orla. Luiza ainda não sabe que a cidade está prestes a cobrar suas dívidas.</p>
               </div>
             </div>
@@ -156,7 +156,7 @@
         <div class="menu-meta"><span>MUNDO ABERTO</span><span>PORTUGUÊS / ENGLISH</span><span>1 JOGADOR</span></div>
         <div class="menu-actions">
           <button class="menu-item featured" data-start="continue"><span class="mi-index">01</span><span class="mi-text"><b id="menu-continue-label">Continuar história</b><small id="menu-continue-sub">Capítulo 1 · Maré de Mudança</small></span><span class="mi-arrow">→</span></button>
-          <button class="menu-item" data-start="story"><span class="mi-index">02</span><span class="mi-text"><b>Modo história</b><small>5 missões · Luiza & Carlos</small></span><span class="mi-arrow">→</span></button>
+          <button class="menu-item" data-start="story"><span class="mi-index">02</span><span class="mi-text"><b>Modo história · GTA 7 BR</b><small>91 missões · Caio BR</small></span><span class="mi-arrow">→</span></button>
           <button class="menu-item" data-start="rp"><span class="mi-index">03</span><span class="mi-text"><b>Roleplay</b><small>Costa RP · trabalhos e reputação</small></span><span class="mi-arrow">→</span></button>
           <button class="menu-item" data-start="free"><span class="mi-index">04</span><span class="mi-text"><b>Mundo livre</b><small>Explore sem limites</small></span><span class="mi-arrow">→</span></button>
         </div>
@@ -174,7 +174,7 @@
           <p class="eyebrow">SESSÃO ATUAL</p>
           <div class="session-row"><span>Nível de procurado</span><b><i class="dot"></i> Limpo</b></div>
           <div class="session-row"><span>Dinheiro</span><b id="menu-money">R$ 2.500</b></div>
-          <div class="session-row"><span>Progresso</span><b id="menu-progress">0 / 5</b></div>
+          <div class="session-row"><span>Campanha GTA 7 BR</span><b id="menu-progress">0 / 91</b></div>
           <div class="session-row"><span>Modo RP</span><b><i class="dot green"></i> Disponível</b></div>
         </div>
         <div class="menu-side-note"><span>⌁</span><p>Uma obra de ficção. Pessoas, lugares e marcas são inventados.</p></div>
@@ -247,6 +247,7 @@
         </div>
       </div>
       <div id="stamina-row" class="stamina-row"><span>FÔLEGO</span><div class="stamina-bar"><i id="stamina-fill"></i></div></div>
+      <div id="hunger-row" class="hunger-row"><span>FOME</span><div class="hunger-bar"><i id="hunger-fill"></i></div><b id="hunger-value">100</b></div>
       <div class="radio-row"><button class="radio-btn" id="radio-btn" type="button">◉</button><div><span>RÁDIO COSTA</span><b id="radio-station">MARÉ 98.5</b></div><button class="radio-next" id="radio-next" type="button">›</button></div>
     </div>
 
@@ -255,6 +256,13 @@
         <div class="weapon-icon" id="weapon-icon">◐</div>
         <div class="weapon-info"><span id="weapon-name">PISTOLA</span><b><span id="ammo">12</span><small>/ 48</small></b></div>
         <button id="reload-btn" class="reload-btn" type="button" aria-label="Recarregar">↻</button>
+      </div>
+      <div class="vehicle-hud" id="vehicle-hud">
+        <div class="veh-head"><span id="veh-name">CARRO POPULAR</span><b id="veh-speed">0</b><small>KM/H</small></div>
+        <div class="veh-bars">
+          <span>VIDA <i><em id="veh-health"></em></i></span>
+          <span>GASOLINA <i><em id="veh-fuel"></em></i></span>
+        </div>
       </div>
       <div class="control-hint desktop-hint"><span><kbd>WASD</kbd> mover</span><span><kbd>F</kbd> entrar</span><span><kbd>E</kbd> interagir</span><span><kbd>M</kbd> mapa</span><span><kbd>P</kbd> trocar</span></div>
     </div>
@@ -269,6 +277,7 @@
     </div>
 
     <div id="interaction-prompt" class="interaction-prompt"><span class="key">E</span><div><b id="interact-title">CONVERSAR</b><small id="interact-sub">Com Carlos</small></div></div>
+    <div id="context-layer" class="context-layer" aria-hidden="true"></div>
     <div id="subtitle-toast" class="subtitle-toast"></div>
     <div id="notifications" class="notifications"></div>
     <div id="hud-toast" class="hud-toast"></div>
@@ -300,7 +309,7 @@
         <button class="ps-shoulder r1" data-action="reload" type="button" aria-label="R1: recarregar ou rádio"><b>R1</b><small>RECARGA</small></button>
         <button class="touch-r3" data-action="camera" type="button" aria-label="R3: centralizar câmera"><b>R3</b><small>CAM</small></button>
         <button class="ps-btn triangle" data-action="vehicle" type="button"><span>△</span><small>VEÍCULO</small></button>
-        <button class="ps-btn circle" data-action="fire" data-hold="true" type="button"><span>◯</span><small>ATIRAR</small></button>
+        <button class="ps-btn circle" data-action="crouch" type="button"><span>◯</span><small>AGACHAR</small></button>
         <button class="ps-btn cross" data-action="interact" type="button"><span>✕</span><small>INTERAGIR</small></button>
         <button class="ps-btn square" data-action="jump" type="button"><span>□</span><small>SALTAR</small></button>
       </div>
@@ -358,11 +367,21 @@
         <div class="pause-panel active" data-pause-panel="main">
           <div class="pause-hero">
             <div class="pause-hero-art"><span>COSTA<br>DOURADA</span><i></i></div>
-            <div class="pause-hero-info"><p class="eyebrow" id="pause-mode-label">MODO HISTÓRIA</p><h2 id="pause-mission-title">Capítulo 1 · Maré de Mudança</h2><p id="pause-mission-desc">Luiza precisa encontrar Carlos na orla antes que a cidade acorde.</p><div class="pause-stats"><div><span>MISSÕES</span><b id="pause-progress">0/5</b></div><div><span>DINHEIRO</span><b id="pause-money">R$ 2.500</b></div><div><span>PROCURADO</span><b id="pause-wanted">Limpo</b></div><div><span>TEMPO</span><b id="pause-time">00:12:40</b></div></div><button class="btn primary" id="resume-btn" type="button">Continuar jogo <span>▶</span></button></div>
+            <div class="pause-hero-info"><p class="eyebrow" id="pause-mode-label">MODO HISTÓRIA</p><h2 id="pause-mission-title">Capítulo 1 · Maré de Mudança</h2><p id="pause-mission-desc">Luiza precisa encontrar Carlos na orla antes que a cidade acorde.</p><div class="pause-stats"><div><span>MISSÕES</span><b id="pause-progress">0/91</b></div><div><span>DINHEIRO</span><b id="pause-money">R$ 2.500</b></div><div><span>PROCURADO</span><b id="pause-wanted">Limpo</b></div><div><span>TEMPO</span><b id="pause-time">00:12:40</b></div></div><button class="btn primary" id="resume-btn" type="button">Continuar jogo <span>▶</span></button></div>
           </div>
         </div>
         <div class="pause-panel" data-pause-panel="missions">
-          <div class="panel-head"><div><p class="eyebrow">MODO HISTÓRIA</p><h2>Cinco histórias. Uma cidade.</h2></div><span id="mission-count-badge">1 / 5</span></div>
+          <div class="panel-head"><div><p class="eyebrow">GTA 7 BR · CAMPANHA DO CAIO</p><h2>91 missões. Uma cidade.</h2></div><span id="mission-count-badge">0 / 91</span></div>
+          <div class="mission-campaign-bar">
+            <div class="mission-campaign-meta"><span id="gta7-progress-chapter">MISSÃO 01 · TUTORIAL</span><b id="gta7-progress-label">0 / 91 · 0%</b></div>
+            <div class="mission-progress-track"><i id="gta7-progress-bar"></i></div>
+            <div class="mission-campaign-note" id="gta7-progress-note">Complete uma missão para destravar a próxima. Troféus, carro dourado, mansão e roupa de rei no 91/91.</div>
+          </div>
+          <div class="mission-filter-row" id="mission-filter-row">
+            <button type="button" class="mission-filter on" data-filter="all">TODAS · 91</button>
+            <button type="button" class="mission-filter" data-filter="open">DISPONÍVEIS</button>
+            <button type="button" class="mission-filter" data-filter="done">CONCLUÍDAS</button>
+          </div>
           <div class="mission-list" id="mission-list"></div>
         </div>
         <div class="pause-panel" data-pause-panel="settings">

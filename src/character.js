@@ -185,6 +185,29 @@ export function createCharacter(options = {}) {
     strap.position.set(-.13, .3, .15); strap.rotation.z = .2; torso.add(strap);
   }
 
+  if (options.tattoo) {
+    const ink = mat(0x241c1a, .95);
+    for (const [w, h, y, z, rz] of [[.09, .012, -.1, .062, .35], [.07, .012, -.155, .062, -.5], [.05, .012, -.205, .06, .2]]) {
+      const line = new THREE.Mesh(new THREE.BoxGeometry(w, h, .008), ink);
+      line.position.set(0, y, z); line.rotation.z = rz; arms[1].elbow.add(line);
+    }
+  }
+
+
+  const crown = new THREE.Group();
+  {
+    const gold = mat(0xf6c768, .25, .85);
+    const band = new THREE.Mesh(new THREE.CylinderGeometry(.155, .16, .07, 10, 1, true), gold);
+    band.position.y = .17; crown.add(band);
+    for (let i = 0; i < 5; i++) {
+      const spike = new THREE.Mesh(new THREE.ConeGeometry(.035, .12, 4), gold);
+      const a = (i / 5) * Math.PI * 2;
+      spike.position.set(Math.cos(a) * .13, .26, Math.sin(a) * .13);
+      crown.add(spike);
+    }
+    crown.visible = false;
+    head.add(crown);
+  }
   const shadow = addShadowBlob(root, isPlayer ? 1.5 : 1.15);
   shadow.position.y = .015;
 
@@ -197,7 +220,8 @@ export function createCharacter(options = {}) {
     currentWeapon: 'pistol',
     isPlayer,
     female,
-    name
+    name,
+    crown
   };
 
   state.setWeapon = (kind) => {
@@ -260,6 +284,7 @@ export function createCharacter(options = {}) {
   };
 
   state.setVisibility = (v) => { root.visible = v; };
+  state.setCrown = (v) => { crown.visible = !!v; };
 
   state.dispose = () => {
     root.traverse(o => { if (o.isMesh) { o.geometry?.dispose?.(); if (Array.isArray(o.material)) o.material.forEach(m => m.dispose()); else o.material?.dispose?.(); } });
@@ -283,6 +308,15 @@ export function createCarlos() {
     skin: 0x6f412e, shirt: 0x2d8d84, pants: 0x343c43,
     hair: 0x16110f, accent: 0x43ddbe, capColor: 0x245b55, chain: true,
     shoes: 0x1d1a19, backpack: false
+  });
+}
+
+export function createCaio() {
+  return createCharacter({
+    name: 'Caio', female: false, isPlayer: true,
+    skin: 0x8a5334, shirt: 0xf0b23c, pants: 0x26333d,
+    hair: 0x14100d, accent: 0x3d8bff, capColor: 0x1f4fa8,
+    chain: true, tattoo: true, backpack: false, shoes: 0x1d1a19
   });
 }
 
