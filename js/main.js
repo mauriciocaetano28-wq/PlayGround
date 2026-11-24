@@ -166,7 +166,7 @@ function startExperience(mode, charId, state = null) {
   hideMenu();
   audio && audio.init();
   if (mode === 'rp') game.startRP(charId || 'luiza', state);
-  else game.startStory(charId || 'caio', state);
+  else game.startStory(charId && charId !== 'caio' ? charId : 'luiza', state);
   game.showHUD();
   game._last = performance.now();
   if (game._touchEnabled()) $('touch-controls').classList.remove('hidden');
@@ -180,7 +180,7 @@ function continueGame() {
   }
   save = s;
   if (s.mode === 'rp') startExperience('rp', s.char || 'luiza', s);
-  else startExperience('story', s.char || 'caio', s);
+  else startExperience('story', s.char && s.char !== 'caio' ? s.char : 'luiza', s);
 }
 
 function updateContinueState() {
@@ -189,7 +189,7 @@ function updateContinueState() {
   if (!btn || !sub) return;
   const s = loadJSON(SAVE_KEY, null);
   if (s) {
-    const ch = s.char === 'carlos' ? 'Felipe' : s.char === 'caio' ? 'Caio BR' : 'Maria';
+    const ch = s.char === 'carlos' ? 'Felipe' : s.char === 'luiza' || s.char === 'caio' ? 'Maria' : 'Maria';
     const done = (s.completed || []).length;
     const mode = s.mode === 'rp' ? 'Roleplay' : `${done}/91 missões • ${Math.round(done / 91 * 100)}%`;
     sub.textContent = `${ch} • ${mode} • ${new Date(s.updated || Date.now()).toLocaleDateString('pt-BR')}`;
@@ -714,7 +714,7 @@ function bindMenu() {
     game._closeResult();
     const next = game.nextMission();
     if (next) game.notify('PRÓXIMA MISSÃO', next.title + ' disponível em ' + next.location + '.', 'good');
-    else game.notify('HISTÓRIA COMPLETA', 'Você terminou as dez missões. A cidade é sua.', 'good');
+    else game.notify('HISTÓRIA COMPLETA', 'Você terminou as 91 missões. A cidade é sua.', 'good');
   });
   const resultRetry = $('btn-result-retry');
   if (resultRetry) resultRetry.addEventListener('click', () => { if (game) game.restartCheckpoint(); });

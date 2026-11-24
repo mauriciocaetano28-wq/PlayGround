@@ -18,6 +18,16 @@ const rand = (a, b) => a + Math.random() * (b - a);
 const dist2 = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
 const nowSec = () => performance.now() / 1000;
 
+const WEAPON_PRESETS = {
+  'PISTOLA .40': { name: 'PISTOLA GTA 7 BR .40', damage: 34, magSize: 12, reserve: 48, fireRate: 0.26, reloadTime: 1.25 },
+  'FUZIL AK-47': { name: 'FUZIL AK-47', damage: 26, magSize: 30, reserve: 120, fireRate: 0.11, reloadTime: 1.7 },
+  'ESCOPETA BR': { name: 'ESCOPETA BR', damage: 70, magSize: 8, reserve: 32, fireRate: 0.75, reloadTime: 2.0 },
+  'SUBMETRALHADORA': { name: 'SUBMETRALHADORA', damage: 22, magSize: 32, reserve: 128, fireRate: 0.08, reloadTime: 1.5 },
+  'SNIPER .50': { name: 'SNIPER .50', damage: 120, magSize: 5, reserve: 20, fireRate: 1.1, reloadTime: 2.2 },
+  'LANÇADOR DE GRANADAS': { name: 'LANÇADOR DE GRANADAS', damage: 90, magSize: 4, reserve: 8, fireRate: 1.2, reloadTime: 2.5 },
+  'SOCO INGLÊS': { name: 'SOCO INGLÊS', damage: 40, magSize: 1, reserve: 0, fireRate: 0.4, reloadTime: 0.8 }
+};
+
 /* ============================================================
    DIALOGUE LIBRARY (PT + EN)
    ============================================================ */
@@ -128,6 +138,7 @@ class CharacterModel {
     this.charId = charId;
     this.simple = !!opts.simple;
     this.cop = !!opts.cop;
+    this.army = !!opts.army;
     this.gang = !!opts.gang;
     this.group = new THREE.Group();
     this.parts = {};
@@ -146,10 +157,10 @@ class CharacterModel {
   _build(opts) {
     const luiza = this.charId === 'luiza';
     const caio = this.charId === 'caio';
-    const skin = this.cop ? 0xb9815a : this.gang ? 0x9b6a45 : luiza ? 0xa86a44 : caio ? 0xb87c50 : 0xb87c50;
-    const shirt = this.cop ? 0x1f3550 : this.gang ? (opts.color || 0x2a2c30) : luiza ? 0x14b8a6 : caio ? 0xffd166 : 0xe85d45;
-    const pants = this.cop ? 0x17222f : this.gang ? 0x23252a : luiza ? 0xe8e2d2 : caio ? 0x1f2937 : 0x27313a;
-    const shoe = this.cop ? 0x10161c : caio ? 0xf1eee2 : 0x1b1f23;
+    const skin = this.cop || this.army ? 0xb9815a : this.gang ? 0x9b6a45 : luiza ? 0xa86a44 : caio ? 0xb87c50 : 0xb87c50;
+    const shirt = this.army ? 0x43502f : this.cop ? 0x1f3550 : this.gang ? (opts.color || 0x2a2c30) : luiza ? 0x14b8a6 : caio ? 0xffd166 : 0xe85d45;
+    const pants = this.army ? 0x2b3322 : this.cop ? 0x17222f : this.gang ? 0x23252a : luiza ? 0xe8e2d2 : caio ? 0x1f2937 : 0x27313a;
+    const shoe = this.army ? 0x181d14 : this.cop ? 0x10161c : caio ? 0xf1eee2 : 0x1b1f23;
     const skinMat = this._mat(skin, 0.72);
     const shirtMat = this._mat(shirt, 0.85);
     const pantsMat = this._mat(pants, 0.9);
@@ -170,10 +181,10 @@ class CharacterModel {
       a1.position.set(-0.36, 1.2, 0); this.group.add(a1);
       const a2 = a1.clone(); a2.position.x = 0.36; this.group.add(a2);
       this.parts = { torso, head, l1, l2, a1, a2 };
-      if (this.cop) {
-        const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.1, 8), this._mat(0x14253a, 0.7));
+      if (this.cop || this.army) {
+        const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.1, 8), this._mat(this.army ? 0x43502f : 0x14253a, 0.7));
         cap.position.y = 1.96; this.group.add(cap);
-        const badge = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.07, 0.02), this._mat(0xffcf5c, 0.4, 0.6));
+        const badge = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.07, 0.02), this._mat(this.army ? 0xd8d2a8 : 0xffcf5c, 0.4, 0.6));
         badge.position.set(-0.13, 1.32, 0.16); this.group.add(badge);
       }
       return;
@@ -289,10 +300,10 @@ class CharacterModel {
       const bandana = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.1, 0.05), this._mat(0xb8453a, 0.8));
       bandana.position.set(0, 1.58, 0.17); this.group.add(bandana);
     }
-    if (this.cop) {
-      const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.21, 0.22, 0.11, 10), this._mat(0x14253a, 0.7));
+    if (this.cop || this.army) {
+      const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.21, 0.22, 0.11, 10), this._mat(this.army ? 0x43502f : 0x14253a, 0.7));
       cap.position.set(0, 1.95, 0.01); this.group.add(cap);
-      const badge = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.07, 0.02), this._mat(0xffcf5c, 0.4, 0.6));
+      const badge = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.07, 0.02), this._mat(this.army ? 0xd8d2a8 : 0xffcf5c, 0.4, 0.6));
       badge.position.set(-0.15, 1.35, 0.16); this.group.add(badge);
     }
   }
@@ -307,12 +318,15 @@ class CharacterModel {
     const sp = Math.min(1, speed / 4.5);
     this.walkPhase += dt * (3.2 + speed * 1.5);
     const swing = Math.sin(this.walkPhase) * 0.7 * sp;
+    const seated = state === 'sit';
+    const eating = state === 'eat';
+    const phoning = state === 'phone';
     if (this.parts.legL) {
-      this.parts.legL.rotation.x = swing;
-      this.parts.legR.rotation.x = -swing;
+      this.parts.legL.rotation.x = seated ? -1.32 : swing;
+      this.parts.legR.rotation.x = seated ? -1.32 : -swing;
     } else if (this.parts.l1) {
-      this.parts.l1.rotation.x = swing * 0.7;
-      this.parts.l2.rotation.x = -swing * 0.7;
+      this.parts.l1.rotation.x = seated ? -1.18 : swing * 0.7;
+      this.parts.l2.rotation.x = seated ? -1.18 : -swing * 0.7;
     }
     if (this.parts.armL) {
       this.parts.armL.rotation.x = -swing * 0.75;
@@ -330,19 +344,39 @@ class CharacterModel {
         this.parts.armR.rotation.z = -0.38;
         this.parts.armL.rotation.x = -0.28;
         this.parts.gun.visible = false;
+      } else if (eating) {
+        this.parts.armR.rotation.x = -2.05 + Math.sin(this.walkPhase * 1.7) * 0.12;
+        this.parts.armL.rotation.x = -1.72;
+        this.parts.armL.rotation.z = 0.3;
+        this.parts.gun.visible = false;
+      } else if (phoning) {
+        this.parts.armR.rotation.x = -1.88;
+        this.parts.armR.rotation.z = -0.34;
+        this.parts.armL.rotation.x = -0.16;
+        this.parts.gun.visible = false;
+      } else if (seated) {
+        this.parts.armR.rotation.x = -0.32;
+        this.parts.armL.rotation.x = -0.32;
+        this.parts.armR.rotation.z = 0;
+        this.parts.armL.rotation.z = 0;
+        this.parts.gun.visible = false;
       } else {
         this.parts.armR.rotation.x = swing * 0.75;
+        this.parts.armR.rotation.z = 0;
         this.parts.armL.rotation.z = 0;
         this.parts.gun.visible = false;
       }
     } else if (this.parts.a1) {
-      this.parts.a1.rotation.x = swing * 0.6;
-      this.parts.a2.rotation.x = -swing * 0.6;
+      this.parts.a1.rotation.x = eating ? -2.0 : phoning ? -1.82 : seated ? -0.3 : swing * 0.6;
+      this.parts.a2.rotation.x = eating ? -1.55 : seated ? -0.3 : -swing * 0.6;
     }
-    const bob = state === 'idle' ? Math.sin(this.walkPhase * 0.5) * 0.012 : Math.abs(Math.sin(this.walkPhase)) * 0.035 * sp;
-    if (this.parts.hips) this.parts.hips.position.y = 0.94 + bob;
-    else if (this.parts.torso) this.parts.torso.position.y = 1.22 + bob;
-    if (this.parts.head) this.parts.head.position.y = 1.72 + bob * 0.6;
+    const bob = seated ? 0 : state === 'idle' ? Math.sin(this.walkPhase * 0.5) * 0.012 : Math.abs(Math.sin(this.walkPhase)) * 0.035 * sp;
+    if (this.parts.hips) this.parts.hips.position.y = (seated ? 0.56 : 0.94) + bob;
+    else if (this.parts.torso) this.parts.torso.position.y = (seated ? 0.82 : 1.22) + bob;
+    if (this.parts.head) {
+      this.parts.head.position.y = (seated ? 1.34 : 1.72) + bob * 0.6;
+      this.parts.head.rotation.x = phoning ? 0.28 : 0;
+    }
   }
 
   flash() {
@@ -440,6 +474,27 @@ function buildCarMesh(type, color, name) {
       win.position.set(sx * (W * 0.51), 0.58 + H + 0.28, 0); g.add(win);
     }
   }
+
+  // Portas e vidros laterais animáveis. Cada porta abre ao entrar/sair,
+  // quebra em batidas fortes e o vidro estilhaça antes da lataria.
+  const doors = [];
+  if (type !== 'bus' && type !== 'truck') {
+    for (const sx of [-1, 1]) {
+      const pivot = new THREE.Group();
+      pivot.position.set(sx * (W * 0.505), 0.58 + H, cabin.position.z + cabinL * 0.42);
+      const panel = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.58, cabinL * 0.46), bodyMat);
+      panel.position.set(0, -0.29, -cabinL * 0.23);
+      pivot.add(panel);
+      const win = new THREE.Mesh(new THREE.BoxGeometry(0.045, 0.36, cabinL * 0.38), glassMat);
+      win.position.set(0, 0.26, -cabinL * 0.23);
+      pivot.add(win);
+      const handle = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.04, 0.13), darkMat);
+      handle.position.set(sx * 0.045, -0.12, -cabinL * 0.4);
+      pivot.add(handle);
+      g.add(pivot);
+      doors.push({ pivot, panel, window: win, handle, side: sx, broken: false });
+    }
+  }
   if (type === 'police') {
     const bar = new THREE.Mesh(new THREE.BoxGeometry(W * 0.7, 0.16, 0.32), darkMat);
     bar.position.set(0, 0.58 + H + 0.68, -L * 0.02); g.add(bar);
@@ -487,6 +542,12 @@ function buildCarMesh(type, color, name) {
   g.userData.bodyMat = bodyMat;
   g.userData.mats = mats;
   g.userData.lights = { head: lightMat, tail: tailMat };
+  g.userData.cabin = cabin;
+  g.userData.doors = doors;
+  g.userData.body = body;
+  g.userData.hood = hood;
+  g.userData.roof = roof;
+  g.userData.bumpers = [bump, bump2];
   g.userData.name = name || type;
   return g;
 }
@@ -899,7 +960,8 @@ export class Game {
       vy: 0, onGround: true,
       health: 100, armor: 40, stamina: 100, boostReserve: 100, hunger: 100, breath: 100,
       money: saveState?.money ?? 2450,
-      weapon: { mag: 12, reserve: 48, magSize: 12, fireRate: 0.26, damage: 34, reloadTime: 1.25 },
+      weapon: { name: 'PISTOLA GTA 7 BR .40', mag: 12, reserve: 48, magSize: 12, fireRate: 0.26, damage: 34, reloadTime: 1.25 },
+      weapons: ['PISTOLA .40'],
       reloading: 0, fireCooldown: 0,
       inVehicle: null, aim: false, sprinting: false, swimming: false, crouching: false,
       lastDamage: -99, kills: 0, shots: 0, hits: 0, package: false,
@@ -955,10 +1017,10 @@ export class Game {
   }
 
   charInfo(id) {
-    const who = id || (this.player && this.player.charId) || 'caio';
-    if (who === 'luiza') return { id: 'luiza', portrait: 'luiza', name: 'MARIA', full: 'MARIA ANDRADE', role: 'A VOZ DE SÃO PAULO' };
+    const who = id || (this.player && this.player.charId) || 'luiza';
+    if (who === 'luiza' || who === 'caio') return { id: 'luiza', portrait: 'luiza', name: 'MARIA', full: 'MARIA ANDRADE', role: 'A VOZ DE SÃO PAULO' };
     if (who === 'carlos') return { id: 'carlos', portrait: 'carlos', name: 'FELIPE', full: 'FELIPE MENDES', role: 'O BRAÇO DO ZONA SUL' };
-    return { id: 'caio', portrait: 'caio', name: 'CAIO BR', full: 'CAIO BR', role: 'O REI DA FAVELA' };
+    return { id: 'luiza', portrait: 'luiza', name: 'MARIA', full: 'MARIA ANDRADE', role: 'A VOZ DE SÃO PAULO' };
   }
 
   _updateCharHUD() {
@@ -1003,11 +1065,25 @@ export class Game {
       { x: -698, z: 142, type: 'sedan', color: 0xf1eee2, angle: Math.PI / 2 },
       { x: 282, z: 422, type: 'taxi', color: 0xffc46b, angle: 0 },
       { x: 62, z: 702, type: 'hatch', color: 0x7b5a8c, angle: 0 },
-      { x: 602, z: -302, type: 'sports', color: 0xf1eee2, angle: 0 }
+      { x: 602, z: -302, type: 'sports', color: 0xf1eee2, angle: 0 },
+      { x: 556, z: 8, type: 'moto', color: 0xe85d45, angle: Math.PI / 2, name: 'MOTO DE RUA' },
+      { x: -548, z: -300, type: 'moto', color: 0xffc46b, angle: 0, name: 'MOTO DE TRILHA' }
     ];
     for (const d of defs) {
       this._makeVehicle({ ...d, name: 'VEÍCULO', driver: null, parked: true });
     }
+    // Veículos especiais espalhados pelos pontos do mapa: helicóptero,
+    // lancha, jetski, ônibus, ambulância, caminhão e viatura.
+    const special = [
+      { x: 1360, z: 958, type: 'heli', color: 0x2a3a4a, angle: 0, name: 'HELICÓPTERO DO AEROPORTO' },
+      { x: 792, z: 26, type: 'boat', color: 0xf1eee2, angle: Math.PI / 2, name: 'LANCHA PAULISTA' },
+      { x: 772, z: 84, type: 'jetski', color: 0xff7a59, angle: Math.PI / 2, name: 'JETSKI DA PRAIA' },
+      { x: -132, z: 28, type: 'bus', color: 0xffc46b, angle: 0, name: 'ÔNIBUS DO CENTRO' },
+      { x: 152, z: -688, type: 'ambulance', color: 0xf1eee2, angle: 0, name: 'AMBULÂNCIA' },
+      { x: -198, z: 546, type: 'truck', color: 0x3d7a52, angle: Math.PI / 2, name: 'CAMINHÃO DO PORTO' },
+      { x: 292, z: -406, type: 'police', color: 0xf1eee2, angle: 0, name: 'VIATURA DA PM' }
+    ];
+    for (const d of special) this._makeVehicle({ ...d, driver: null, parked: true });
   }
 
   _spawnTraffic() {
@@ -1045,8 +1121,8 @@ export class Game {
     const typeStats = {
       sedan: { max: 38, accel: 15, handling: 1.5, mass: 1 },
       hatch: { max: 34, accel: 16, handling: 1.7, mass: 0.9 },
-      sports: { max: 56, accel: 25, handling: 1.9, mass: 1 },
-      luxury: { max: 60, accel: 28, handling: 2.0, mass: 1 },
+      sports: { max: 75, accel: 30, handling: 1.9, mass: 1 },
+      luxury: { max: 76, accel: 31, handling: 2.0, mass: 1 },
       suv: { max: 40, accel: 14, handling: 1.25, mass: 1.3 },
       pickup: { max: 36, accel: 13, handling: 1.15, mass: 1.35 },
       taxi: { max: 38, accel: 15, handling: 1.5, mass: 1 },
@@ -1075,6 +1151,10 @@ export class Game {
       maxSpeed: st.max, accel: st.accel, handling: st.handling, mass: st.mass,
       isBoat, isHeli, isMoto, isJetski, isPolice: o.type === 'police', driver: o.driver || null, parked: !!o.parked,
       traffic: null, ai: null, wheels: mesh.userData.wheels || [], sirenPhase: Math.random() * 10,
+      doors: mesh.userData.doors || [], cabin: mesh.userData.cabin || null,
+      body: mesh.userData.body || null, hood: mesh.userData.hood || null,
+      roof: mesh.userData.roof || null, bumpers: mesh.userData.bumpers || [],
+      doorOpen: 0, doorTarget: 0, doorTimer: 0, doorBroken: false, windowsBroken: false, dents: 0,
       exploded: false, fireTimer: 0, stuck: 0, destroyed: false, occupiedBy: null,
       lightRed: mesh.userData.lightRed, lightBlue: mesh.userData.lightBlue,
       lights: mesh.userData.lights || null,
@@ -1087,10 +1167,76 @@ export class Game {
 
   _damageVehicle(v, amount) {
     if (!v || v.destroyed || v.exploded) return;
+    const prevStage = v.damageStage || 0;
     v.health -= Math.max(0, amount);
     v.damageStage = v.health < 25 ? 3 : v.health < 50 ? 2 : v.health < 75 ? 1 : 0;
+    if (v.damageStage > prevStage) this._deformVehicle(v, v.damageStage);
+    if (v.health < 58) this._breakVehicleWindows(v);
+    if (v.health < 30) this._breakVehicleDoor(v);
     if (v.health <= 0) { this._explodeVehicle(v); return; }
     if (v.health < 45 && Math.random() < 0.22) this._spawnSmoke(v.pos, v.health < 25 ? 1.2 : 0.7);
+  }
+
+  _deformVehicle(v, stage = 1) {
+    if (!v || v.dents >= 5) return;
+    v.dents++;
+    const k = Math.min(5, v.dents);
+    if (v.body) {
+      v.body.scale.x = Math.max(0.86, 1 - k * 0.025);
+      v.body.rotation.z = (Math.random() - 0.5) * 0.03 * k;
+    }
+    if (v.hood) {
+      v.hood.rotation.x = -0.025 + (Math.random() - 0.5) * 0.06 * k;
+      v.hood.position.y -= 0.012 * k;
+    }
+    if (v.roof) {
+      v.roof.rotation.z = (Math.random() - 0.5) * 0.04 * k;
+      v.roof.position.y -= 0.008 * k;
+    }
+    for (const b of v.bumpers) {
+      b.position.z += (Math.random() - 0.5) * 0.08 * k;
+      b.rotation.y += (Math.random() - 0.5) * 0.05 * k;
+    }
+    if (stage >= 2) this._spawnSmoke(v.pos, stage >= 3 ? 1.1 : 0.7);
+  }
+
+  _breakVehicleWindows(v) {
+    if (!v || v.windowsBroken || !v.doors || !v.doors.length) return;
+    v.windowsBroken = true;
+    for (const d of v.doors) if (d.window) d.window.visible = false;
+    if (v.cabin) v.cabin.visible = false;
+    this._spawnGlass(v.pos);
+    this.audio.play('hit');
+  }
+
+  _breakVehicleDoor(v) {
+    if (!v || v.doorBroken || !v.doors || !v.doors.length) return;
+    v.doorBroken = true;
+    v.doorTarget = 1;
+    const d = v.doors[Math.random() > 0.5 ? 0 : v.doors.length - 1];
+    if (!d) return;
+    d.broken = true;
+    d.pivot.rotation.y = -d.side * 1.35;
+    d.pivot.rotation.z = d.side * 0.55;
+    d.pivot.position.y -= 0.18;
+    this._spawnGlass(v.pos);
+  }
+
+  _spawnGlass(pos) {
+    const mat = new THREE.MeshBasicMaterial({ color: 0xa8e6ff, transparent: true, opacity: 0.72 });
+    for (let i = 0; i < 6; i++) {
+      const m = new THREE.Mesh(new THREE.BoxGeometry(rand(0.04, 0.1), rand(0.03, 0.08), rand(0.04, 0.1)), mat.clone());
+      m.position.set(pos.x + rand(-0.7, 0.7), 1.0 + rand(-0.2, 0.5), pos.z + rand(-0.7, 0.7));
+      m.userData.v = new THREE.Vector3(rand(-2, 2), rand(1.2, 3.2), rand(-2, 2));
+      this.effectGroup.add(m);
+      this.effects.push({ obj: m, life: 0.65, max: 0.65, kind: 'blood', v: m.userData.v });
+    }
+  }
+
+  _setVehicleDoor(v, open, hold = 0.8) {
+    if (!v || v.doorBroken || !v.doors || !v.doors.length) return;
+    v.doorTarget = open ? 1 : 0;
+    v.doorTimer = open ? hold : 0;
   }
 
   _spawnSmoke(pos, scale = 1) {
@@ -1151,10 +1297,31 @@ export class Game {
       const npc = {
         model, pos: new THREE.Vector3(x, 0, z), axis: rp.axis, dir: Math.random() > 0.5 ? 1 : -1,
         speed: rand(1.2, 2.2), phase: Math.random() * 6, flee: 0, dead: false,
-        line: Math.floor(Math.random() * NPC_LINES.length), talkCooldown: 0
+        line: Math.floor(Math.random() * NPC_LINES.length), talkCooldown: 0,
+        activity: 'walk', activityTimer: rand(4, 12), anchor: false
       };
       this.npcs.push(npc);
     }
+    // Moradores fixos: comem no quiosque, sentam no parque/praia e falam ao celular.
+    const ambient = [
+      [LANDMARKS.kiosk.x + 4, LANDMARKS.kiosk.z + 3, 'eat'],
+      [LANDMARKS.park.x + 6, LANDMARKS.park.z - 4, 'sit'],
+      [LANDMARKS.praia.x - 4, LANDMARKS.praia.z + 5, 'sit'],
+      [LANDMARKS.shop.x - 5, LANDMARKS.shop.z + 2, 'phone'],
+      [LANDMARKS.safehouse.x + 4, LANDMARKS.safehouse.z - 3, 'eat'],
+      [LANDMARKS.mansion.x - 6, LANDMARKS.mansion.z + 4, 'phone']
+    ];
+    ambient.forEach(([x, z, activity], i) => {
+      const model = new CharacterModel('npc', { simple: true, color: colors[(i + 3) % colors.length] });
+      model.group.position.set(x, this.world.groundHeight(x, z), z);
+      this.scene.add(model.group);
+      this.npcs.push({
+        model, pos: new THREE.Vector3(x, 0, z), axis: 'x', dir: 1,
+        speed: 0, phase: Math.random() * 6, flee: 0, dead: false,
+        line: Math.floor(Math.random() * NPC_LINES.length), talkCooldown: 0,
+        activity, activityTimer: rand(5, 10), anchor: true
+      });
+    });
   }
 
   _spawnPickups() {
@@ -1164,10 +1331,14 @@ export class Game {
       { x: -420, z: 420, type: 'ammo' }, { x: 140, z: -280, type: 'health' },
       { x: 0, z: 560, type: 'cash' }, { x: -700, z: -140, type: 'armor' },
       { x: 420, z: 140, type: 'ammo' }, { x: -140, z: -700, type: 'cash' },
-      { x: 560, z: 420, type: 'health' }, { x: -280, z: -420, type: 'cash' }
+      { x: 560, z: 420, type: 'health' }, { x: -280, z: -420, type: 'cash' },
+      { x: -548, z: -292, type: 'weapon', weapon: 'FUZIL AK-47' },
+      { x: -222, z: 548, type: 'weapon', weapon: 'ESCOPETA BR' },
+      { x: -292, z: 408, type: 'weapon', weapon: 'SUBMETRALHADORA' },
+      { x: 1362, z: 962, type: 'weapon', weapon: 'SNIPER .50' }
     ];
     for (const d of defs) {
-      const color = d.type === 'health' ? 0x7dfba7 : d.type === 'armor' ? 0x5cc8ff : d.type === 'ammo' ? 0xffc46b : 0xffd166;
+      const color = d.type === 'health' ? 0x7dfba7 : d.type === 'armor' ? 0x5cc8ff : d.type === 'ammo' ? 0xffc46b : d.type === 'weapon' ? 0xff8c42 : 0xffd166;
       const g = new THREE.Group();
       const core = new THREE.Mesh(new THREE.OctahedronGeometry(0.45, 0), new THREE.MeshStandardMaterial({ color, emissive: color, emissiveIntensity: 0.8, roughness: 0.3 }));
       g.add(core);
@@ -1177,7 +1348,7 @@ export class Game {
       beam.position.y = 1.5; g.add(beam);
       g.position.set(d.x, 1.1, d.z);
       this.scene.add(g);
-      this.pickups.push({ g, core, ring, type: d.type, x: d.x, z: d.z, active: true, respawn: 0, baseY: 1.1 });
+      this.pickups.push({ g, core, ring, type: d.type, weapon: d.weapon || null, x: d.x, z: d.z, active: true, respawn: 0, baseY: 1.1 });
     }
   }
 
@@ -1474,7 +1645,7 @@ export class Game {
       if (e.code === 'KeyR') this._reload();
       if (e.code === 'KeyH' && this.player && this.player.inVehicle) this.audio.play('horn');
       if (e.code === 'KeyL' && this.player && this.player.inVehicle) this._toggleVehicleLights();
-      if (e.code === 'Digit1' || e.code === 'Digit2' || e.code === 'Digit3') this._switchTo(e.code === 'Digit1' ? 'luiza' : e.code === 'Digit2' ? 'carlos' : 'caio');
+      if (e.code === 'Digit1' || e.code === 'Digit2') this._switchTo(e.code === 'Digit1' ? 'luiza' : 'carlos');
       if (['KeyW','KeyA','KeyS','KeyD','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','ShiftLeft','ShiftRight'].includes(e.code)) e.preventDefault();
     }, { passive: false });
 
@@ -1634,8 +1805,8 @@ export class Game {
   _dpadHTML(mini = false) {
     return `<div class="tpad-dpad${mini ? ' mini' : ''}">
       <button class="tpad-btn up" data-touch="dpad-up" data-label="MISSÕES" data-label-vehicle="MISSÕES" type="button" aria-label="Missões">▲</button>
-      <button class="tpad-btn left" data-touch="dpad-left" data-label="MARIA" data-label-vehicle="MARIA" type="button" aria-label="Jogar como Maria">◀</button>
-      <button class="tpad-btn right" data-touch="dpad-right" data-label="FELIPE" data-label-vehicle="FELIPE" type="button" aria-label="Jogar como Felipe">▶</button>
+      <button class="tpad-btn left" data-touch="dpad-left" data-label="ARMA ◀" data-label-vehicle="ARMA ◀" type="button" aria-label="Arma anterior">◀</button>
+      <button class="tpad-btn right" data-touch="dpad-right" data-label="ARMA ▶" data-label-vehicle="ARMA ▶" type="button" aria-label="Próxima arma">▶</button>
       <button class="tpad-btn down" data-touch="dpad-down" data-label="RECARREGAR" data-label-vehicle="BUZINA" type="button" aria-label="Recarregar">▼</button>
       <button class="tpad-btn center" data-touch="dpad-center" type="button" aria-label="Abrir mapa">▭</button>
     </div>`;
@@ -1679,7 +1850,7 @@ export class Game {
         <button class="tpad-btn tpad-mini" data-touch="fullscreen" type="button" aria-label="Tela cheia">⛶<small>TELA</small></button>
       </div>`),
       this._touchSlot('gta.r1r2', 93, 13, `<div class="tpad-shoulders">
-        <button class="tpad-btn tpad-shoulder" data-touch="sprint" data-label="CORRER" data-label-vehicle="TURBO" type="button"><b>R1</b><small>CORRE • TURBO</small></button>
+        <button class="tpad-btn tpad-shoulder" data-touch="sprint" data-label="CORRER" data-label-vehicle="ATIRAR" type="button"><b>R1</b><small>CORRE • ATIRA</small></button>
         <button class="tpad-btn tpad-shoulder trigger" data-touch="shoot" data-label="ATIRAR" data-label-vehicle="ACELERA" type="button"><b>R2</b><small>ACELERA • ATIRA</small></button>
       </div>`),
       this._touchSlot('gta.face', 87, 45, this._faceHTML()),
@@ -1702,7 +1873,7 @@ export class Game {
         <button class="tpad-btn tpad-shoulder trigger" data-touch="aim" data-label="MIRAR" data-label-vehicle="FREIA" type="button"><b>L2</b><small>MIRAR</small></button>
       </div>`),
       this._touchSlot('simple.r1r2', 94, 15, `<div class="tpad-shoulders">
-        <button class="tpad-btn tpad-shoulder" data-touch="sprint" data-label="CORRER" data-label-vehicle="TURBO" type="button"><b>R1</b><small>CORRER</small></button>
+        <button class="tpad-btn tpad-shoulder" data-touch="sprint" data-label="CORRER" data-label-vehicle="ATIRAR" type="button"><b>R1</b><small>CORRER</small></button>
         <button class="tpad-btn tpad-shoulder hold" data-touch="brake" type="button"><b>RÉ</b><small>FREIO</small></button>
         <button class="tpad-btn tpad-shoulder trigger" data-touch="shoot" data-label="ATIRAR" data-label-vehicle="ACELERA" type="button"><b>R2</b><small>ATIRAR</small></button>
       </div>`),
@@ -1723,7 +1894,7 @@ export class Game {
         <span class="guide-tag">2 · CÂMERA</span>
         ${this._stickHTML('right', 'CÂMERA — ARRASTE', true)}
         <span class="tpad-hand">☝</span>
-        <button class="tpad-btn tpad-shoulder hold tpad-guide-run" data-touch="sprint" data-label="CORRER" data-label-vehicle="TURBO" type="button"><b>CORRER</b><small>SEGURE</small></button>
+        <button class="tpad-btn tpad-shoulder hold tpad-guide-run" data-touch="sprint" data-label="CORRER" data-label-vehicle="ATIRAR" type="button"><b>CORRER</b><small>SEGURE</small></button>
       </div>`),
       this._touchSlot('simple.face', 91, 55, this._faceHTML(true)),
       this._simpleTipsHTML()
@@ -1867,7 +2038,7 @@ export class Game {
     if (!down) {
       if (action === 'aim') { this.input.aim = false; this.input.brake = false; }
       if (action === 'shoot') { this._stopTouchFire(); this.input.aim = false; this.input.throttle = false; }
-      if (action === 'sprint') { this.input.sprint = false; this.input.boost = false; }
+      if (action === 'sprint') { this._stopTouchFire(); this.input.sprint = false; this.input.boost = false; }
       if (action === 'brake') { this.input.brake = false; this.input.handbrake = false; }
       if (action === 'dodge') this.input.lookBack = false;
       if (action === 'jump') this.input.handbrake = false;
@@ -1891,7 +2062,16 @@ export class Game {
       return;
     }
     if (action === 'sprint') {
-      if (driving) { this.input.boost = true; this._haptic(10); return; }
+      if (driving) {
+        this.input.boost = true;
+        this._shootFromVehicle();
+        this._stopTouchFire();
+        this._touchFireTimer = setInterval(() => {
+          if (!this.paused && !this.dialogueActive && this.mode !== 'attract' && this.player && this.player.inVehicle) this._shootFromVehicle();
+        }, 150);
+        this._haptic(10);
+        return;
+      }
       this.input.sprint = true; this._haptic(6); return;
     }
     if (action === 'brake') {
@@ -1909,7 +2089,9 @@ export class Game {
     if (action === 'interact') { if (this._worldAction) this._runWorldAction(); else this._interact(); this._haptic(8); return; }
     if (action === 'melee' || action === 'cut') {
       if (driving) { this.audio.play('horn'); this._haptic(10); return; }
-      this._melee(); this._haptic(12);
+      if (this.input.aim || (p && p.aim)) this._reload();
+      else this._melee();
+      this._haptic(12);
       return;
     }
     if (action === 'jump') {
@@ -1918,7 +2100,7 @@ export class Game {
     }
     if (action === 'crouch') { this._toggleCrouch(); this._haptic(8); return; }
     if (action === 'switch') { this.openSwitch(); this._haptic(8); return; }
-    if (action === 'l3') { this._shoulderSwap(); this._haptic(6); return; }
+    if (action === 'l3') { if (driving) this.audio.play('horn'); else this._shoulderSwap(); this._haptic(6); return; }
     if (action === 'r3') { this._resetCamera(); this._haptic(6); return; }
     if (action === 'dpad-up') { this._quickMissions(); this._haptic(8); return; }
     if (action === 'dpad-down') {
@@ -1927,8 +2109,8 @@ export class Game {
       this._haptic(8);
       return;
     }
-    if (action === 'dpad-left') { this._switchTo('luiza'); this._haptic(8); return; }
-    if (action === 'dpad-right') { this._switchTo('carlos'); this._haptic(8); return; }
+    if (action === 'dpad-left') { this._cycleWeapon(-1); this._haptic(8); return; }
+    if (action === 'dpad-right') { this._cycleWeapon(1); this._haptic(8); return; }
     if (action === 'dpad-center') { this.openMap(); this._haptic(8); return; }
     if (action === 'create') { this._toggleTutorial(); this._haptic(6); return; }
     if (action === 'options') { this._openSettings(); this._haptic(6); return; }
@@ -2122,20 +2304,22 @@ export class Game {
       this.input.boost = pressed(5) && driving;
       this.input.lookBack = pressed(4) && driving;
       if (pressed(7) && !driving && this.player && this.player.fireCooldown <= 0) this._shoot();
+      // R1 dispara de dentro do veículo (drive-by), igual ao vídeo.
+      if (pressed(5) && driving) this._shootFromVehicle();
 
       if (edge(0)) this._jump();
-      if (edge(1)) this._interact();
-      if (edge(2)) this._melee();
-      if (edge(3)) this.openSwitch();
+      if (edge(3)) { if (this._worldAction) this._runWorldAction(); else this._interact(); }
+      if (edge(1)) this._toggleCrouch();
+      if (edge(2)) { if (this.input.aim || (this.player && this.player.aim)) this._reload(); else this._melee(); }
       if (edge(4) && !driving) this._dodge();
-      if (edge(10)) this._shoulderSwap();
+      if (edge(10)) { if (driving) this.audio.play('horn'); else this._shoulderSwap(); }
       if (edge(11)) this._resetCamera();
       if (edge(8)) this._toggleTutorial();
       if (edge(9)) this._openSettings();
       if (edge(12)) this._quickMissions();
       if (edge(13)) { if (driving) this.audio.play('horn'); else this._reload(); }
-      if (edge(14)) this._switchTo('luiza');
-      if (edge(15)) this._switchTo('carlos');
+      if (edge(14)) this._cycleWeapon(-1);
+      if (edge(15)) this._cycleWeapon(1);
     }
 
     if (this.dialogueActive && (edge(0) || edge(1) || edge(9))) this._advanceDialogue();
@@ -2328,8 +2512,8 @@ export class Game {
     this._elapsed = (this._elapsed || 0) + dt;
     this.clockMinutes = (this.clockMinutes + dt * 0.32) % 1440;
     this.world.update(dt, this.camera, this.player ? this.player.pos : null);
-    this._updatePlayer(dt);
     this._updateWorldAction();
+    this._updatePlayer(dt);
     this._updateVehicles(dt);
     this._updateTraffic(dt);
     this._updatePoliceCars(dt);
@@ -2718,6 +2902,9 @@ export class Game {
       else if (dist2(p.pos, LANDMARKS.garage) < 6) text = 'Reparar veículo';
       else if (dist2(p.pos, LANDMARKS.safehouse) < 6) text = 'Salvar na Apartamento Paulista';
     }
+    // Usa o mesmo resultado contextual que _updateWorldAction() para evitar
+    // prompts divergentes em lojas, portas, pickups e pessoas.
+    if (this._worldAction) text = this._worldAction.label;
     if (text) { txt.textContent = text; prompt.classList.remove('hidden'); }
     else prompt.classList.add('hidden');
   }
@@ -2748,6 +2935,7 @@ export class Game {
       if (v.type === 'ambulance') label = 'ENTRAR NA AMBULÂNCIA';
       if (v.type === 'truck') label = 'ENTRAR NO CAMINHÃO';
       if (v.type === 'bus') label = 'ENTRAR NO ÔNIBUS';
+      if (v.type === 'taxi') label = 'ENTRAR NO TÁXI';
       consider(d, max, { type: 'vehicle', vehicle: v, key: '△', label, x: v.pos.x, y: (v.isBoat ? 2.6 : 2.4), z: v.pos.z });
     }
     for (const n of this.npcs) {
@@ -2756,24 +2944,50 @@ export class Game {
     }
     for (const it of this.pickups) {
       if (!it.active) continue;
+      const wname = it.type === 'weapon' && it.weapon && WEAPON_PRESETS[it.weapon] ? WEAPON_PRESETS[it.weapon].name : '';
       consider(dist2(p.pos, { x: it.x, z: it.z }), 4, {
-        type: 'pickup', pickup: it, key: it.type === 'ammo' ? '□' : '△',
-        label: it.type === 'ammo' ? 'PEGAR ARMA / MUNIÇÃO' : it.type === 'cash' ? 'PEGAR DINHEIRO' : 'PEGAR ITEM',
+        type: 'pickup', pickup: it, key: it.type === 'ammo' || it.type === 'weapon' ? '□' : '△',
+        label: it.type === 'weapon' ? 'PEGAR ' + wname : it.type === 'ammo' ? 'PEGAR MUNIÇÃO' : it.type === 'cash' ? 'PEGAR DINHEIRO' : 'PEGAR ITEM',
         x: it.x, y: 2.4, z: it.z
       });
     }
     const shops = [
       [LANDMARKS.kiosk, 'COMPRAR LANCHE', 8], [LANDMARKS.shop, 'COMPRAR ROUPA', 8],
       [LANDMARKS.casino, 'COMPRAR FICHA', 8], [LANDMARKS.garage, 'REPARAR / ABASTECER', 7],
-      [LANDMARKS.hospital, 'COMPRAR KIT MÉDICO', 8], [LANDMARKS.oficina, 'COMPRAR PEÇA', 7]
+      [LANDMARKS.hospital, 'COMPRAR KIT MÉDICO', 8], [LANDMARKS.park, 'COMPRAR ÁGUA / LANCHE', 7]
     ];
     for (const [lm, label, max] of shops) {
       if (!lm) continue;
       consider(dist2(p.pos, lm), max, { type: 'shop', label, key: '○', x: lm.x, y: 3, z: lm.z, shop: label });
     }
     consider(dist2(p.pos, LANDMARKS.bank), 8, { type: 'atm', key: '✕', label: 'SACAR DINHEIRO', x: LANDMARKS.bank.x, y: 3, z: LANDMARKS.bank.z });
-    consider(dist2(p.pos, LANDMARKS.safehouse), 7, { type: 'save', key: '□', label: 'ABRIR PORTA / SALVAR', x: LANDMARKS.safehouse.x, y: 3, z: LANDMARKS.safehouse.z });
-    consider(dist2(p.pos, LANDMARKS.mansion), 8, { type: 'save', key: '□', label: 'ENTRAR NA MANSÃO', x: LANDMARKS.mansion.x, y: 3, z: LANDMARKS.mansion.z });
+    consider(dist2(p.pos, LANDMARKS.safehouse), 7, { type: 'save', key: '□', label: 'ABRIR PORTA / DORMIR', x: LANDMARKS.safehouse.x, y: 3, z: LANDMARKS.safehouse.z });
+    consider(dist2(p.pos, LANDMARKS.mansion), 8, { type: 'save', key: '□', label: 'ENTRAR NA MANSÃO / DORMIR', x: LANDMARKS.mansion.x, y: 3, z: LANDMARKS.mansion.z });
+
+    // Portas e pontos importantes do mapa: o prompt aparece no local real
+    // mesmo quando não existe um marcador de missão dedicado.
+    const doors = [
+      [LANDMARKS.delegacia, 'ENTRAR NA DELEGACIA'],
+      [LANDMARKS.warehouse, 'ABRIR O GALPÃO'],
+      [LANDMARKS.laje, 'SUBIR NA LAJE'],
+      [LANDMARKS.escola, 'ENTRAR NA ESCOLA DE TIRO'],
+      [LANDMARKS.feira, 'VISITAR A FEIRA']
+    ];
+    for (const [lm, label] of doors) {
+      if (!lm) continue;
+      consider(dist2(p.pos, lm), 7, { type: 'door', label, key: '△', x: lm.x, y: 3, z: lm.z, doorName: lm.name });
+    }
+
+    const locations = [
+      'marina', 'port', 'pier', 'favela', 'casino', 'monument', 'park', 'republica',
+      'mooca', 'pinheiros', 'tatuape', 'aeroporto', 'ponte', 'praia', 'praiao', 'ilha',
+      'iate', 'centro', 'morroRival'
+    ];
+    for (const id of locations) {
+      const lm = LANDMARKS[id];
+      if (!lm) continue;
+      consider(dist2(p.pos, lm), 6.5, { type: 'location', label: 'VISITAR ' + lm.name.toUpperCase(), key: '○', x: lm.x, y: 3, z: lm.z, locationName: lm.name });
+    }
     if (p.inVehicle) {
       const v = p.inVehicle;
       consider(0, 1, { type: 'exit', key: '✕', label: v.isBoat ? 'SAIR DA LANCHA' : 'SAIR DO VEÍCULO', x: v.pos.x, y: 2.4, z: v.pos.z });
@@ -2791,7 +3005,7 @@ export class Game {
     el.style.left = (rect.left + (proj.x * 0.5 + 0.5) * rect.width) + 'px';
     el.style.top = (rect.top + (-proj.y * 0.5 + 0.5) * rect.height) + 'px';
     el.classList.remove('hidden');
-    el.classList.toggle('near', best.dist < 2.6);
+    el.classList.toggle('near', best.dist < 3.8);
   }
 
   _runWorldAction() {
@@ -2809,6 +3023,16 @@ export class Game {
       return;
     }
     if (a.type === 'pickup') { this._collectPickup(a.pickup); return; }
+    if (a.type === 'door') {
+      this.notify('LOCAL', a.doorName + ' — acesso marcado no mapa.', '');
+      this.showSubtitle('PORTA', 'O acesso está fechado ou protegido.', 'The entrance is closed or guarded.', 3);
+      return;
+    }
+    if (a.type === 'location') {
+      this.notify('PONTO DE INTERESSE', a.locationName, '');
+      this.showSubtitle('LOCAL', a.locationName + ' foi marcado como ponto de interesse.', 'This location is now marked as a point of interest.', 3);
+      return;
+    }
     if (a.type === 'shop') { this._shopAction(a.shop); return; }
     if (a.type === 'atm') {
       if (p.money < 100) { this.notify('CAIXA ELETRÔNICO', 'Saldo insuficiente para sacar.', 'bad'); return; }
@@ -2818,7 +3042,7 @@ export class Game {
       this.audio.play('cash');
       return;
     }
-    if (a.type === 'save') { this.saveGame(); }
+    if (a.type === 'save') { this._sleepSave(); }
   }
 
   _collectPickup(it) {
@@ -2829,11 +3053,20 @@ export class Game {
     if (it.type === 'health') { p.health = Math.min(100, p.health + 35); this.notify('SAÚDE', '+35 de vida', 'good'); this.audio.play('pickup'); }
     if (it.type === 'armor') { p.armor = Math.min(100, p.armor + 35); this.notify('COLETE', '+35 de armadura', 'good'); this.audio.play('pickup'); }
     if (it.type === 'ammo') { p.weapon.reserve += 24; this.notify('MUNIÇÃO', '+24 balas', 'good'); this.audio.play('reload'); }
+    if (it.type === 'weapon' && it.weapon) {
+      this._unlockWeapon(it.weapon);
+      this._setWeapon(it.weapon);
+      this.notify('ARMA PEGA', WEAPON_PRESETS[it.weapon].name + ' • troque com ◀ ▶', 'good');
+      this.audio.play('pickup');
+    }
     this._updateMoneyHUD();
   }
 
   _shopAction(kind) {
     const p = this.player;
+    const vendorLine = 'E aí, vai levar?';
+    this.showSubtitle('VENDEDOR', vendorLine, 'So, are you taking it?', 3);
+    this._speakDialogue(vendorLine, 'VENDEDOR');
     const spend = (cost, apply) => {
       if (p.money < cost) { this.notify('LOJA', 'Falta dinheiro. Você tem R$ ' + Math.floor(p.money).toLocaleString('pt-BR') + '.', 'bad'); return; }
       p.money -= cost;
@@ -2932,7 +3165,7 @@ export class Game {
       return;
     }
     if (dist2(p.pos, LANDMARKS.safehouse) < 6) {
-      this.saveGame();
+      this._sleepSave();
       return;
     }
     const veh = this._nearestVehicle(4.2);
@@ -2960,6 +3193,7 @@ export class Game {
     p.inVehicle = v;
     v.occupiedBy = 'player';
     v.driver = 'player';
+    this._setVehicleDoor(v, true, 1.0);
     this.input.brake = false;
     this.input.throttle = false;
     this.input.handbrake = false;
@@ -2984,6 +3218,7 @@ export class Game {
     const v = p.inVehicle;
     v.driver = null; v.occupiedBy = null;
     v.speed = 0;
+    this._setVehicleDoor(v, true, 1.2);
     p.inVehicle = null;
     this.input.brake = false;
     this.input.throttle = false;
@@ -3093,6 +3328,62 @@ export class Game {
     this._updateHUD(0.016);
   }
 
+  _shootFromVehicle() {
+    const p = this.player;
+    const v = p && p.inVehicle;
+    if (!p || !v || this.dialogueActive || p.dead) return;
+    if (p.fireCooldown > 0) return;
+    if (p.weapon.mag <= 0) {
+      if (p.weapon.reserve > 0) {
+        const take = Math.min(p.weapon.magSize, p.weapon.reserve);
+        p.weapon.mag = take; p.weapon.reserve -= take;
+        this.audio.play('reload');
+      } else {
+        this.audio.play('reload');
+      }
+      return;
+    }
+    p.weapon.mag--;
+    p.fireCooldown = Math.max(0.1, p.weapon.fireRate * 1.15);
+    p.shots++;
+    this.audio.play('gun');
+    this._camShake = Math.max(this._camShake, 0.05);
+
+    const origin = new THREE.Vector3(v.pos.x, (v.pos.y || 0) + 1.35, v.pos.z);
+    const fwd = new THREE.Vector3(Math.sin(v.angle), 0, Math.cos(v.angle));
+    let best = null, bestScore = Infinity;
+    const consider = (e) => {
+      if (!e || e.dead) return;
+      const to = new THREE.Vector3(e.pos.x - origin.x, 0, e.pos.z - origin.z);
+      const d = to.length();
+      if (d > 48 || d < 1) return;
+      to.normalize();
+      const dot = to.dot(fwd);
+      if (dot < 0.1) return;
+      const score = d * (1.4 - dot);
+      if (score < bestScore) { bestScore = score; best = e; }
+    };
+    for (const e of this.enemies) consider(e);
+    for (const c of this.cops) consider(c);
+
+    const hitPoint = new THREE.Vector3();
+    if (best) {
+      hitPoint.copy(best.pos).add(new THREE.Vector3(0, 1.1, 0));
+      this._damageEnemy(best, p.weapon.damage, 'drive-by');
+      p.hits++;
+      this._hitmarker();
+      if (best.type === 'cop') this.addWanted(2);
+      else if (this.wanted > 0) this.addWanted(0.4);
+    } else {
+      hitPoint.copy(origin).addScaledVector(fwd, 42);
+      if (this.wanted === 0 && this.mode !== 'attract' && Math.random() < 0.25) this.addWanted(1);
+    }
+    const muzzle = origin.clone().addScaledVector(fwd, 1.2);
+    this._spawnTracer(muzzle, hitPoint, 0xffd06a);
+    this._spawnMuzzle(muzzle, fwd);
+    this._updateHUD(0.016);
+  }
+
   _damageEnemy(e, dmg, source) {
     if (e.dead) return;
     e.health -= dmg;
@@ -3176,13 +3467,16 @@ export class Game {
   }
 
   _spawnCop(x, z, opts = {}) {
-    const model = new CharacterModel('npc', { cop: true });
+    const army = !!opts.army;
+    const model = new CharacterModel('npc', { cop: !army, army });
     model.group.position.set(x, 0, z);
     model.setGun(true);
     this.scene.add(model.group);
     const c = {
-      type: 'cop', model, pos: new THREE.Vector3(x, 0, z), health: 70, maxHealth: 70,
-      dead: false, deadTimer: 0, fireTimer: rand(0.5, 1.4), speed: 3.9, yaw: 0
+      type: 'cop', army, model, pos: new THREE.Vector3(x, 0, z),
+      health: army ? 110 : 70, maxHealth: army ? 110 : 70,
+      dead: false, deadTimer: 0, fireTimer: rand(0.5, 1.4),
+      speed: army ? 4.3 : 3.9, yaw: 0
     };
     this.cops.push(c);
     return c;
@@ -3253,13 +3547,14 @@ export class Game {
       c.model.group.position.set(c.pos.x, this.world.groundHeight(c.pos.x, c.pos.z), c.pos.z);
       c.model.update(dt, d > 3.4 ? c.speed : 0, 'aim');
       c.fireTimer -= dt;
-      if (d < 30 && c.fireTimer <= 0 && !p.dead) {
-        c.fireTimer = rand(0.9, 1.7);
+      if (d < (c.army ? 40 : 30) && c.fireTimer <= 0 && !p.dead) {
+        c.fireTimer = c.army ? rand(0.5, 1.1) : rand(0.9, 1.7);
         const origin = new THREE.Vector3(c.pos.x, c.pos.y + 1.4, c.pos.z);
         const target = new THREE.Vector3(p.pos.x, p.pos.y + 1.2, p.pos.z);
-        this._spawnTracer(origin, target, 0x9fd8ff);
+        this._spawnTracer(origin, target, c.army ? 0xffcf5c : 0x9fd8ff);
         this.audio.play('gun');
-        if (Math.random() < clamp(0.7 - d / 55, 0.15, 0.6)) this._damagePlayer(rand(5, 10), 'polícia');
+        const chance = clamp((c.army ? 0.85 : 0.7) - d / 55, 0.15, c.army ? 0.82 : 0.6);
+        if (Math.random() < chance) this._damagePlayer(c.army ? rand(7, 14) : rand(5, 10), c.army ? 'exército' : 'polícia');
       }
     }
   }
@@ -3281,9 +3576,21 @@ export class Game {
       }
       v.mesh.position.set(v.pos.x, v.isBoat ? v.pos.y : 0, v.pos.z);
       v.mesh.rotation.y = v.angle;
+      if (v.isMoto) {
+        const targetPitch = v._wheelie ? -0.2 : 0;
+        v.mesh.rotation.x += (targetPitch - v.mesh.rotation.x) * Math.min(1, dt * 6);
+      }
       if (v.wheels && v.wheels.length) {
         const wr = v.speed * dt * 2.2;
         for (const w of v.wheels) w.rotation.x += wr;
+      }
+      if (v.doorTimer > 0) {
+        v.doorTimer -= dt;
+        if (v.doorTimer <= 0) v.doorTarget = 0;
+      }
+      v.doorOpen += (v.doorTarget - v.doorOpen) * Math.min(1, dt * 9);
+      for (const d of v.doors || []) {
+        if (!d.broken) d.pivot.rotation.y = -d.side * v.doorOpen * 1.05;
       }
       if (v.isPolice) {
         v.sirenPhase += dt * 8;
@@ -3486,17 +3793,36 @@ export class Game {
       n.flee = Math.max(0, n.flee - dt);
       n.talkCooldown = Math.max(0, n.talkCooldown - dt);
       const danger = n.flee > 0 || (p && (this.wanted > 1 || (p.aim && dist2(p.pos, n.pos) < 12)));
-      const speed = danger ? 4.6 : n.speed;
-      if (n.axis === 'x') n.pos.z += n.dir * speed * dt;
-      else n.pos.x += n.dir * speed * dt;
-      if (n.pos.z > 820 || n.pos.z < -820) n.dir *= -1;
-      if (n.pos.x > 520 || n.pos.x < -880) n.dir *= -1;
-      if (this.world.isWater(n.pos.x, n.pos.z)) n.pos.x = Math.min(n.pos.x, SHORE_X - 6);
-      const res = this.world.resolveCircle(n.pos.x, n.pos.z, 0.4);
-      n.pos.x = res.x; n.pos.z = res.z;
+      if (danger) {
+        n.flee = Math.max(n.flee, 1.2);
+        n.activity = 'walk';
+        n.activityTimer = 0;
+      } else {
+        n.activityTimer = Math.max(0, (n.activityTimer || 0) - dt);
+        if (n.activityTimer <= 0) {
+          if (n.anchor) {
+            n.activity = ['sit', 'eat', 'phone'][Math.floor(Math.random() * 3)];
+          } else {
+            const r = Math.random();
+            n.activity = r < 0.6 ? 'walk' : r < 0.78 ? 'eat' : r < 0.9 ? 'phone' : 'sit';
+          }
+          n.activityTimer = n.activity === 'walk' ? rand(5, 13) : rand(3, 7);
+        }
+      }
+      const stationary = !danger && n.activity !== 'walk';
+      const speed = danger ? 4.6 : stationary ? 0 : n.speed;
+      if (!stationary) {
+        if (n.axis === 'x') n.pos.z += n.dir * speed * dt;
+        else n.pos.x += n.dir * speed * dt;
+        if (n.pos.z > 820 || n.pos.z < -820) n.dir *= -1;
+        if (n.pos.x > 520 || n.pos.x < -880) n.dir *= -1;
+        if (this.world.isWater(n.pos.x, n.pos.z)) n.pos.x = Math.min(n.pos.x, SHORE_X - 6);
+        const res = this.world.resolveCircle(n.pos.x, n.pos.z, 0.4);
+        n.pos.x = res.x; n.pos.z = res.z;
+      }
       n.model.group.position.set(n.pos.x, this.world.groundHeight(n.pos.x, n.pos.z), n.pos.z);
       n.model.group.rotation.y = n.axis === 'x' ? (n.dir > 0 ? 0 : Math.PI) : (n.dir > 0 ? Math.PI / 2 : -Math.PI / 2);
-      n.model.update(dt, speed, danger ? 'idle' : 'idle');
+      n.model.update(dt, speed, danger ? 'idle' : stationary ? n.activity : 'idle');
     }
   }
 
@@ -3513,14 +3839,8 @@ export class Game {
       it.core.position.y = Math.sin((this._elapsed || 0) * 2 + it.x) * 0.16;
       it.ring.rotation.z += dt * 0.8;
       if (p.inVehicle) continue;
-      if (dist2(p.pos, { x: it.x, z: it.z }) < 2.2) {
-        it.active = false; it.g.visible = false; it.respawn = 35;
-        if (it.type === 'cash') { p.money += 250; this.notify('DINHEIRO', '+ R$ 250', 'good'); this.audio.play('cash'); }
-        if (it.type === 'health') { p.health = Math.min(100, p.health + 35); this.notify('SAÚDE', '+35 de vida', 'good'); this.audio.play('pickup'); }
-        if (it.type === 'armor') { p.armor = Math.min(100, p.armor + 35); this.notify('COLETE', '+35 de armadura', 'good'); this.audio.play('pickup'); }
-        if (it.type === 'ammo') { p.weapon.reserve += 24; this.notify('MUNIÇÃO', '+24 balas', 'good'); this.audio.play('reload'); }
-        this._updateMoneyHUD();
-      }
+      // Armas no chão exigem o botão contextual (□ PEGAR ARMA), igual ao vídeo.
+      if (it.type !== 'weapon' && dist2(p.pos, { x: it.x, z: it.z }) < 2.2) this._collectPickup(it);
     }
   }
 
@@ -3661,6 +3981,12 @@ export class Game {
     const def = MISSIONS.find(m => m.id === id);
     if (!def) return;
     if (this.mission) return;
+    const idx = MISSIONS.findIndex(m => m.id === id);
+    if (idx > 0 && !this.completed.has(id) && !this.completed.has(MISSIONS[idx - 1].id)) {
+      this.notify('MISSÃO BLOQUEADA', 'Conclua a missão ' + MISSIONS[idx - 1].num + ' primeiro.', 'bad');
+      this.audio.play('ui-back');
+      return;
+    }
     this.audio.init();
     this.mode = 'story';
     this.resultOpen = false;
@@ -3694,26 +4020,54 @@ export class Game {
     const p = this.player;
     if (!p || !def || !def.weapon || /nenhuma/i.test(def.weapon)) return;
     const table = [
-      [/fuzil|ak/i, { damage: 26, magSize: 30, reserve: 120, fireRate: 0.11, name: 'FUZIL AK-47' }],
-      [/escopeta/i, { damage: 70, magSize: 8, reserve: 32, fireRate: 0.75, name: 'ESCOPETA BR' }],
-      [/submetralhadora/i, { damage: 22, magSize: 32, reserve: 128, fireRate: 0.08, name: 'SUBMETRALHADORA' }],
-      [/sniper/i, { damage: 120, magSize: 5, reserve: 20, fireRate: 1.1, name: 'SNIPER .50' }],
-      [/granada/i, { damage: 90, magSize: 4, reserve: 8, fireRate: 1.2, name: 'LANÇADOR DE GRANADAS' }],
-      [/soco/i, { damage: 40, magSize: 1, reserve: 0, fireRate: 0.4, name: 'SOCO INGLÊS' }],
-      [/pistola/i, { damage: 34, magSize: 12, reserve: 48, fireRate: 0.26, name: 'PISTOLA .40' }]
+      [/fuzil|ak/i, 'FUZIL AK-47'],
+      [/escopeta/i, 'ESCOPETA BR'],
+      [/submetralhadora/i, 'SUBMETRALHADORA'],
+      [/sniper/i, 'SNIPER .50'],
+      [/granada/i, 'LANÇADOR DE GRANADAS'],
+      [/soco/i, 'SOCO INGLÊS'],
+      [/pistola/i, 'PISTOLA .40']
     ];
-    for (const [re, st] of table) {
+    for (const [re, key] of table) {
       if (re.test(def.weapon)) {
-        p.weapon.damage = st.damage;
-        p.weapon.magSize = st.magSize;
-        p.weapon.mag = st.magSize;
-        p.weapon.reserve = st.reserve;
-        p.weapon.fireRate = st.fireRate;
-        p.weapon.name = st.name;
-        this._mhWeaponName = st.name;
+        this._unlockWeapon(key);
+        this._setWeapon(key);
         break;
       }
     }
+  }
+
+  _unlockWeapon(key) {
+    const p = this.player;
+    if (!p || !WEAPON_PRESETS[key]) return;
+    p.weapons = p.weapons || ['PISTOLA .40'];
+    if (!p.weapons.includes(key)) p.weapons.push(key);
+  }
+
+  _setWeapon(key) {
+    const p = this.player;
+    const st = WEAPON_PRESETS[key];
+    if (!p || !st) return;
+    Object.assign(p.weapon, st, { mag: st.magSize, reserve: st.reserve });
+    p.reloading = 0;
+    this._mhWeaponName = st.name;
+    this._updateMoneyHUD();
+  }
+
+  _cycleWeapon(dir = 1) {
+    const p = this.player;
+    if (!p) return;
+    const list = (p.weapons && p.weapons.length ? p.weapons : ['PISTOLA .40']).filter(k => WEAPON_PRESETS[k]);
+    if (list.length < 2) {
+      this.notify('ARMAS', 'Ainda não há outra arma. Complete missões ou pegue armas no chão.', '');
+      return;
+    }
+    const current = list.findIndex(k => WEAPON_PRESETS[k].name === p.weapon.name);
+    const next = list[(current + dir + list.length) % list.length];
+    this._setWeapon(next);
+    this.notify('ARMA EQUIPADA', WEAPON_PRESETS[next].name + ' • ' + p.weapon.mag + '/' + p.weapon.reserve, 'good');
+    this.audio.play('reload');
+    this._haptic(8);
   }
 
   _showChapter(def) {
@@ -4169,6 +4523,8 @@ export class Game {
     if (!silent && n !== prev) {
       if (n > prev) this.audio.play('wanted');
       else if (n === 0) { this.audio.play('unwanted'); this._removePoliceCars(); }
+      if (n >= 4 && prev < 4) this.notify('EXÉRCITO NA CAÇADA', 'Nível 4: o Exército entrou. Fuja ou se esconda.', 'bad');
+      if (n >= 6 && prev < 6) this.notify('NÍVEL 6 • IMPOSSÍVEL FUGIR', 'Só se esconde quem some da vista da polícia.', 'bad');
     }
     if (n === 0) { this._removePoliceCars(); this._wantedEvade = 0; }
     if (n > 0 && n > prev) this._policeSpawnTimer = Math.min(this._policeSpawnTimer, 1.2);
@@ -4199,7 +4555,7 @@ export class Game {
       svg.classList.toggle('hot', i < n && n >= 5);
     });
     const label = $('wanted-label');
-    const names = ['LIMPO', 'PROCURADO', 'ATENÇÃO', 'ALERTA', 'PERSEGUIÇÃO', 'CAÇADA', 'MÁXIMO'];
+    const names = ['LIMPO', 'PROCURADO', 'ATENÇÃO', 'ALERTA', 'EXÉRCITO', 'CAÇADA TOTAL', 'IMPOSSÍVEL'];
     if (label) {
       label.textContent = names[n] || 'PROCURADO';
       label.classList.toggle('on', n > 0);
@@ -4210,11 +4566,13 @@ export class Game {
     const p = this.player;
     if (!p || this.wanted <= 0) return;
     const sinceCrime = (this._elapsed || 0) - (this._lastCrime || 0);
-    const copNear = this.cops.some(c => !c.dead && dist2(c.pos, p.pos) < 70) ||
-      this.vehicles.some(v => v.isPolice && !v.destroyed && dist2(v.pos, p.pos) < 75);
-    if (sinceCrime > 9 && !copNear) {
+    const copNear = this.cops.some(c => !c.dead && dist2(c.pos, p.pos) < (this.wanted >= 6 ? 90 : 70)) ||
+      this.vehicles.some(v => v.isPolice && !v.destroyed && dist2(v.pos, p.pos) < (this.wanted >= 6 ? 95 : 75));
+    const evadeDelay = this.wanted >= 6 ? 15 : 9;
+    const evadeTime = this.wanted >= 6 ? 16 : 11;
+    if (sinceCrime > evadeDelay && !copNear) {
       this._wantedEvade += dt;
-      if (this._wantedEvade > 11) {
+      if (this._wantedEvade > evadeTime) {
         this._wantedEvade = 0;
         this.setWanted(this.wanted - 1, true);
         if (this.wanted === 0) {
@@ -4229,15 +4587,46 @@ export class Game {
     this._policeSpawnTimer -= dt;
     if (this._policeSpawnTimer <= 0) {
       this._policeSpawnTimer = Math.max(2.5, 7 - this.wanted * 0.7);
+      // Nível 1: policiais a pé. Nível 2+: viaturas. Nível 3+: helicóptero.
+      // Nível 4+: Exército. Nível 5/6: tudo junto, fuga quase impossível.
       const cars = this.vehicles.filter(v => v.isPolice && !v.destroyed).length;
-      const wantCars = Math.min(6, this.wanted + 1);
+      const wantCars = this.wanted <= 1 ? 0 : Math.min(6, this.wanted + 1);
       if (cars < wantCars) this._spawnPoliceCar();
-      if (this.wanted >= 3 && this.cops.length < this.wanted) {
+      const footCops = this.cops.filter(c => !c.army && !c.dead).length;
+      if (footCops < Math.min(5, this.wanted + 1)) {
         const a = Math.random() * Math.PI * 2;
-        this._spawnCop(p.pos.x + Math.cos(a) * rand(32, 55), p.pos.z + Math.sin(a) * rand(32, 55));
+        this._spawnCop(
+          clamp(p.pos.x + Math.cos(a) * rand(24, 46), WORLD_BOUNDS.minX, WORLD_BOUNDS.maxX),
+          clamp(p.pos.z + Math.sin(a) * rand(24, 46), WORLD_BOUNDS.minZ, WORLD_BOUNDS.maxZ)
+        );
       }
       if (this.wanted >= 3 && !this.vehicles.some(v => v.isPolice && v.isHeli && !v.destroyed)) {
         this._spawnPoliceHeli();
+      }
+      if (this.wanted >= 4) {
+        if (!this.vehicles.some(v => v._army && !v.destroyed)) {
+          const a = Math.random() * Math.PI * 2;
+          const truck = this._makeVehicle({
+            x: clamp(p.pos.x + Math.cos(a) * 80, WORLD_BOUNDS.minX, WORLD_BOUNDS.maxX),
+            z: clamp(p.pos.z + Math.sin(a) * 80, WORLD_BOUNDS.minZ, WORLD_BOUNDS.maxZ),
+            type: 'truck', color: 0x43502f, name: 'CAMINHÃO DO EXÉRCITO', driver: 'police'
+          });
+          truck.isPolice = true;
+          truck._army = true;
+          truck.health = 200; truck.maxHealth = 200;
+          truck.ai = { stuck: 0 };
+          this.notify('EXÉRCITO', 'Caminhão do Exército na área. Não fique parado.', 'bad');
+        }
+        const army = this.cops.filter(c => c.army && !c.dead).length;
+        const wantArmy = this.wanted >= 6 ? 4 : this.wanted >= 5 ? 3 : 2;
+        if (army < wantArmy) {
+          const a = Math.random() * Math.PI * 2;
+          this._spawnCop(
+            clamp(p.pos.x + Math.cos(a) * rand(26, 45), WORLD_BOUNDS.minX, WORLD_BOUNDS.maxX),
+            clamp(p.pos.z + Math.sin(a) * rand(26, 45), WORLD_BOUNDS.minZ, WORLD_BOUNDS.maxZ),
+            { army: true }
+          );
+        }
       }
     }
   }
@@ -4272,7 +4661,11 @@ export class Game {
   }
 
   _removePoliceCars() {
-    for (const v of [...this.vehicles]) if (v.isPolice) this._removeVehicle(v);
+    for (const v of [...this.vehicles]) {
+      if (!v.isPolice) continue;
+      // Preserva viaturas estacionadas no mapa; remove só as que estão caçando.
+      if (v.driver === 'police' || v.ai) this._removeVehicle(v);
+    }
   }
 
   _clearPolice() {
@@ -4558,7 +4951,7 @@ export class Game {
         this._mhKmh = kmh;
         const sv = $('mh-speed-val'); if (sv) sv.textContent = kmh;
         const arc = $('mh-speed-arc');
-        if (arc) arc.style.strokeDashoffset = String(207 - clamp(kmh / 220, 0, 1) * 207);
+        if (arc) arc.style.strokeDashoffset = String(207 - clamp(kmh / 320, 0, 1) * 207);
       }
       if (this._mhVehicleName !== veh.name) {
         this._mhVehicleName = veh.name;
@@ -4632,9 +5025,15 @@ export class Game {
         const kmh = Math.round(Math.abs(v.speed) * 3.6);
         const sv = $('speedo-val'); if (sv) sv.textContent = kmh;
         const arc = $('speedo-arc');
-        if (arc) arc.style.strokeDashoffset = String(314 - clamp(kmh / 220, 0, 1) * 314);
+        if (arc) arc.style.strokeDashoffset = String(314 - clamp(kmh / 320, 0, 1) * 314);
         const vn = $('vehicle-name'); if (vn) vn.textContent = v.name;
         const vg = $('vehicle-gear'); if (vg) vg.textContent = v.speed < -0.5 ? 'R' : v.speed < 0.5 ? 'N' : 'D';
+        const fuel = clamp(Math.round(v.fuel ?? 100), 0, 100);
+        const fb = $('fuel-bar'); if (fb) fb.style.width = fuel + '%';
+        const fv = $('fuel-val'); if (fv) fv.textContent = fuel;
+        const vh = clamp(Math.round(v.health ?? 100), 0, 100);
+        const vhb = $('vehicle-health-bar'); if (vhb) vhb.style.width = vh + '%';
+        const vhv = $('vehicle-health-val'); if (vhv) vhv.textContent = vh;
       }
     }
 
@@ -4869,6 +5268,13 @@ export class Game {
       if (m.userData.kind === 'rp') diamond(m.position.x, m.position.z, '#2ee6c8', 5);
       if (m.userData.kind === 'garage') diamond(m.position.x, m.position.z, '#b58cff', 4);
     }
+    const poi = [
+      [LANDMARKS.shop, '#ff7a66'], [LANDMARKS.bank, '#ffd166'], [LANDMARKS.hospital, '#7bd389'],
+      [LANDMARKS.garage, '#b58cff'], [LANDMARKS.safehouse, '#2ee6c8'], [LANDMARKS.mansion, '#ffcf5c'],
+      [LANDMARKS.aeroporto, '#5cc8ff'], [LANDMARKS.delegacia, '#9fd8ff'], [LANDMARKS.kiosk, '#ffb347']
+    ];
+    for (const [lm, color] of poi) if (lm) dot(lm.x, lm.z, color, 3, false);
+    for (const v of this.vehicles) if (!v.destroyed && !v.traffic && !v.isPolice) dot(v.pos.x, v.pos.z, '#eaf7f4', 2.5, false);
     for (const v of this.vehicles) if (v.isPolice && !v.destroyed) dot(v.pos.x, v.pos.z, '#5cc8ff', 4);
     for (const c of this.cops) if (!c.dead) dot(c.pos.x, c.pos.z, '#5cc8ff', 4);
     if (this._targetCar) dot(this._targetCar.pos.x, this._targetCar.pos.z, '#ff8a5c', 6);
@@ -5040,7 +5446,15 @@ export class Game {
       if (m.userData.kind === 'rp') dot(m.position.x, m.position.z, '#2ee6c8', 7);
       if (m.userData.kind === 'garage') dot(m.position.x, m.position.z, '#b58cff', 6);
     }
+    const mapPoi = [
+      [LANDMARKS.shop, '#ff7a66'], [LANDMARKS.bank, '#ffd166'], [LANDMARKS.hospital, '#7bd389'],
+      [LANDMARKS.garage, '#b58cff'], [LANDMARKS.safehouse, '#2ee6c8'], [LANDMARKS.mansion, '#ffcf5c'],
+      [LANDMARKS.aeroporto, '#5cc8ff'], [LANDMARKS.delegacia, '#9fd8ff'], [LANDMARKS.kiosk, '#ffb347'],
+      [LANDMARKS.port, '#9aa7a3'], [LANDMARKS.praia, '#5cc8ff'], [LANDMARKS.favela, '#d7826d']
+    ];
+    for (const [lm, color] of mapPoi) if (lm) dot(lm.x, lm.z, color, 7);
     if (this._objectivePos) dot(this._objectivePos.x, this._objectivePos.z, '#ffc46b', 9);
+    for (const v of this.vehicles) if (!v.destroyed && !v.traffic && !v.isPolice) dot(v.pos.x, v.pos.z, '#eaf7f4', 5);
     for (const v of this.vehicles) if (v.isPolice && !v.destroyed) dot(v.pos.x, v.pos.z, '#5cc8ff', 6);
     ctx.restore();
 
@@ -5193,6 +5607,19 @@ export class Game {
     this.paused = false;
     this.resultOpen = false;
     document.body.classList.remove('dialogue-open');
+  }
+
+  _sleepSave() {
+    const p = this.player;
+    if (!p) return;
+    this.clockMinutes = 7 * 60;
+    p.health = 100;
+    p.armor = Math.max(p.armor || 0, 40);
+    p.hunger = 100;
+    p.stamina = 100;
+    p.breath = 100;
+    this.notify('DORMIR NA CAMA', 'Caio dormiu até as 07:00. Vida, fome e stamina restauradas.', 'good');
+    this.saveGame();
   }
 
   saveGame() {

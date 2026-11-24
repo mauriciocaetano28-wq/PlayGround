@@ -23,7 +23,8 @@ const CARS = {
   moto: 'Moto CG 160', motoSport: 'Moto XRE 300', sedan: 'Gol G5', hatch: 'Uno Attractive',
   sports: 'Ferrari 488', luxury: 'Lamborghini Urus', suv: 'Troller 4x4', pickup: 'Hilux',
   heli: 'Helicóptero Águia', boat: 'Lancha Bela Vista', jetski: 'Jetski Turbo',
-  police: 'Viatura da PM', ambulance: 'Ambulância', truck: 'Caminhão Scania', bus: 'Ônibus SP'
+  taxi: 'Táxi SP', hatch: 'Uno Attractive', bus: 'Ônibus SP',
+  police: 'Viatura da PM', ambulance: 'Ambulância', truck: 'Caminhão Scania'
 };
 const WEAPONS = ['Nenhuma', 'Pistola .40', 'Soco inglês', 'Fuzil AK-47', 'Escopeta', 'Submetralhadora', 'Sniper', 'Lançador de granadas'];
 
@@ -146,8 +147,16 @@ const SPECS = [
 
 const TIMES = ['06:10', '08:25', '10:40', '12:15', '14:30', '16:45', '18:42', '20:05', '22:30', '23:50'];
 
+const LOCATION_ALIASES = {
+  porto: 'port',
+  oficina: 'garage',
+  oficinaMecanica: 'garage',
+  mecanica: 'garage'
+};
 function mapKey(key) {
-  return LANDMARKS[key] ? key : 'favela';
+  if (LANDMARKS[key]) return key;
+  if (LOCATION_ALIASES[key] && LANDMARKS[LOCATION_ALIASES[key]]) return LOCATION_ALIASES[key];
+  return 'favela';
 }
 function posOf(key) {
   return LANDMARKS[mapKey(key)];
@@ -170,11 +179,14 @@ function storyFor(m) {
     guerra: `São Paulo virou campo de guerra. ${villain} reuniu todo mundo para o confronto final.`,
     final: `A cidade inteira prende a respiração. O Chefão Final desceu na cobertura e quer tudo ou nada.`
   }[m.category];
+  const objective = String(m.objective || 'avance pela cidade');
+  const carName = String(m.car || 'carro popular');
+  const weaponName = String(m.weapon || 'pistola');
   return [
     first,
-    `${friend} avisa que ${m.objective.toLowerCase()} e que o caminho até ${end} está vigiado.`,
-    `Caio responde: "Então a gente vai de ${m.car.toLowerCase()}. Se der errado, a gente improvisa."`,
-    `${villain} manda recado: se Caio cruzar a linha, a resposta vem com ${m.weapon.toLowerCase()}.`,
+    `${friend} avisa que ${objective.toLowerCase()} e que o caminho até ${end} está vigiado.`,
+    `Caio responde: "Então a gente vai de ${carName.toLowerCase()}. Se der errado, a gente improvisa."`,
+    `${villain} manda recado: se Caio cruzar a linha, a resposta vem com ${weaponName.toLowerCase()}.`,
     `Dando certo, Caio embolsa R$ ${m.reward.toLocaleString('pt-BR')} e sobe mais um degrau na ${cat.toLowerCase()}.`
   ];
 }
@@ -290,7 +302,7 @@ function makeSteps(m) {
 
 export const MISSIONS = SPECS.map(([num, title, category, startKey, endKey, reward, car, weapon, objective, opts]) => {
   const base = {
-    id: 'm' + num, num, title, category, char: 'caio',
+    id: 'm' + num, num, title, category, char: 'luiza',
     location: locName(startKey).toUpperCase(),
     time: TIMES[num % TIMES.length],
     start: posOf(startKey),
